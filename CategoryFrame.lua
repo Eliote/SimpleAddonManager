@@ -54,7 +54,7 @@ frame.CategoryFrame = CreateFrame("Frame", nil, frame)
 frame.CategoryFrame:SetPoint("TOPLEFT", frame.ScrollFrame, "TOPRIGHT", 20, 30)
 frame.CategoryFrame:SetPoint("BOTTOMRIGHT", 0, 30)
 
-frame.CategoryFrame.NewButton = CreateFrame("Button", nil, frame.CategoryFrame, "OptionsButtonTemplate")
+frame.CategoryFrame.NewButton = CreateFrame("Button", nil, frame.CategoryFrame, "UIPanelButtonTemplate")
 frame.CategoryFrame.NewButton:SetPoint("TOP", 0, 0)
 frame.CategoryFrame.NewButton:SetSize(frame.CATEGORY_SIZE_W - 50, 22)
 frame.CategoryFrame.NewButton:SetText("New Category")
