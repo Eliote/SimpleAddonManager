@@ -1,0 +1,17 @@
+## Interface: 80300
+## Title: ElioteAddonList
+## Notes: AddOns list with more options
+## Author: Eliote
+## Version: @project-version@
+## SavedVariables: ElioteAddonListDB
+
+Libs\LibStub\LibStub.lua
+Libs\ElioteDropDownMenu-1.0\ElioteDropDownMenu-1.0.lua
+
+Templates\AddonItem.xml
+Templates\CategoryItem.xml
+
+Core.lua
+MainFrame.lua
+AddonListFrame.lua
+CategoryFrame.lua
