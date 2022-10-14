@@ -72,7 +72,7 @@ frame:SetScript("OnShow", function()
 
 	local db = frame:GetDb()
 	if (db.config.autofocusSearch) then
-		frame.SearchBox:Focus()
+		frame.SearchBox:SetFocus()
 	end
 end)
 
