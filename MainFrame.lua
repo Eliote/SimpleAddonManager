@@ -194,6 +194,14 @@ local function ConfigDropDownCreate()
 				db.config.autofocusSearch = not db.config.autofocusSearch
 			end,
 		},
+		{
+			text = "Show versions",
+			checked = db.config.showVersions ~= false,
+			func = function()
+				db.config.showVersions = not db.config.showVersions
+				frame:Update()
+			end,
+		},
 		separatorInfo,
 		{
 			text = "Sort",

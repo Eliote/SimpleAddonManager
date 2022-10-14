@@ -95,7 +95,9 @@ local function AddonButtonOnLeave()
 end
 
 local function ShouldColorStatus(enabled, loaded, reason)
-	if (reason == "DEP_DEMAND_LOADED" or reason == "DEMAND_LOADED") then return false end
+	if (reason == "DEP_DEMAND_LOADED" or reason == "DEMAND_LOADED") then
+		return false
+	end
 	return (enabled and not loaded) or
 			(enabled and loaded and reason == "INTERFACE_VERSION")
 end
@@ -120,8 +122,16 @@ local function UpdateList()
 			local _, title, _, loadable, reason = GetAddOnInfo(addonIndex)
 			local loaded = IsAddOnLoaded(addonIndex)
 			local enabled = frame:IsAddonSelected(addonIndex)
+			local version = ""
 
-			button.Name:SetText(title)
+			-- nil is true
+			if (frame:GetDb().config.showVersions ~= false) then
+				version = GetAddOnMetadata(addonIndex, "Version")
+				version = (version and " |cff808080(" .. version .. ")|r") or ""
+			end
+
+			button.Name:SetText(title .. version)
+
 			if (loadable or (enabled and (reason == "DEP_DEMAND_LOADED" or reason == "DEMAND_LOADED"))) then
 				button.Name:SetTextColor(1.0, 0.78, 0.0);
 			elseif enabled then
