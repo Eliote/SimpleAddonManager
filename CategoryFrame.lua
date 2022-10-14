@@ -208,6 +208,18 @@ local function OnSizeChangedScrollFrame(self)
 	self:GetParent().update()
 end
 
+local function SetAll(self)
+	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+	local user, toc = frame:GetCategoryTables()
+	for name, _ in pairs(user) do
+		frame.CategoryFrame.ScrollFrame.selectedItems[name] = self.value
+	end
+	for name, _ in pairs(toc) do
+		frame.CategoryFrame.ScrollFrame.selectedItems[name] = self.value
+	end
+	frame:Update()
+end
+
 function frame:GetCategoryTable(name)
 	local userCategory, tocCategory = self:GetCategoryTables()
 	return userCategory[name], tocCategory[name]
@@ -226,17 +238,31 @@ end
 
 function frame:CreateCategoryFrame()
 	self.CategoryFrame = CreateFrame("Frame", nil, self)
-	self.CategoryFrame:SetPoint("TOPLEFT", self.ScrollFrame, "TOPRIGHT", 20, 30)
+	self.CategoryFrame:SetPoint("TOPLEFT", self.ScrollFrame, "TOPRIGHT", 20, 0)
 	self.CategoryFrame:SetPoint("BOTTOMRIGHT", 0, 30)
 
 	self.CategoryFrame.NewButton = CreateFrame("Button", nil, self.CategoryFrame, "UIPanelButtonTemplate")
-	self.CategoryFrame.NewButton:SetPoint("TOP", 0, 0)
-	self.CategoryFrame.NewButton:SetSize(self.CATEGORY_SIZE_W - 50, 22)
+	self.CategoryFrame.NewButton:SetPoint("TOP", 0, 43)
+	self.CategoryFrame.NewButton:SetSize(self.CATEGORY_SIZE_W - 50, 20)
 	self.CategoryFrame.NewButton:SetText("New Category")
 	self.CategoryFrame.NewButton:SetScript("OnClick", OnClickNewButton)
 
+	self.CategoryFrame.SelectAllButton = CreateFrame("Button", nil, self.CategoryFrame, "UIPanelButtonTemplate")
+	self.CategoryFrame.SelectAllButton:SetPoint("TOPLEFT", 8, 23)
+	self.CategoryFrame.SelectAllButton:SetSize((self.CATEGORY_SIZE_W / 2) - 4, 20)
+	self.CategoryFrame.SelectAllButton:SetText("Select All")
+	self.CategoryFrame.SelectAllButton:SetScript("OnClick", SetAll)
+	self.CategoryFrame.SelectAllButton.value = true
+
+	self.CategoryFrame.ClearSelectionButton = CreateFrame("Button", nil, self.CategoryFrame, "UIPanelButtonTemplate")
+	self.CategoryFrame.ClearSelectionButton:SetPoint("TOPRIGHT", -8, 23)
+	self.CategoryFrame.ClearSelectionButton:SetSize((self.CATEGORY_SIZE_W / 2) - 4, 20)
+	self.CategoryFrame.ClearSelectionButton:SetText("Select None")
+	self.CategoryFrame.ClearSelectionButton:SetScript("OnClick", SetAll)
+	self.CategoryFrame.ClearSelectionButton.value = nil
+
 	self.CategoryFrame.ScrollFrame = CreateFrame("ScrollFrame", nil, self.CategoryFrame, "HybridScrollFrameTemplate")
-	self.CategoryFrame.ScrollFrame:SetPoint("TOPLEFT", 0, -30)
+	self.CategoryFrame.ScrollFrame:SetPoint("TOPLEFT", 0, 0)
 	self.CategoryFrame.ScrollFrame:SetPoint("BOTTOMRIGHT", -30, 0)
 	self.CategoryFrame.ScrollFrame.selectedItems = {}
 	self.CategoryFrame.ScrollFrame.update = UpdateCategoryList
