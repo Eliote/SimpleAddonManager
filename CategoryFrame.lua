@@ -98,8 +98,8 @@ local function CategoryButtonOnEnter(self)
 	local name = self.categoryName
 	local userTable, tocTable = frame:GetCategoryTable(name)
 	GameTooltip:ClearLines();
-	GameTooltip:SetOwner(frame, "ANCHOR_NONE")
-	GameTooltip:SetPoint("TOPLEFT", frame, "TOPRIGHT")
+	GameTooltip:SetOwner(self, "ANCHOR_NONE")
+	GameTooltip:SetPoint("LEFT", self, "RIGHT")
 	GameTooltip:AddLine(name, 1, 1, 1);
 	if (not userTable) then
 		GameTooltip:AddLine("Category created from addon metadata");

@@ -73,8 +73,8 @@ local function AddonButtonOnEnter(self)
 	local name, title, notes, _, _, security = GetAddOnInfo(self.addonIndex)
 
 	GameTooltip:ClearLines();
-	GameTooltip:SetOwner(frame, "ANCHOR_NONE")
-	GameTooltip:SetPoint("TOPLEFT", frame, "TOPRIGHT")
+	GameTooltip:SetOwner(self, "ANCHOR_NONE")
+	GameTooltip:SetPoint("LEFT", self, "RIGHT")
 	if (security == "BANNED") then
 		GameTooltip:SetText(ADDON_BANNED_TOOLTIP);
 	else
