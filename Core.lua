@@ -68,7 +68,6 @@ end
 frame:SetScript("OnShow", function()
 	frame:Initialize()
 	frame:Update()
-	frame.ForceLoadCheck:SetChecked(not IsAddonVersionCheckEnabled())
 	frame:SetCategoryVisibility(frame:GetDb().isCategoryFrameVisible, false)
 
 	local db = frame:GetDb()
