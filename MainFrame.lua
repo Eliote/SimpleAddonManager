@@ -349,6 +349,8 @@ function frame:CreateMainFrame()
 		self:StopMovingOrSizing()
 	end)
 
+	frame.TitleText:SetText(ADDON_LIST)
+
 	frame.Sizer = CreateFrame("Button", nil, frame, "PanelResizeButtonTemplate")
 	frame.Sizer:SetScript("OnMouseDown", function()
 		frame:StartSizing("BOTTOMRIGHT", true)
