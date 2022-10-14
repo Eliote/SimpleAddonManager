@@ -66,13 +66,25 @@ function frame:Update()
 end
 
 frame:SetScript("OnShow", function()
-	frame:CreateMainFrame()
-	frame:CreateAddonListFrame()
-	frame:CreateCategoryFrame()
+	frame:Initialize()
 	frame:Update()
 	frame.ForceLoadCheck:SetChecked(not IsAddonVersionCheckEnabled())
 	frame:SetCategoryVisibility(frame:GetDb().isCategoryFrameVisible, false)
+
+	local db = frame:GetDb()
+	if (db.config.autofocusSearch) then
+		frame.SearchBox:Focus()
+	end
 end)
+
+function frame:Initialize()
+	if (frame.initialized) then return end
+
+	frame:CreateMainFrame()
+	frame:CreateAddonListFrame()
+	frame:CreateCategoryFrame()
+	frame.initialized = true
+end
 
 function frame:TableKeysToSortedList(...)
 	local list = {}
@@ -101,6 +113,7 @@ function frame:ADDON_LOADED(name)
 	ElioteAddonListDB = ElioteAddonListDB or {}
 	ElioteAddonListDB.sets = ElioteAddonListDB.sets or {}
 	ElioteAddonListDB.categories = ElioteAddonListDB.categories or {}
+	ElioteAddonListDB.config = ElioteAddonListDB.config or {}
 
 	self:UnregisterEvent("ADDON_LOADED")
 	self:Show()

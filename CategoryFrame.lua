@@ -188,15 +188,14 @@ end
 
 local categoryTocTable = {}
 
-local function InitializeCategories()
-	categoryTocTable = BuildCategoryTableFromToc()
-	frame.CategoryFrame.ScrollFrame.updateDb()
-end
-
 local function UpdateListVariables()
 	local db = frame:GetDb()
 	db.categories = db.categories or {}
-	categoryTocTable = BuildCategoryTableFromToc()
+	if (db.config.hideTocCategories) then
+		categoryTocTable = {}
+	else
+		categoryTocTable = BuildCategoryTableFromToc()
+	end
 	local categoriesList = frame:TableKeysToSortedList(db.categories, categoryTocTable)
 	frame.CategoryFrame.ScrollFrame.sortedItemsList = categoriesList
 end
@@ -274,7 +273,7 @@ function frame:CreateCategoryFrame()
 	self.CategoryFrame.ScrollFrame.ScrollBar:SetScript("OnSizeChanged", OnSizeChangedScrollFrame)
 	self.CategoryFrame.ScrollFrame.ScrollBar.doNotHide = true
 
-	InitializeCategories()
+	UpdateListVariables()
 
 	HybridScrollFrame_CreateButtons(self.CategoryFrame.ScrollFrame, "ElioteAddonCategoryItem")
 end
