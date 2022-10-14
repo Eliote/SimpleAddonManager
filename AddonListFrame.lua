@@ -94,6 +94,12 @@ local function AddonButtonOnLeave()
 	GameTooltip:Hide()
 end
 
+local function ShouldColorStatus(enabled, loaded, reason)
+	if (reason == "DEP_DEMAND_LOADED" or reason == "DEMAND_LOADED") then return false end
+	return (enabled and not loaded) or
+			(enabled and loaded and reason == "INTERFACE_VERSION")
+end
+
 local function UpdateList()
 	local buttons = HybridScrollFrame_GetButtons(frame.ScrollFrame);
 	local offset = HybridScrollFrame_GetOffset(frame.ScrollFrame);
@@ -127,7 +133,7 @@ local function UpdateList()
 			button.addonIndex = addonIndex
 			button.Status:SetTextColor(0.5, 0.5, 0.5);
 			button.Status:SetText((not loadable and reason and _G["ADDON_" .. reason]) or "")
-			if (enabled and not loaded) or (enabled and loaded and reason == "INTERFACE_VERSION") then
+			if (ShouldColorStatus(enabled, loaded, reason)) then
 				button.Status:SetTextColor(1.0, 0.1, 0.1);
 				if (reason == nil) then
 					button.Status:SetText(REQUIRES_RELOAD)
