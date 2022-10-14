@@ -112,6 +112,7 @@ local function UpdateList()
 		if relativeButtonIndex <= count then
 			local addonIndex = addons[relativeButtonIndex].index
 			local _, title, _, loadable, reason = GetAddOnInfo(addonIndex)
+			local loaded = IsAddOnLoaded(addonIndex)
 			local enabled = frame:IsAddonSelected(addonIndex)
 
 			button.Name:SetText(title)
@@ -124,8 +125,14 @@ local function UpdateList()
 			end
 
 			button.addonIndex = addonIndex
-			button.Status:SetText((not loadable and reason and _G["ADDON_" .. reason]) or "")
 			button.Status:SetTextColor(0.5, 0.5, 0.5);
+			button.Status:SetText((not loadable and reason and _G["ADDON_" .. reason]) or "")
+			if (enabled and not loaded) or (enabled and loaded and reason == "INTERFACE_VERSION") then
+				button.Status:SetTextColor(1.0, 0.1, 0.1);
+				if (reason == nil) then
+					button.Status:SetText(REQUIRES_RELOAD)
+				end
+			end
 
 			button.EnabledButton:SetChecked(enabled)
 			button.EnabledButton:SetScript("OnClick", ToggleAddon)
