@@ -33,17 +33,17 @@ function frame:ShowDialog(text, hasEditBox, func)
 end
 
 function frame:ShowInputDialog(text, func)
-	frame:ShowDialog(text, true, function(self)
+	self:ShowDialog(text, true, function(self)
 		func(self.editBox:GetText())
 	end)
 end
 
 function frame:ShowConfirmDialog(text, func)
-	frame:ShowDialog(text, false, func)
+	self:ShowDialog(text, false, func)
 end
 
 function frame:IsAddonSelected(index)
-	local character = frame:GetCharacter()
+	local character = self:GetCharacter()
 	if (character == true) then
 		character = nil;
 	end
@@ -60,24 +60,24 @@ function frame:SetCharacter(value)
 end
 
 function frame:Update()
-	frame.CategoryFrame.ScrollFrame.updateDb()
-	frame.CategoryFrame.ScrollFrame.update()
-	frame:UpdateListFilters()
+	self.CategoryFrame.ScrollFrame.updateDb()
+	self.CategoryFrame.ScrollFrame.update()
+	self:UpdateListFilters()
 end
 
 frame:SetScript("OnShow", function()
+	frame:CreateMainFrame()
+	frame:CreateAddonListFrame()
+	frame:CreateCategoryFrame()
+	frame:Update()
 	frame.ForceLoadCheck:SetChecked(not IsAddonVersionCheckEnabled())
-	local db = frame:GetDb()
-	frame:SetCategoryVisibility(db.isCategoryFrameVisible, false)
-	frame.CategoryFrame.ScrollFrame.updateDb()
-	frame.CategoryFrame.ScrollFrame.update()
-	frame.ScrollFrame.update()
+	frame:SetCategoryVisibility(frame:GetDb().isCategoryFrameVisible, false)
 end)
 
 function frame:TableKeysToSortedList(...)
 	local list = {}
 	local added = {}
-	for _, t in ipairs({...}) do
+	for _, t in ipairs({ ... }) do
 		for k, _ in pairs(t) do
 			if not added[k] then
 				table.insert(list, k)
@@ -89,7 +89,9 @@ function frame:TableKeysToSortedList(...)
 	return list
 end
 
-
+frame:SetScript("OnEvent", function(self, event, ...)
+	self[event](self, ...)
+end)
 frame:RegisterEvent("ADDON_LOADED")
 function frame:ADDON_LOADED(name)
 	if name ~= ADDON_NAME then
@@ -100,7 +102,6 @@ function frame:ADDON_LOADED(name)
 	ElioteAddonListDB.sets = ElioteAddonListDB.sets or {}
 	ElioteAddonListDB.categories = ElioteAddonListDB.categories or {}
 
-	frame:Update()
-	frame:UnregisterEvent("ADDON_LOADED")
-	frame:Show()
+	self:UnregisterEvent("ADDON_LOADED")
+	self:Show()
 end

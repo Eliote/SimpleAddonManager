@@ -31,21 +31,6 @@ local function AddonRightClickMenu(addonIndex)
 	return menu
 end
 
--- create the hybrid scroll frame
-local scrollFrame = CreateFrame("ScrollFrame", nil, frame, "HybridScrollFrameTemplate")
-frame.ScrollFrame = scrollFrame
-scrollFrame:SetPoint("TOPLEFT", 7, -64)
-scrollFrame:SetPoint("BOTTOMRIGHT", -30, 30)
-
--- add a scroll bar
-scrollFrame.ScrollBar = CreateFrame("Slider", nil, scrollFrame, "HybridScrollBarTemplate")
-scrollFrame.ScrollBar:SetPoint("TOPLEFT", scrollFrame, "TOPRIGHT", 1, -16)
-scrollFrame.ScrollBar:SetPoint("BOTTOMLEFT", scrollFrame, "BOTTOMRIGHT", 1, 12)
-scrollFrame.ScrollBar.doNotHide = true
-scrollFrame.ScrollBar:HookScript("OnValueChanged", function(_, value)
-	frame.scrollOffset = value
-end)
-
 local function AddonTooltipBuildDepsString(...)
 	local deps = "";
 	for i = 1, select("#", ...) do
@@ -73,7 +58,7 @@ local function ToggleAddon(self)
 		local character = frame:GetCharacter()
 		DisableAddOn(addonIndex, character)
 	end
-	scrollFrame.update()
+	frame.ScrollFrame.update()
 end
 
 local function AddonButtonOnClick(self, mouseButton)
@@ -109,25 +94,24 @@ local function AddonButtonOnLeave()
 	GameTooltip:Hide()
 end
 
-scrollFrame.update = function()
-	local buttons = HybridScrollFrame_GetButtons(scrollFrame);
-	local offset = HybridScrollFrame_GetOffset(scrollFrame);
+local function UpdateList()
+	local buttons = HybridScrollFrame_GetButtons(frame.ScrollFrame);
+	local offset = HybridScrollFrame_GetOffset(frame.ScrollFrame);
 	local buttonHeight;
 	local addons = frame:GetAddonsList()
 	local count = #addons
 
 	for buttonIndex = 1, #buttons do
 		local button = buttons[buttonIndex]
-		button:SetPoint("LEFT", scrollFrame)
-		button:SetPoint("RIGHT", scrollFrame)
+		button:SetPoint("LEFT", frame.ScrollFrame)
+		button:SetPoint("RIGHT", frame.ScrollFrame)
 
 		local relativeButtonIndex = buttonIndex + offset
-		buttonHeight = button:GetHeight() -- set the button height var to use in the update call later
+		buttonHeight = button:GetHeight()
 
 		if relativeButtonIndex <= count then
 			local addonIndex = addons[relativeButtonIndex].index
 			local _, title, _, loadable, reason = GetAddOnInfo(addonIndex)
-			--local loaded = IsAddOnLoaded(addonRealIndex)
 			local enabled = frame:IsAddonSelected(addonIndex)
 
 			button.Name:SetText(title)
@@ -157,16 +141,27 @@ scrollFrame.update = function()
 		end
 	end
 
-	HybridScrollFrame_Update(scrollFrame, count * buttonHeight, scrollFrame:GetHeight())
+	HybridScrollFrame_Update(frame.ScrollFrame, count * buttonHeight, frame.ScrollFrame:GetHeight())
 end
 
--- this will create listview items using the template define, the number of buttons is determined by the
-HybridScrollFrame_CreateButtons(scrollFrame, "ElioteAddonListItem")
+local function OnSizeChanged(self)
+	local offsetBefore = self:GetValue()
+	HybridScrollFrame_CreateButtons(self:GetParent(), "ElioteAddonListItem")
+	self:SetValue(offsetBefore)
+	self:GetParent().update()
+end
 
-scrollFrame:SetScript("OnSizeChanged", function()
-	local offsetBefore = scrollFrame.ScrollBar:GetValue()
-	HybridScrollFrame_CreateButtons(scrollFrame, "ElioteAddonListItem")
-	scrollFrame.ScrollBar:SetValue(offsetBefore)
-	scrollFrame.update()
-end)
+function frame:CreateAddonListFrame()
+	self.ScrollFrame = CreateFrame("ScrollFrame", nil, self, "HybridScrollFrameTemplate")
+	self.ScrollFrame:SetPoint("TOPLEFT", 7, -64)
+	self.ScrollFrame:SetPoint("BOTTOMRIGHT", -30, 30)
+	self.ScrollFrame.update = UpdateList
 
+	self.ScrollFrame.ScrollBar = CreateFrame("Slider", nil, self.ScrollFrame, "HybridScrollBarTemplate")
+	self.ScrollFrame.ScrollBar:SetPoint("TOPLEFT", self.ScrollFrame, "TOPRIGHT", 1, -16)
+	self.ScrollFrame.ScrollBar:SetPoint("BOTTOMLEFT", self.ScrollFrame, "BOTTOMRIGHT", 1, 12)
+	self.ScrollFrame.ScrollBar:SetScript("OnSizeChanged", OnSizeChanged)
+	self.ScrollFrame.ScrollBar.doNotHide = true
+
+	HybridScrollFrame_CreateButtons(self.ScrollFrame, "ElioteAddonListItem")
+end

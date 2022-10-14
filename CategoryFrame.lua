@@ -15,7 +15,9 @@ local function CategoryMenu(categoryName)
 						"Enter the new name for the category '" .. categoryName .. "'",
 						function(text)
 							local db = frame:GetDb()
-							if db.categories[text] then return end
+							if db.categories[text] then
+								return
+							end
 							db.categories[text] = db.categories[categoryName]
 							db.categories[categoryName] = nil
 							db.categories[text].name = text
@@ -49,51 +51,19 @@ local function CategoryMenu(categoryName)
 	return menu
 end
 
-
-frame.CategoryFrame = CreateFrame("Frame", nil, frame)
-frame.CategoryFrame:SetPoint("TOPLEFT", frame.ScrollFrame, "TOPRIGHT", 20, 30)
-frame.CategoryFrame:SetPoint("BOTTOMRIGHT", 0, 30)
-
-frame.CategoryFrame.NewButton = CreateFrame("Button", nil, frame.CategoryFrame, "UIPanelButtonTemplate")
-frame.CategoryFrame.NewButton:SetPoint("TOP", 0, 0)
-frame.CategoryFrame.NewButton:SetSize(frame.CATEGORY_SIZE_W - 50, 22)
-frame.CategoryFrame.NewButton:SetText("New Category")
-frame.CategoryFrame.NewButton:SetScript("OnClick", function()
-	frame:ShowInputDialog("Enter the category name", function(text)
-		local db = frame:GetDb()
-		db.categories = db.categories or {}
-		if (db.categories[text]) then
-			return
-		end
-
-		db.categories[text] = { name = text, addons = {} }
-		frame.CategoryFrame.ScrollFrame.updateDb()
-		frame.CategoryFrame.ScrollFrame.update()
-	end)
-end)
-
--- create the hybrid scroll frame
-local categoryScrollFrame = CreateFrame("ScrollFrame", nil, frame.CategoryFrame, "HybridScrollFrameTemplate")
-frame.CategoryFrame.ScrollFrame = categoryScrollFrame
-categoryScrollFrame:SetPoint("TOPLEFT", 0, -30)
-categoryScrollFrame:SetPoint("BOTTOMRIGHT", -30, 0)
-categoryScrollFrame.selectedItems = {}
-
--- add a scroll bar
-categoryScrollFrame.ScrollBar = CreateFrame("Slider", nil, categoryScrollFrame, "HybridScrollBarTemplate")
-categoryScrollFrame.ScrollBar:SetPoint("TOPLEFT", categoryScrollFrame, "TOPRIGHT", 1, -16)
-categoryScrollFrame.ScrollBar:SetPoint("BOTTOMLEFT", categoryScrollFrame, "BOTTOMRIGHT", 1, 12)
-categoryScrollFrame.ScrollBar.doNotHide = true
-
 local function tablelength(T)
-	if not T then return 0 end
+	if not T then
+		return 0
+	end
 	local count = 0
-	for _ in pairs(T) do count = count + 1 end
+	for _ in pairs(T) do
+		count = count + 1
+	end
 	return count
 end
 
 local function IsCategorySelected(name)
-	local item = categoryScrollFrame.selectedItems[name]
+	local item = frame.CategoryFrame.ScrollFrame.selectedItems[name]
 	if item == nil or item == false then
 		return false
 	end
@@ -107,13 +77,13 @@ local function ToggleCategory(self)
 	self:SetChecked(newValue)
 	if (newValue) then
 		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
-		categoryScrollFrame.selectedItems[name] = true
+		frame.CategoryFrame.ScrollFrame.selectedItems[name] = true
 	else
 		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
-		categoryScrollFrame.selectedItems[name] = nil
+		frame.CategoryFrame.ScrollFrame.selectedItems[name] = nil
 	end
 	frame:UpdateListFilters()
-	categoryScrollFrame.update()
+	frame.CategoryFrame.ScrollFrame.update()
 end
 
 local function CategoryButtonOnClick(self, mouseButton)
@@ -146,22 +116,22 @@ local function CategoryButtonOnLeave()
 	GameTooltip:Hide()
 end
 
-categoryScrollFrame.update = function()
-	local buttons = HybridScrollFrame_GetButtons(categoryScrollFrame);
-	local offset = HybridScrollFrame_GetOffset(categoryScrollFrame);
+local function UpdateCategoryList()
+	local buttons = HybridScrollFrame_GetButtons(frame.CategoryFrame.ScrollFrame);
+	local offset = HybridScrollFrame_GetOffset(frame.CategoryFrame.ScrollFrame);
 	local buttonHeight;
-	local count = #(categoryScrollFrame.sortedItemsList)
+	local count = #(frame.CategoryFrame.ScrollFrame.sortedItemsList)
 
 	for buttonIndex = 1, #buttons do
 		local button = buttons[buttonIndex]
-		button:SetPoint("LEFT", categoryScrollFrame)
-		button:SetPoint("RIGHT", categoryScrollFrame)
+		button:SetPoint("LEFT", frame.CategoryFrame.ScrollFrame)
+		button:SetPoint("RIGHT", frame.CategoryFrame.ScrollFrame)
 
 		local relativeButtonIndex = buttonIndex + offset
 		buttonHeight = button:GetHeight()
 
 		if relativeButtonIndex <= count then
-			local categoryKey = categoryScrollFrame.sortedItemsList[relativeButtonIndex]
+			local categoryKey = frame.CategoryFrame.ScrollFrame.sortedItemsList[relativeButtonIndex]
 			local userCategory, tocCategory = frame:GetCategoryTable(categoryKey)
 			local category = userCategory or tocCategory
 			button.Name:SetText((not userCategory and "|cFFFFFF00" or "") .. category.name)
@@ -183,11 +153,8 @@ categoryScrollFrame.update = function()
 		end
 	end
 
-	HybridScrollFrame_Update(categoryScrollFrame, count * buttonHeight, categoryScrollFrame:GetHeight())
+	HybridScrollFrame_Update(frame.CategoryFrame.ScrollFrame, count * buttonHeight, frame.CategoryFrame.ScrollFrame:GetHeight())
 end
-
--- this will create listview items using the template define, the number of buttons is determined by the
-HybridScrollFrame_CreateButtons(categoryScrollFrame, "ElioteAddonCategoryItem")
 
 local function BuildCategoryTableFromToc()
 	local table = {}
@@ -205,41 +172,83 @@ local function BuildCategoryTableFromToc()
 	return table
 end
 
+local function OnClickNewButton()
+	frame:ShowInputDialog("Enter the category name", function(text)
+		local db = frame:GetDb()
+		db.categories = db.categories or {}
+		if (db.categories[text]) then
+			return
+		end
+
+		db.categories[text] = { name = text, addons = {} }
+		frame.CategoryFrame.ScrollFrame.updateDb()
+		frame.CategoryFrame.ScrollFrame.update()
+	end)
+end
+
 local categoryTocTable = {}
 
-categoryScrollFrame.updateDb = function()
+local function InitializeCategories()
+	categoryTocTable = BuildCategoryTableFromToc()
+	frame.CategoryFrame.ScrollFrame.updateDb()
+end
+
+local function UpdateListVariables()
 	local db = frame:GetDb()
 	db.categories = db.categories or {}
 	categoryTocTable = BuildCategoryTableFromToc()
 	local categoriesList = frame:TableKeysToSortedList(db.categories, categoryTocTable)
-	categoryScrollFrame.sortedItemsList = categoriesList
+	frame.CategoryFrame.ScrollFrame.sortedItemsList = categoriesList
+end
+
+local function OnSizeChangedScrollFrame(self)
+	local offsetBefore = self:GetValue()
+	HybridScrollFrame_CreateButtons(self:GetParent(), "ElioteAddonCategoryItem")
+	self:SetValue(offsetBefore)
+	self:GetParent().update()
 end
 
 function frame:GetCategoryTable(name)
-	local userCategory, tocCategory = frame:GetCategoryTables()
+	local userCategory, tocCategory = self:GetCategoryTables()
 	return userCategory[name], tocCategory[name]
 end
 
 function frame:GetCategoryTables()
-	local db = frame:GetDb()
+	local db = self:GetDb()
 	local userCategory = db.categories
 	local tocCategory = categoryTocTable
 	return userCategory, tocCategory
 end
 
-categoryScrollFrame:SetScript("OnShow", function()
-	categoryTocTable = BuildCategoryTableFromToc()
-	categoryScrollFrame.updateDb()
-	categoryScrollFrame.update()
-end)
-
-categoryScrollFrame:SetScript("OnSizeChanged", function()
-	local offsetBefore = categoryScrollFrame.ScrollBar:GetValue()
-	HybridScrollFrame_CreateButtons(categoryScrollFrame, "ElioteAddonCategoryItem")
-	categoryScrollFrame.ScrollBar:SetValue(offsetBefore)
-	categoryScrollFrame.update()
-end)
-
 function frame:SelectedCategories()
-	return categoryScrollFrame.selectedItems
+	return self.CategoryFrame.ScrollFrame.selectedItems
+end
+
+function frame:CreateCategoryFrame()
+	self.CategoryFrame = CreateFrame("Frame", nil, self)
+	self.CategoryFrame:SetPoint("TOPLEFT", self.ScrollFrame, "TOPRIGHT", 20, 30)
+	self.CategoryFrame:SetPoint("BOTTOMRIGHT", 0, 30)
+
+	self.CategoryFrame.NewButton = CreateFrame("Button", nil, self.CategoryFrame, "UIPanelButtonTemplate")
+	self.CategoryFrame.NewButton:SetPoint("TOP", 0, 0)
+	self.CategoryFrame.NewButton:SetSize(self.CATEGORY_SIZE_W - 50, 22)
+	self.CategoryFrame.NewButton:SetText("New Category")
+	self.CategoryFrame.NewButton:SetScript("OnClick", OnClickNewButton)
+
+	self.CategoryFrame.ScrollFrame = CreateFrame("ScrollFrame", nil, self.CategoryFrame, "HybridScrollFrameTemplate")
+	self.CategoryFrame.ScrollFrame:SetPoint("TOPLEFT", 0, -30)
+	self.CategoryFrame.ScrollFrame:SetPoint("BOTTOMRIGHT", -30, 0)
+	self.CategoryFrame.ScrollFrame.selectedItems = {}
+	self.CategoryFrame.ScrollFrame.update = UpdateCategoryList
+	self.CategoryFrame.ScrollFrame.updateDb = UpdateListVariables
+
+	self.CategoryFrame.ScrollFrame.ScrollBar = CreateFrame("Slider", nil, self.CategoryFrame.ScrollFrame, "HybridScrollBarTemplate")
+	self.CategoryFrame.ScrollFrame.ScrollBar:SetPoint("TOPLEFT", self.CategoryFrame.ScrollFrame, "TOPRIGHT", 1, -16)
+	self.CategoryFrame.ScrollFrame.ScrollBar:SetPoint("BOTTOMLEFT", self.CategoryFrame.ScrollFrame, "BOTTOMRIGHT", 1, 12)
+	self.CategoryFrame.ScrollFrame.ScrollBar:SetScript("OnSizeChanged", OnSizeChangedScrollFrame)
+	self.CategoryFrame.ScrollFrame.ScrollBar.doNotHide = true
+
+	InitializeCategories()
+
+	HybridScrollFrame_CreateButtons(self.CategoryFrame.ScrollFrame, "ElioteAddonCategoryItem")
 end
