@@ -119,7 +119,7 @@ local function UpdateList()
 
 		if relativeButtonIndex <= count then
 			local addonIndex = addons[relativeButtonIndex].index
-			local _, title, _, loadable, reason = GetAddOnInfo(addonIndex)
+			local name, title, _, loadable, reason = GetAddOnInfo(addonIndex)
 			local loaded = IsAddOnLoaded(addonIndex)
 			local enabled = frame:IsAddonSelected(addonIndex)
 			local version = ""
@@ -130,7 +130,7 @@ local function UpdateList()
 				version = (version and " |cff808080(" .. version .. ")|r") or ""
 			end
 
-			button.Name:SetText(title .. version)
+			button.Name:SetText((title or name) .. version)
 
 			if (loadable or (enabled and (reason == "DEP_DEMAND_LOADED" or reason == "DEMAND_LOADED"))) then
 				button.Name:SetTextColor(1.0, 0.78, 0.0);

@@ -317,11 +317,11 @@ local function CreateList(filter, categories)
 	for addonIndex = 1, count do
 		local name, title = GetAddOnInfo(addonIndex)
 		if (categoriesAddons == nil or categoriesAddons[name]) then
-			if (name:upper():match(filter:upper()) or title:upper():match(filter:upper())) then
+			if (name:upper():match(filter:upper()) or (title and title:upper():match(filter:upper()))) then
 				table.insert(addons, {
 					index = addonIndex,
-					name = string.lower(name),
-					title = string.lower(title)
+					name = name:gsub(".-([%w].*)", "%1"):gsub("[_-]", " "):lower(),
+					title = (title or name):lower()
 				})
 			end
 		end
