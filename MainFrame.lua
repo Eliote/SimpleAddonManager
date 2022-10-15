@@ -349,24 +349,6 @@ function frame:UpdateListFilters()
 end
 
 function frame:CreateMainFrame()
-	frame:SetFrameStrata("FULLSCREEN_DIALOG")
-	frame:SetPoint("CENTER", 0, 24)
-	frame:SetSize(frame.MIN_SIZE_W, frame.MIN_SIZE_H)
-	frame:SetResizable(true)
-	frame:SetMovable(true)
-	frame:EnableMouse(true)
-	frame:SetClampedToScreen(true)
-	if (frame.SetResizeBounds) then
-		frame.SetMinResize = frame.SetResizeBounds
-	end
-	frame:SetMinResize(frame.MIN_SIZE_W, frame.MIN_SIZE_H)
-	frame:SetScript("OnMouseDown", function(self)
-		self:StartMoving()
-	end)
-	frame:SetScript("OnMouseUp", function(self)
-		self:StopMovingOrSizing()
-	end)
-
 	frame.TitleText:SetText(ADDON_LIST)
 
 	frame.Sizer = CreateFrame("Button", nil, frame, "PanelResizeButtonTemplate")

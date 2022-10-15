@@ -6,6 +6,23 @@ frame:Hide()
 frame.MIN_SIZE_W = 470
 frame.MIN_SIZE_H = 300
 frame.CATEGORY_SIZE_W = 250
+frame:SetFrameStrata("FULLSCREEN_DIALOG")
+frame:SetPoint("CENTER", 0, 24)
+frame:SetSize(frame.MIN_SIZE_W, frame.MIN_SIZE_H)
+frame:SetResizable(true)
+frame:SetMovable(true)
+frame:EnableMouse(true)
+frame:SetClampedToScreen(true)
+if (frame.SetResizeBounds) then
+	frame.SetMinResize = frame.SetResizeBounds
+end
+frame:SetMinResize(frame.MIN_SIZE_W, frame.MIN_SIZE_H)
+frame:SetScript("OnMouseDown", function(self)
+	self:StartMoving()
+end)
+frame:SetScript("OnMouseUp", function(self)
+	self:StopMovingOrSizing()
+end)
 
 function frame:GetDb()
 	return ElioteAddonListDB
