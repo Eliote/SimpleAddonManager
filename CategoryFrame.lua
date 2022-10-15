@@ -108,7 +108,10 @@ local function CategoryButtonOnEnter(self)
 	end
 	GameTooltip:AddLine("\n");
 	GameTooltip:AddDoubleLine("Manually added:", userTable and tablelength(userTable.addons) or 0, nil, nil, nil, 1, 1, 1);
-	GameTooltip:AddDoubleLine("From toc:", tocTable and tablelength(tocTable.addons) or 0, nil, nil, nil, 1, 1, 1);
+	local fromTocCount = tocTable and tablelength(tocTable.addons) or 0
+	if (fromTocCount > 0) then
+		GameTooltip:AddDoubleLine("From toc:", tocTable and tablelength(tocTable.addons) or 0, nil, nil, nil, 1, 1, 1);
+	end
 	GameTooltip:Show()
 end
 
