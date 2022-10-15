@@ -196,7 +196,7 @@ local function ConfigDropDownCreate()
 		},
 		{
 			text = "Show versions",
-			checked = db.config.showVersions ~= false,
+			checked = db.config.showVersions,
 			func = function()
 				db.config.showVersions = not db.config.showVersions
 				frame:Update()
@@ -234,7 +234,7 @@ local function ConfigDropDownCreate()
 						return db.config.sorting == nil
 					end,
 					func = function()
-						db.config.sorting = nil
+						db.config.sorting = false
 						frame:Update()
 					end,
 				},
@@ -295,7 +295,7 @@ local addons = {}
 
 local function SortAddons()
 	local db = frame:GetDb()
-	if (db.config.sorting == nil) then
+	if (not db.config.sorting) then
 		return
 	end
 

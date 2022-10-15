@@ -70,7 +70,9 @@ local function AddonButtonOnClick(self, mouseButton)
 end
 
 local function AddonButtonOnEnter(self)
-	local name, title, notes, _, _, security = GetAddOnInfo(self.addonIndex)
+	local addonIndex = self.addon.index
+	local name, title, notes, _, _, security = GetAddOnInfo(addonIndex)
+	local version = GetAddOnMetadata(addonIndex, "Version")
 
 	GameTooltip:ClearLines();
 	GameTooltip:SetOwner(self, "ANCHOR_NONE")
@@ -80,11 +82,17 @@ local function AddonButtonOnEnter(self)
 	else
 		if (title) then
 			GameTooltip:AddLine(title);
+			GameTooltip:AddLine(name, 0.5, 0.5, 0.5);
+			GameTooltip:AddLine("debug: '" .. self.addon.name .. "'|r");
 		else
 			GameTooltip:AddLine(name);
 		end
+		if (version) then
+			GameTooltip:AddLine("Version: |cFFFFFFFF" .. version .. "|r");
+		end
+		GameTooltip:AddLine(AddonTooltipBuildDepsString(GetAddOnDependencies(addonIndex)));
+		GameTooltip:AddLine(" ");
 		GameTooltip:AddLine(notes, 1.0, 1.0, 1.0, true);
-		GameTooltip:AddLine(AddonTooltipBuildDepsString(GetAddOnDependencies(self.addonIndex)));
 	end
 
 	GameTooltip:Show()
@@ -118,14 +126,14 @@ local function UpdateList()
 		buttonHeight = button:GetHeight()
 
 		if relativeButtonIndex <= count then
-			local addonIndex = addons[relativeButtonIndex].index
+			local addon = addons[relativeButtonIndex]
+			local addonIndex = addon.index
 			local name, title, _, loadable, reason = GetAddOnInfo(addonIndex)
 			local loaded = IsAddOnLoaded(addonIndex)
 			local enabled = frame:IsAddonSelected(addonIndex)
 			local version = ""
 
-			-- nil is true
-			if (frame:GetDb().config.showVersions ~= false) then
+			if (frame:GetDb().config.showVersions) then
 				version = GetAddOnMetadata(addonIndex, "Version")
 				version = (version and " |cff808080(" .. version .. ")|r") or ""
 			end
@@ -140,7 +148,7 @@ local function UpdateList()
 				button.Name:SetTextColor(0.5, 0.5, 0.5);
 			end
 
-			button.addonIndex = addonIndex
+			button.addon = addon
 			button.Status:SetTextColor(0.5, 0.5, 0.5);
 			button.Status:SetText((not loadable and reason and _G["ADDON_" .. reason]) or "")
 			if (ShouldColorStatus(enabled, loaded, reason)) then

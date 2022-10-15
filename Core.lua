@@ -24,6 +24,14 @@ StaticPopupDialogs["ElioteAddonList_Dialog"] = {
 	hideOnEscape = true,
 }
 
+local function CreateDefaultOptions(db, defaults)
+	for k, v in pairs(defaults) do
+		if (db[k] == nil) then
+			db[k] = v
+		end
+	end
+end
+
 function frame:ShowDialog(text, hasEditBox, func)
 	local dialog = StaticPopupDialogs["ElioteAddonList_Dialog"]
 	dialog.text = text
@@ -77,7 +85,9 @@ frame:SetScript("OnShow", function()
 end)
 
 function frame:Initialize()
-	if (frame.initialized) then return end
+	if (frame.initialized) then
+		return
+	end
 
 	frame:CreateMainFrame()
 	frame:CreateAddonListFrame()
@@ -113,6 +123,11 @@ function frame:ADDON_LOADED(name)
 	ElioteAddonListDB.sets = ElioteAddonListDB.sets or {}
 	ElioteAddonListDB.categories = ElioteAddonListDB.categories or {}
 	ElioteAddonListDB.config = ElioteAddonListDB.config or {}
+
+	CreateDefaultOptions(ElioteAddonListDB.config, {
+		showVersions = false,
+		sorting = "name"
+	})
 
 	self:UnregisterEvent("ADDON_LOADED")
 	self:Show()
