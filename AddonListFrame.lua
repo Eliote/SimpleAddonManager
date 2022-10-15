@@ -44,7 +44,7 @@ local function AddonTooltipBuildDepsString(...)
 end
 
 local function ToggleAddon(self)
-	local addonIndex = self:GetParent().addonIndex
+	local addonIndex = self:GetParent().addon.index
 	local newValue = not frame:IsAddonSelected(addonIndex)
 	frame.edited = true
 	frame.OkButton:SetText("Reload UI")
@@ -65,7 +65,7 @@ local function AddonButtonOnClick(self, mouseButton)
 	if (mouseButton == "LeftButton") then
 		ToggleAddon(self.EnabledButton)
 	else
-		EDDM.EasyMenu(AddonRightClickMenu(self.addonIndex), dropdownFrame, "cursor", 0, 0, "MENU")
+		EDDM.EasyMenu(AddonRightClickMenu(self.addon.index), dropdownFrame, "cursor", 0, 0, "MENU")
 	end
 end
 
