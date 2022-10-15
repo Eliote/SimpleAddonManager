@@ -119,6 +119,8 @@ function frame:ADDON_LOADED(name)
 		return
 	end
 
+	self:UnregisterEvent("ADDON_LOADED")
+
 	ElioteAddonListDB = ElioteAddonListDB or {}
 	ElioteAddonListDB.sets = ElioteAddonListDB.sets or {}
 	ElioteAddonListDB.categories = ElioteAddonListDB.categories or {}
@@ -126,9 +128,30 @@ function frame:ADDON_LOADED(name)
 
 	CreateDefaultOptions(ElioteAddonListDB.config, {
 		showVersions = false,
-		sorting = "name"
+		sorting = "name",
+		hookMenuButton = true,
 	})
 
-	self:UnregisterEvent("ADDON_LOADED")
-	self:Show()
+	frame:HookMenuButton()
+end
+
+function frame:HookMenuButton()
+	if (frame.isMenuHooked or not frame:GetDb().config.hookMenuButton) then
+		return
+	end
+
+	GameMenuFrame:HookScript("OnShow", function()
+		local original = GameMenuButtonAddons:GetScript("OnClick")
+		GameMenuButtonAddons:SetScript("OnClick", function()
+			if (frame:GetDb().config.hookMenuButton) then
+				PlaySound(SOUNDKIT.IG_MAINMENU_OPTION)
+				HideUIPanel(GameMenuFrame)
+				ShowUIPanel(frame)
+			else
+				original()
+			end
+		end)
+	end)
+
+	frame.isMenuHooked = true
 end
