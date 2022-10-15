@@ -1,3 +1,4 @@
+local _, T = ...
 local EDDM = LibStub("ElioteDropDownMenu-1.0")
 local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("ElioteAddonList_MenuFrame")
 
@@ -28,6 +29,8 @@ local function AddonRightClickMenu(addonIndex)
 			end,
 		})
 	end
+	table.insert(menu, T.separatorInfo)
+	table.insert(menu, T.closeMenuInfo)
 	return menu
 end
 

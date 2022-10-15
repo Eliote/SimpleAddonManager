@@ -1,4 +1,4 @@
-local ADDON_NAME = ...
+local ADDON_NAME, T = ...
 
 --- @class ElioteAddonList
 local frame = CreateFrame("Frame", "ElioteAddonList", UIParent, "ButtonFrameTemplate")
@@ -41,6 +41,39 @@ StaticPopupDialogs["ElioteAddonList_Dialog"] = {
 	whileDead = true,
 	hideOnEscape = true,
 }
+
+T.separatorInfo = {
+	text = "",
+	hasArrow = false,
+	dist = 0,
+	isTitle = true,
+	isUninteractable = true,
+	notCheckable = true,
+	iconOnly = true,
+	icon = "Interface\\Common\\UI-TooltipDivider-Transparent",
+	tCoordLeft = 0,
+	tCoordRight = 1,
+	tCoordTop = 0,
+	tCoordBottom = 1,
+	tSizeX = 0,
+	tSizeY = 8,
+	tFitDropDownSizeX = true,
+	iconInfo = {
+		tCoordLeft = 0,
+		tCoordRight = 1,
+		tCoordTop = 0,
+		tCoordBottom = 1,
+		tSizeX = 0,
+		tSizeY = 8,
+		tFitDropDownSizeX = true
+	},
+};
+
+T.closeMenuInfo = {
+	text = CANCEL,
+	hasArrow = false,
+	notCheckable = true,
+};
 
 local function CreateDefaultOptions(db, defaults)
 	for k, v in pairs(defaults) do

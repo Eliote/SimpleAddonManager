@@ -1,3 +1,4 @@
+local _, T = ...
 local EDDM = LibStub("ElioteDropDownMenu-1.0")
 local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("ElioteAddonList_MenuFrame")
 
@@ -27,39 +28,6 @@ local function CharacterDropDown_Initialize()
 	EDDM.UIDropDownMenu_AddButton(info);
 end
 
-local separatorInfo = {
-	text = "",
-	hasArrow = false,
-	dist = 0,
-	isTitle = true,
-	isUninteractable = true,
-	notCheckable = true,
-	iconOnly = true,
-	icon = "Interface\\Common\\UI-TooltipDivider-Transparent",
-	tCoordLeft = 0,
-	tCoordRight = 1,
-	tCoordTop = 0,
-	tCoordBottom = 1,
-	tSizeX = 0,
-	tSizeY = 8,
-	tFitDropDownSizeX = true,
-	iconInfo = {
-		tCoordLeft = 0,
-		tCoordRight = 1,
-		tCoordTop = 0,
-		tCoordBottom = 1,
-		tSizeX = 0,
-		tSizeY = 8,
-		tFitDropDownSizeX = true
-	},
-};
-
-local closeMenuInfo = {
-	text = CANCEL,
-	hasArrow = false,
-	notCheckable = true,
-};
-
 local function SaveCurrentAddonsToSet(setName)
 	local db = frame:GetDb()
 	local enabledAddons = {}
@@ -88,7 +56,7 @@ local function SetsDropDownCreate()
 			menuList = {
 				{ text = setName, isTitle = true, notCheckable = true },
 				{ text = #set.addons .. " AddOns", notCheckable = true },
-				separatorInfo,
+				T.separatorInfo,
 				{
 					text = "Save",
 					notCheckable = true,
@@ -149,7 +117,7 @@ local function SetsDropDownCreate()
 		table.insert(menu, setMenu)
 	end
 
-	table.insert(menu, separatorInfo)
+	table.insert(menu, T.separatorInfo)
 	table.insert(menu, {
 		text = "Create new set",
 		func = function()
@@ -162,6 +130,8 @@ local function SetsDropDownCreate()
 		end,
 		notCheckable = true
 	})
+	table.insert(menu, T.separatorInfo)
+	table.insert(menu, T.closeMenuInfo)
 
 	return menu
 end
@@ -170,7 +140,7 @@ local function ConfigDropDownCreate()
 	local db = frame:GetDb()
 	return {
 		{ text = "Options", isTitle = true, notCheckable = true },
-		separatorInfo,
+		T.separatorInfo,
 		{
 			text = ADDON_FORCE_LOAD,
 			checked = not IsAddonVersionCheckEnabled(),
@@ -212,7 +182,7 @@ local function ConfigDropDownCreate()
 				frame:Update()
 			end,
 		},
-		separatorInfo,
+		T.separatorInfo,
 		{
 			text = "Sort",
 			notCheckable = true,
@@ -250,8 +220,8 @@ local function ConfigDropDownCreate()
 				},
 			},
 		},
-		separatorInfo,
-		closeMenuInfo
+		T.separatorInfo,
+		T.closeMenuInfo
 	}
 end
 

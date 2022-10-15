@@ -1,3 +1,4 @@
+local _, T = ...
 local EDDM = LibStub("ElioteDropDownMenu-1.0")
 local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("ElioteAddonList_MenuFrame")
 
@@ -46,6 +47,8 @@ local function CategoryMenu(categoryName)
 				)
 			end
 		},
+		T.separatorInfo,
+		T.closeMenuInfo,
 	}
 
 	return menu
