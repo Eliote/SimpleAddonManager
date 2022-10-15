@@ -23,6 +23,7 @@ end)
 frame:SetScript("OnMouseUp", function(self)
 	self:StopMovingOrSizing()
 end)
+table.insert(UISpecialFrames, frame:GetName()) -- Register frame to be closed with ESC
 
 function frame:GetDb()
 	return ElioteAddonListDB
