@@ -237,7 +237,17 @@ local function ConfigDropDownCreate()
 			hasArrow = true,
 			menuList = {
 				{
-					text = "Internal name",
+					text = L["Name (improved)"],
+					checked = function()
+						return db.config.sorting == "smart"
+					end,
+					func = function()
+						db.config.sorting = "smart"
+						frame:Update()
+					end,
+				},
+				{
+					text = L["Internal name"],
 					checked = function()
 						return db.config.sorting == "name"
 					end,
@@ -335,6 +345,10 @@ local function SortAddons()
 		table.sort(addons, function(a, b)
 			return a.title < b.title
 		end)
+	elseif (db.config.sorting == "smart") then
+		table.sort(addons, function(a, b)
+			return a.smartName < b.smartName
+		end)
 	end
 end
 
@@ -369,7 +383,8 @@ local function CreateList(filter, categories)
 			local name, title = GetAddOnInfo(addonIndex)
 			table.insert(addons, {
 				index = addonIndex,
-				name = name:gsub(".-([%w].*)", "%1"):gsub("[_-]", " "):lower(),
+				name = name:lower(),
+				smartName = name:gsub(".-([%w].*)", "%1"):gsub("[_-]", " "):lower(),
 				title = (title or name):lower()
 			})
 		end

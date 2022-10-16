@@ -189,7 +189,7 @@ function frame:ADDON_LOADED(name)
 
 	CreateDefaultOptions(SimpleAddonManagerDB.config, {
 		showVersions = false,
-		sorting = "name",
+		sorting = "smart",
 		hookMenuButton = true,
 		searchBy = { name = true, title = true, author = false }
 	})
