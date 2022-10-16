@@ -359,15 +359,15 @@ local function FilterAddon(addonIndex, filterLower, enabledCategories)
 	end
 
 	local searchBy = frame:GetDb().config.searchBy
-	if (searchBy.name and name:lower():match(filterLower)) then
+	if (searchBy.name and name:lower():find(filterLower, 0, true)) then
 		return true
 	end
-	if (searchBy.title and title:lower():match(filterLower)) then
+	if (searchBy.title and title:lower():find(filterLower, 0, true)) then
 		return true
 	end
 	if (searchBy.author) then
 		local author = GetAddOnMetadata(addonIndex, "Author")
-		if (author and author:lower():match(filterLower)) then
+		if (author and author:lower():find(filterLower, 0, true)) then
 			return true
 		end
 	end
