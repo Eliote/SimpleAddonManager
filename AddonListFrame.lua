@@ -86,7 +86,7 @@ local function AddonButtonOnEnter(self)
 		if (title) then
 			GameTooltip:AddLine(title);
 			GameTooltip:AddLine(name, 0.5, 0.5, 0.5);
-			GameTooltip:AddLine("debug: '" .. self.addon.name .. "'|r");
+			--GameTooltip:AddLine("debug: '" .. self.addon.name .. "'|r");
 		else
 			GameTooltip:AddLine(name);
 		end
