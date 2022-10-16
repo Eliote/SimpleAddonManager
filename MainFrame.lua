@@ -1,4 +1,4 @@
-local _, T = ...
+local ADDON_NAME, T = ...
 local EDDM = LibStub("ElioteDropDownMenu-1.0")
 local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("ElioteAddonList_MenuFrame")
 
@@ -228,7 +228,7 @@ end
 function frame:SetCategoryVisibility(show, resize)
 	local fw = frame:GetWidth()
 	if (show) then
-		frame.CategoryButton.icon:SetAtlas("common-icon-backarrow")
+		SquareButton_SetIcon(frame.CategoryButton, "LEFT")
 		frame.ScrollFrame:SetPoint("BOTTOMRIGHT", (-30 - frame.CATEGORY_SIZE_W), 30)
 		if (resize) then
 			frame:SetWidth(math.max(frame.MIN_SIZE_W, fw + frame.CATEGORY_SIZE_W))
@@ -237,7 +237,7 @@ function frame:SetCategoryVisibility(show, resize)
 		frame:SetMinResize(frame.MIN_SIZE_W + frame.CATEGORY_SIZE_W, frame.MIN_SIZE_H)
 		frame.CategoryFrame:Show()
 	else
-		frame.CategoryButton.icon:SetAtlas("common-icon-forwardarrow")
+		SquareButton_SetIcon(frame.CategoryButton, "RIGHT")
 		frame.ScrollFrame:SetPoint("BOTTOMRIGHT", -30, 30)
 		if (resize) then
 			frame:SetWidth(math.max(frame.MIN_SIZE_W, fw - frame.CATEGORY_SIZE_W))
@@ -319,7 +319,12 @@ function frame:UpdateListFilters()
 end
 
 function frame:CreateMainFrame()
-	frame.TitleText:SetText(ADDON_LIST)
+	local addonName = GetAddOnMetadata(ADDON_NAME, "Title")
+	if (frame.TitleText) then
+		frame.TitleText:SetText(addonName)
+	elseif (frame.TitleContainer and frame.TitleContainer.TitleText) then
+		frame.TitleContainer.TitleText:SetText(addonName)
+	end
 
 	frame.Sizer = CreateFrame("Button", nil, frame, "PanelResizeButtonTemplate")
 	frame.Sizer:SetScript("OnMouseDown", function()
@@ -387,9 +392,7 @@ function frame:CreateMainFrame()
 	frame.CategoryButton = CreateFrame("Button", nil, frame, "UIPanelSquareButton")
 	frame.CategoryButton:SetPoint("TOPRIGHT", -7, -27)
 	frame.CategoryButton:SetSize(30, 30)
-	frame.CategoryButton.icon:SetAtlas("common-icon-forwardarrow")
-	frame.CategoryButton.icon:SetTexCoord(0, 1, 0, 1)
-	frame.CategoryButton.icon:SetSize(15, 15)
+	frame.CategoryButton.icon:SetTexture("Interface\\Buttons\\SquareButtonTextures")
 	frame.CategoryButton:SetScript("OnClick", function()
 		local db = frame:GetDb()
 		db.isCategoryFrameVisible = not db.isCategoryFrameVisible
