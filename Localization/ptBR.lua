@@ -9,7 +9,7 @@ local L = PRIVATE_TABLE.L
 
 --@localization(locale="ptBR", format="lua_additive_table")@
 
---@debug@
+--@do-not-package@
 L["Categories: "] = "Categorias: "
 L["Version: "] = "Versão: "
 L["Author: "] = "Autor: "
@@ -48,4 +48,4 @@ L["New Category"] = "Nova Categoria"
 L["Select All"] = "Todos"
 L["Select None"] = "Nenhum"
 L["Name (improved)"] = "Nome (melhorado)"
---@end-debug@
+--@end-do-not-package@
