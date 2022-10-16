@@ -181,6 +181,7 @@ function frame:ADDON_LOADED(name)
 		showVersions = false,
 		sorting = "name",
 		hookMenuButton = true,
+		searchBy = { name = true, title = true, author = false }
 	})
 
 	frame:HookMenuButton()

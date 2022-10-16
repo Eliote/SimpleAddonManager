@@ -38,7 +38,7 @@ local function AddonTooltipBuildDepsString(...)
 	local deps = "";
 	for i = 1, select("#", ...) do
 		if (i == 1) then
-			deps = ADDON_DEPENDENCIES .. select(i, ...);
+			deps = ADDON_DEPENDENCIES .. "|cFFFFFFFF" .. select(i, ...);
 		else
 			deps = deps .. ", " .. select(i, ...);
 		end
@@ -85,15 +85,20 @@ local function AddonButtonOnEnter(self)
 	else
 		if (title) then
 			GameTooltip:AddLine(title);
-			GameTooltip:AddLine(name, 0.5, 0.5, 0.5);
+			GameTooltip:AddLine(name, 0.7, 0.7, 0.7);
 			--GameTooltip:AddLine("debug: '" .. self.addon.name .. "'|r");
 		else
 			GameTooltip:AddLine(name);
 		end
+		local version = GetAddOnMetadata(addonIndex, "Version")
 		if (version) then
 			GameTooltip:AddLine("Version: |cFFFFFFFF" .. version .. "|r");
 		end
-		GameTooltip:AddLine(AddonTooltipBuildDepsString(GetAddOnDependencies(addonIndex)));
+		local author = GetAddOnMetadata(addonIndex, "Author")
+		if (author) then
+			GameTooltip:AddLine("Author: |cFFFFFFFF" .. strtrim(author) .. "|r");
+		end
+		GameTooltip:AddLine(AddonTooltipBuildDepsString(GetAddOnDependencies(addonIndex)), nil, nil, nil, true);
 		GameTooltip:AddLine(" ");
 		GameTooltip:AddLine(notes, 1.0, 1.0, 1.0, true);
 	end
