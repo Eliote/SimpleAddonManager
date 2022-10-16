@@ -1,0 +1,30 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '**'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone project
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # reads history for commit changelog
+
+      - name: Luacheck
+        uses: nebularg/actions-luacheck@86af42dcf465915896671903fcdec3e01a492e87
+        with:
+          args: --no-color -o 011
+
+      - name: Packager
+        uses: BigWigsMods/packager@v2
+        # automatically generates game type specific TOC files
+        with:
+          args: -S
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
+          WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
