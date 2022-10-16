@@ -1,9 +1,9 @@
-## Interface: 80300
-## Title: ElioteAddonList
-## Notes: AddOns list with more options
+## Interface: 90207
+## Title: Simple Addon Manager
+## Notes: A simple to use Addon Manager with search, category filter, and more.
 ## Author: Eliote
 ## Version: @project-version@
-## SavedVariables: ElioteAddonListDB
+## SavedVariables: SimpleAddonManagerDB
 
 Libs\LibStub\LibStub.lua
 Libs\ElioteDropDownMenu-1.0\ElioteDropDownMenu-1.0.lua

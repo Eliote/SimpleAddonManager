@@ -1,8 +1,9 @@
 local ADDON_NAME, T = ...
 
---- @class ElioteAddonList
-local frame = CreateFrame("Frame", "ElioteAddonList", UIParent, "ButtonFrameTemplate")
+--- @class SimpleAddonManager
+local frame = CreateFrame("Frame", ADDON_NAME, UIParent, "ButtonFrameTemplate")
 frame:Hide()
+T.AddonFrame = frame
 frame.MIN_SIZE_W = 470
 frame.MIN_SIZE_H = 300
 frame.CATEGORY_SIZE_W = 250
@@ -26,10 +27,10 @@ end)
 table.insert(UISpecialFrames, frame:GetName()) -- Register frame to be closed with ESC
 
 function frame:GetDb()
-	return ElioteAddonListDB
+	return SimpleAddonManagerDB
 end
 
-StaticPopupDialogs["ElioteAddonList_Dialog"] = {
+StaticPopupDialogs["SimpleAddonManager_Dialog"] = {
 	button1 = OKAY,
 	button2 = CANCEL,
 	OnShow = function(self)
@@ -84,11 +85,11 @@ local function CreateDefaultOptions(db, defaults)
 end
 
 function frame:ShowDialog(text, hasEditBox, func)
-	local dialog = StaticPopupDialogs["ElioteAddonList_Dialog"]
+	local dialog = StaticPopupDialogs["SimpleAddonManager_Dialog"]
 	dialog.text = text
 	dialog.OnAccept = func
 	dialog.hasEditBox = hasEditBox
-	StaticPopup_Show("ElioteAddonList_Dialog")
+	StaticPopup_Show("SimpleAddonManager_Dialog")
 end
 
 function frame:ShowInputDialog(text, func)
@@ -172,12 +173,12 @@ function frame:ADDON_LOADED(name)
 
 	self:UnregisterEvent("ADDON_LOADED")
 
-	ElioteAddonListDB = ElioteAddonListDB or {}
-	ElioteAddonListDB.sets = ElioteAddonListDB.sets or {}
-	ElioteAddonListDB.categories = ElioteAddonListDB.categories or {}
-	ElioteAddonListDB.config = ElioteAddonListDB.config or {}
+	SimpleAddonManagerDB = SimpleAddonManagerDB or {}
+	SimpleAddonManagerDB.sets = SimpleAddonManagerDB.sets or {}
+	SimpleAddonManagerDB.categories = SimpleAddonManagerDB.categories or {}
+	SimpleAddonManagerDB.config = SimpleAddonManagerDB.config or {}
 
-	CreateDefaultOptions(ElioteAddonListDB.config, {
+	CreateDefaultOptions(SimpleAddonManagerDB.config, {
 		showVersions = false,
 		sorting = "name",
 		hookMenuButton = true,

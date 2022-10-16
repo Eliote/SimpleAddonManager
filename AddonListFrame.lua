@@ -1,9 +1,9 @@
 local _, T = ...
 local EDDM = LibStub("ElioteDropDownMenu-1.0")
-local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("ElioteAddonList_MenuFrame")
+local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFrame")
 
---- @type ElioteAddonList
-local frame = ElioteAddonList
+--- @type SimpleAddonManager
+local frame = T.AddonFrame
 
 local function AddonRightClickMenu(addonIndex)
 	local name, title = GetAddOnInfo(addonIndex)
@@ -75,7 +75,6 @@ end
 local function AddonButtonOnEnter(self)
 	local addonIndex = self.addon.index
 	local name, title, notes, _, _, security = GetAddOnInfo(addonIndex)
-	local version = GetAddOnMetadata(addonIndex, "Version")
 
 	GameTooltip:ClearLines();
 	GameTooltip:SetOwner(self, "ANCHOR_NONE")
@@ -185,7 +184,7 @@ end
 
 local function OnSizeChanged(self)
 	local offsetBefore = self:GetValue()
-	HybridScrollFrame_CreateButtons(self:GetParent(), "ElioteAddonListItem")
+	HybridScrollFrame_CreateButtons(self:GetParent(), "SimpleAddonManagerAddonItem")
 	self:SetValue(offsetBefore)
 	self:GetParent().update()
 end
@@ -202,5 +201,5 @@ function frame:CreateAddonListFrame()
 	self.ScrollFrame.ScrollBar:SetScript("OnSizeChanged", OnSizeChanged)
 	self.ScrollFrame.ScrollBar.doNotHide = true
 
-	HybridScrollFrame_CreateButtons(self.ScrollFrame, "ElioteAddonListItem")
+	HybridScrollFrame_CreateButtons(self.ScrollFrame, "SimpleAddonManagerAddonItem")
 end

@@ -1,9 +1,9 @@
 local ADDON_NAME, T = ...
 local EDDM = LibStub("ElioteDropDownMenu-1.0")
-local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("ElioteAddonList_MenuFrame")
+local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFrame")
 
---- @type ElioteAddonList
-local frame = ElioteAddonList
+--- @type SimpleAddonManager
+local frame = T.AddonFrame
 
 ButtonFrameTemplate_HidePortrait(frame)
 

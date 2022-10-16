@@ -1,5 +1,5 @@
 <UI>
-    <Button name="ElioteAddonListItem" virtual="true">
+    <Button name="SimpleAddonManagerAddonItem" virtual="true">
         <Size x="400" y="20"/>
         <!--<NormalTexture parentKey="NormalTexture" atlas="voicechat-channellist-row-background" alphaMode="ADD"/>-->
         <HighlightTexture parentKey="HighlightTexture" atlas="voicechat-channellist-row-highlight" alphaMode="ADD"/>

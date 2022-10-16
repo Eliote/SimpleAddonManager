@@ -1,9 +1,9 @@
 local _, T = ...
 local EDDM = LibStub("ElioteDropDownMenu-1.0")
-local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("ElioteAddonList_MenuFrame")
+local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFrame")
 
---- @type ElioteAddonList
-local frame = ElioteAddonList
+--- @type SimpleAddonManager
+local frame = T.AddonFrame
 
 local function CategoryMenu(categoryName)
 	local menu = {
@@ -208,7 +208,7 @@ end
 
 local function OnSizeChangedScrollFrame(self)
 	local offsetBefore = self:GetValue()
-	HybridScrollFrame_CreateButtons(self:GetParent(), "ElioteAddonCategoryItem")
+	HybridScrollFrame_CreateButtons(self:GetParent(), "SimpleAddonManagerCategoryItem")
 	self:SetValue(offsetBefore)
 	self:GetParent().update()
 end
@@ -281,5 +281,5 @@ function frame:CreateCategoryFrame()
 
 	UpdateListVariables()
 
-	HybridScrollFrame_CreateButtons(self.CategoryFrame.ScrollFrame, "ElioteAddonCategoryItem")
+	HybridScrollFrame_CreateButtons(self.CategoryFrame.ScrollFrame, "SimpleAddonManagerCategoryItem")
 end
