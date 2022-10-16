@@ -56,12 +56,12 @@ local function CategoryMenu(categoryName)
 	return menu
 end
 
-local function tablelength(T)
-	if not T then
+local function tablelength(t)
+	if not t then
 		return 0
 	end
 	local count = 0
-	for _ in pairs(T) do
+	for _ in pairs(t) do
 		count = count + 1
 	end
 	return count
