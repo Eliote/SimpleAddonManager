@@ -1,4 +1,5 @@
 local _, T = ...
+local L = T.L
 local EDDM = LibStub("ElioteDropDownMenu-1.0")
 local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFrame")
 
@@ -6,16 +7,17 @@ local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFr
 local frame = T.AddonFrame
 
 local function CategoryMenu(categoryName)
+	local db = frame:GetDb()
 	local menu = {
 		{ text = categoryName, isTitle = true, notCheckable = true },
 		{
-			text = "Rename",
+			text = L["Rename"],
 			notCheckable = true,
+			disabled = db.categories[categoryName] == nil,
 			func = function()
 				frame:ShowInputDialog(
-						"Enter the new name for the category '" .. categoryName .. "'",
+						L("Enter the new name for the category '${category}'", { category = categoryName }),
 						function(text)
-							local db = frame:GetDb()
 							if db.categories[text] then
 								return
 							end
@@ -33,13 +35,13 @@ local function CategoryMenu(categoryName)
 			end
 		},
 		{
-			text = "Delete",
+			text = L["Delete"],
 			notCheckable = true,
+			disabled = db.categories[categoryName] == nil,
 			func = function()
 				frame:ShowConfirmDialog(
-						"Delete category '" .. categoryName .. "'?",
+						L("Delete category '${category}'?", { category = categoryName }),
 						function()
-							local db = frame:GetDb()
 							db.categories[categoryName] = nil
 							frame.CategoryFrame.ScrollFrame.selectedItems[categoryName] = nil
 							frame:Update()
@@ -105,15 +107,15 @@ local function CategoryButtonOnEnter(self)
 	GameTooltip:SetPoint("LEFT", self, "RIGHT")
 	GameTooltip:AddLine(name, 1, 1, 1);
 	if (not userTable) then
-		GameTooltip:AddLine("Category created from addon metadata");
+		GameTooltip:AddLine(L["Category created from addons metadata"], nil, nil, nil, true);
 	else
-		GameTooltip:AddLine("User created category");
+		GameTooltip:AddLine(L["User created category"]);
 	end
 	GameTooltip:AddLine("\n");
-	GameTooltip:AddDoubleLine("Manually added:", userTable and tablelength(userTable.addons) or 0, nil, nil, nil, 1, 1, 1);
+	GameTooltip:AddDoubleLine(L["Manually added:"], userTable and tablelength(userTable.addons) or 0, nil, nil, nil, 1, 1, 1);
 	local fromTocCount = tocTable and tablelength(tocTable.addons) or 0
 	if (fromTocCount > 0) then
-		GameTooltip:AddDoubleLine("From toc:", tocTable and tablelength(tocTable.addons) or 0, nil, nil, nil, 1, 1, 1);
+		GameTooltip:AddDoubleLine(L["Automatically added:"], tocTable and tablelength(tocTable.addons) or 0, nil, nil, nil, 1, 1, 1);
 	end
 	GameTooltip:Show()
 end
@@ -179,7 +181,7 @@ local function BuildCategoryTableFromToc()
 end
 
 local function OnClickNewButton()
-	frame:ShowInputDialog("Enter the category name", function(text)
+	frame:ShowInputDialog(L["Enter the category name"], function(text)
 		local db = frame:GetDb()
 		db.categories = db.categories or {}
 		if (db.categories[text]) then
@@ -249,20 +251,20 @@ function frame:CreateCategoryFrame()
 	self.CategoryFrame.NewButton = CreateFrame("Button", nil, self.CategoryFrame, "UIPanelButtonTemplate")
 	self.CategoryFrame.NewButton:SetPoint("TOP", 0, 43)
 	self.CategoryFrame.NewButton:SetSize(self.CATEGORY_SIZE_W - 50, 20)
-	self.CategoryFrame.NewButton:SetText("New Category")
+	self.CategoryFrame.NewButton:SetText(L["New Category"])
 	self.CategoryFrame.NewButton:SetScript("OnClick", OnClickNewButton)
 
 	self.CategoryFrame.SelectAllButton = CreateFrame("Button", nil, self.CategoryFrame, "UIPanelButtonTemplate")
 	self.CategoryFrame.SelectAllButton:SetPoint("TOPLEFT", 8, 23)
 	self.CategoryFrame.SelectAllButton:SetSize((self.CATEGORY_SIZE_W / 2) - 4, 20)
-	self.CategoryFrame.SelectAllButton:SetText("Select All")
+	self.CategoryFrame.SelectAllButton:SetText(L["Select All"])
 	self.CategoryFrame.SelectAllButton:SetScript("OnClick", SetAll)
 	self.CategoryFrame.SelectAllButton.value = true
 
 	self.CategoryFrame.ClearSelectionButton = CreateFrame("Button", nil, self.CategoryFrame, "UIPanelButtonTemplate")
 	self.CategoryFrame.ClearSelectionButton:SetPoint("TOPRIGHT", -8, 23)
 	self.CategoryFrame.ClearSelectionButton:SetSize((self.CATEGORY_SIZE_W / 2) - 4, 20)
-	self.CategoryFrame.ClearSelectionButton:SetText("Select None")
+	self.CategoryFrame.ClearSelectionButton:SetText(L["Select None"])
 	self.CategoryFrame.ClearSelectionButton:SetScript("OnClick", SetAll)
 	self.CategoryFrame.ClearSelectionButton.value = nil
 

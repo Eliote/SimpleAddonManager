@@ -70,6 +70,15 @@ T.separatorInfo = {
 	},
 };
 
+T.spacer = {
+	text = "",
+	hasArrow = false,
+	isTitle = false,
+	isUninteractable = true,
+	notCheckable = true,
+	disabled = true,
+};
+
 T.closeMenuInfo = {
 	text = CANCEL,
 	hasArrow = false,

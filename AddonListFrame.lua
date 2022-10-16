@@ -1,4 +1,5 @@
 local _, T = ...
+local L = T.L
 local EDDM = LibStub("ElioteDropDownMenu-1.0")
 local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFrame")
 
@@ -9,7 +10,8 @@ local function AddonRightClickMenu(addonIndex)
 	local name, title = GetAddOnInfo(addonIndex)
 	local menu = {
 		{ text = title, isTitle = true, notCheckable = true },
-		{ text = "Categories: ", isTitle = true, notCheckable = true },
+		T.spacer,
+		{ text = L["Categories: "], isTitle = true, notCheckable = true },
 	}
 	local userCategories, tocCategories = frame:GetCategoryTables()
 	local sortedCategories = frame:TableKeysToSortedList(userCategories, tocCategories)
@@ -18,7 +20,7 @@ local function AddonRightClickMenu(addonIndex)
 		local tocCategory = tocCategories[categoryName]
 		local isInToc = tocCategory and tocCategory.addons and tocCategory.addons[name]
 		table.insert(menu, {
-			text = categoryName .. (isInToc and " |cFFFFFF00(Automatically in category)" or ""),
+			text = categoryName .. (isInToc and (" |cFFFFFF00" .. L["(Automatically in category)"]) or ""),
 			checked = categoryDb and categoryDb.addons and categoryDb.addons[name],
 			keepShownOnClick = true,
 			func = function(_, _, _, checked)
@@ -50,7 +52,7 @@ local function ToggleAddon(self)
 	local addonIndex = self:GetParent().addon.index
 	local newValue = not frame:IsAddonSelected(addonIndex)
 	frame.edited = true
-	frame.OkButton:SetText("Reload UI")
+	frame.OkButton:SetText(L["Reload UI"])
 	self:SetChecked(newValue)
 	if (newValue) then
 		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
@@ -91,11 +93,11 @@ local function AddonButtonOnEnter(self)
 		end
 		local version = GetAddOnMetadata(addonIndex, "Version")
 		if (version) then
-			GameTooltip:AddLine("Version: |cFFFFFFFF" .. version .. "|r");
+			GameTooltip:AddLine(L["Version: "] .. "|cFFFFFFFF" .. version .. "|r");
 		end
 		local author = GetAddOnMetadata(addonIndex, "Author")
 		if (author) then
-			GameTooltip:AddLine("Author: |cFFFFFFFF" .. strtrim(author) .. "|r");
+			GameTooltip:AddLine(L["Author: "] .. "|cFFFFFFFF" .. strtrim(author) .. "|r");
 		end
 		GameTooltip:AddLine(AddonTooltipBuildDepsString(GetAddOnDependencies(addonIndex)), nil, nil, nil, true);
 		GameTooltip:AddLine(" ");

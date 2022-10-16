@@ -8,6 +8,9 @@
 Libs\LibStub\LibStub.lua
 Libs\ElioteDropDownMenu-1.0\ElioteDropDownMenu-1.0.lua
 
+Localization\enUS.lua
+Localization\ptBR.lua
+
 Templates\AddonItem.xml
 Templates\CategoryItem.xml
 
