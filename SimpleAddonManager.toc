@@ -14,8 +14,17 @@
 Libs\LibStub\LibStub.lua
 Libs\ElioteDropDownMenu-1.0\ElioteDropDownMenu-1.0.lua
 
+Localization\deDE.lua
 Localization\enUS.lua
+Localization\esES.lua
+Localization\esMX.lua
+Localization\frFR.lua
+Localization\itIT.lua
+Localization\koKR.lua
 Localization\ptBR.lua
+Localization\ruRU.lua
+Localization\zhCN.lua
+Localization\zhTW.lua
 
 Templates\AddonItem.xml
 Templates\CategoryItem.xml
