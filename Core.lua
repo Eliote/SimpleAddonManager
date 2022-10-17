@@ -85,7 +85,7 @@ T.closeMenuInfo = {
 	notCheckable = true,
 };
 
-local function CreateDefaultOptions(db, defaults)
+function frame:CreateDefaultOptions(db, defaults)
 	for k, v in pairs(defaults) do
 		if (db[k] == nil) then
 			db[k] = v
@@ -171,6 +171,20 @@ function frame:TableKeysToSortedList(...)
 	return list
 end
 
+local modules = {}
+function frame:RegisterModule(name)
+	if (modules[name]) then
+		error("Module '" .. name .. "' already exists!")
+	end
+	local module = {}
+	modules[name] = module
+	return module
+end
+
+function frame:GetModule(name)
+	return modules[name]
+end
+
 frame:SetScript("OnEvent", function(self, event, ...)
 	self[event](self, ...)
 end)
@@ -187,7 +201,7 @@ function frame:ADDON_LOADED(name)
 	SimpleAddonManagerDB.categories = SimpleAddonManagerDB.categories or {}
 	SimpleAddonManagerDB.config = SimpleAddonManagerDB.config or {}
 
-	CreateDefaultOptions(SimpleAddonManagerDB.config, {
+	frame:CreateDefaultOptions(SimpleAddonManagerDB.config, {
 		showVersions = false,
 		sorting = "smart",
 		hookMenuButton = true,
@@ -195,6 +209,12 @@ function frame:ADDON_LOADED(name)
 	})
 
 	frame:HookMenuButton()
+
+	for _, v in pairs(modules) do
+		if (v.OnLoad) then
+			v:OnLoad()
+		end
+	end
 end
 
 function frame:HookMenuButton()

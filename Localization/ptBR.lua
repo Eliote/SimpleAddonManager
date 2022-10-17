@@ -52,4 +52,7 @@ L["Right-click to edit"] = "Clique-direito para editar"
 L["Results: ${results}"] = "Resultados: ${results}"
 L["Add search results to category"] = "Adicionar resultados da busca na categoria"
 L["Remove search results from category"] = "Remover resultados da busca da categoria"
+L["Left-click to open"] = "Clique-esquerdo para abrir"
+L["Show minimap button"] = "Exibir botão no minimapa"
+L["AddOns Total Memory"] = "Memória total dos AddOns"
 --@end-do-not-package@

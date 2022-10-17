@@ -33,3 +33,5 @@ Core.lua
 MainFrame.lua
 AddonListFrame.lua
 CategoryFrame.lua
+MiniMapButton.lua
+SlashCommand.lua
