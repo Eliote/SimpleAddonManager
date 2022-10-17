@@ -102,6 +102,8 @@ local function AddonButtonOnEnter(self)
 		GameTooltip:AddLine(AddonTooltipBuildDepsString(GetAddOnDependencies(addonIndex)), nil, nil, nil, true);
 		GameTooltip:AddLine(" ");
 		GameTooltip:AddLine(notes, 1.0, 1.0, 1.0, true);
+		GameTooltip:AddLine(" ");
+		GameTooltip:AddLine("|A:newplayertutorial-icon-mouse-rightbutton:0:0|a " .. L["Right-click to edit"]);
 	end
 
 	GameTooltip:Show()

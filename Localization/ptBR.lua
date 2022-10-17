@@ -48,4 +48,5 @@ L["New Category"] = "Nova Categoria"
 L["Select All"] = "Todos"
 L["Select None"] = "Nenhum"
 L["Name (improved)"] = "Nome (melhorado)"
+L["Right-click to edit"] = "Clique-direito para editar"
 --@end-do-not-package@

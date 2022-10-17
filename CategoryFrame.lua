@@ -117,6 +117,8 @@ local function CategoryButtonOnEnter(self)
 	if (fromTocCount > 0) then
 		GameTooltip:AddDoubleLine(L["Automatically added:"], tocTable and tablelength(tocTable.addons) or 0, nil, nil, nil, 1, 1, 1);
 	end
+	GameTooltip:AddLine(" ");
+	GameTooltip:AddLine("|A:newplayertutorial-icon-mouse-rightbutton:0:0|a " .. L["Right-click to edit"]);
 	GameTooltip:Show()
 end
 
