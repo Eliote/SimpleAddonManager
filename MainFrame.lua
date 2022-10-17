@@ -137,6 +137,58 @@ local function ProfilesDropDownCreate()
 	return menu
 end
 
+local function SearchResultDropDownCreate()
+	local userCategories, tocCategories = frame:GetCategoryTables()
+	local sortedCategories = frame:TableKeysToSortedList(userCategories, tocCategories)
+	local addons = frame:GetAddonsList()
+	local function categoriesMenu(add)
+		local menu = {}
+		for _, categoryName in ipairs(sortedCategories) do
+			table.insert(menu, {
+				text = categoryName,
+				notCheckable = true,
+				func = function()
+					for _, addon in ipairs(addons) do
+						local name = GetAddOnInfo(addon.index)
+						if (not add and (not userCategories[categoryName] or not userCategories[categoryName].addons)) then
+							-- there is nothing to remove, avoid creating custom category
+							return
+						end
+						userCategories[categoryName] = userCategories[categoryName] or { name = categoryName }
+						userCategories[categoryName].addons = userCategories[categoryName].addons or {}
+						userCategories[categoryName].addons[name] = add
+						EDDM.CloseDropDownMenus()
+					end
+
+					frame:Update()
+				end,
+			})
+		end
+		return menu
+	end
+
+	local menu = {
+		{ text = L("Results: ${results}", { results = #addons }), isTitle = true, notCheckable = true },
+		{
+			text = L["Add search results to category"],
+			notCheckable = true,
+			hasArrow = true,
+			menuList = categoriesMenu(true)
+		},
+		{
+			text = L["Remove search results from category"],
+			notCheckable = true,
+			hasArrow = true,
+			menuList = categoriesMenu(nil)
+		}
+	}
+
+	table.insert(menu, T.separatorInfo)
+	table.insert(menu, T.closeMenuInfo)
+
+	return menu
+end
+
 local function ConfigDropDownCreate()
 	local db = frame:GetDb()
 	return {
@@ -492,10 +544,25 @@ function frame:CreateMainFrame()
 
 	frame.SearchBox = CreateFrame("EditBox", nil, frame, "SearchBoxTemplate")
 	frame.SearchBox:SetPoint("LEFT", frame.SetsButton, "RIGHT", 8, 0)
-	frame.SearchBox:SetSize(130, 20)
+	frame.SearchBox:SetSize(120, 20)
 	frame.SearchBox:SetScript("OnTextChanged", function(self)
 		SearchBoxTemplate_OnTextChanged(self)
 		frame:UpdateListFilters()
+		if (frame.SearchBox:GetText() == "") then
+			frame.ResultOptionsButton:Hide()
+		else
+			frame.ResultOptionsButton:Show()
+		end
+	end)
+
+	frame.ResultOptionsButton = CreateFrame("Button", nil, frame, "UIPanelSquareButton")
+	frame.ResultOptionsButton:SetPoint("LEFT", frame.SearchBox, "RIGHT", 1, 0)
+	frame.ResultOptionsButton:SetSize(26, 26)
+	frame.ResultOptionsButton.icon:SetAtlas("transmog-icon-downarrow")
+	frame.ResultOptionsButton.icon:SetTexCoord(0, 1, 0, 1)
+	frame.ResultOptionsButton.icon:SetSize(15, 9)
+	frame.ResultOptionsButton:SetScript("OnClick", function()
+		EDDM.EasyMenu(SearchResultDropDownCreate(), dropdownFrame, frame.ConfigButton, 0, 0, "MENU")
 	end)
 
 	frame.ConfigButton = CreateFrame("Button", nil, frame, "UIPanelSquareButton")

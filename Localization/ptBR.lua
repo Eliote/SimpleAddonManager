@@ -49,4 +49,7 @@ L["Select All"] = "Todos"
 L["Select None"] = "Nenhum"
 L["Name (improved)"] = "Nome (melhorado)"
 L["Right-click to edit"] = "Clique-direito para editar"
+L["Results: ${results}"] = "Resultados: ${results}"
+L["Add search results to category"] = "Adicionar resultados da busca na categoria"
+L["Remove search results from category"] = "Remover resultados da busca da categoria"
 --@end-do-not-package@
