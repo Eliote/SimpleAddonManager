@@ -6,6 +6,8 @@ local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFr
 --- @type SimpleAddonManager
 local frame = T.AddonFrame
 
+local BANNED_ADDON = "BANNED"
+
 local function AddonRightClickMenu(addonIndex)
 	local name, title = GetAddOnInfo(addonIndex)
 	local menu = {
@@ -50,6 +52,11 @@ end
 
 local function ToggleAddon(self)
 	local addonIndex = self:GetParent().addon.index
+	local _, _, _, _, _, security = GetAddOnInfo(addonIndex)
+	if (security == BANNED_ADDON) then
+		return
+	end
+
 	local newValue = not frame:IsAddonSelected(addonIndex)
 	frame.edited = true
 	frame.OkButton:SetText(L["Reload UI"])
@@ -81,7 +88,7 @@ local function AddonButtonOnEnter(self)
 	GameTooltip:ClearLines();
 	GameTooltip:SetOwner(self, "ANCHOR_NONE")
 	GameTooltip:SetPoint("LEFT", self, "RIGHT")
-	if (security == "BANNED") then
+	if (security == BANNED_ADDON) then
 		GameTooltip:SetText(ADDON_BANNED_TOOLTIP);
 	else
 		if (title) then
@@ -143,7 +150,7 @@ local function UpdateList()
 		if relativeButtonIndex <= count then
 			local addon = addons[relativeButtonIndex]
 			local addonIndex = addon.index
-			local name, title, _, loadable, reason = GetAddOnInfo(addonIndex)
+			local name, title, _, loadable, reason, security = GetAddOnInfo(addonIndex)
 			local loaded = IsAddOnLoaded(addonIndex)
 			local enabled = frame:IsAddonSelected(addonIndex)
 			local version = ""
@@ -175,6 +182,7 @@ local function UpdateList()
 
 			button.EnabledButton:SetChecked(enabled)
 			button.EnabledButton:SetScript("OnClick", ToggleAddon)
+			button.EnabledButton:SetEnabled(security ~= BANNED_ADDON)
 
 			button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 			button:SetScript("OnClick", AddonButtonOnClick)
