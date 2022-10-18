@@ -55,4 +55,5 @@ L["Remove search results from category"] = "Remover resultados da busca da categ
 L["Left-click to open"] = "Clique-esquerdo para abrir"
 L["Show minimap button"] = "Exibir botão no minimapa"
 L["AddOns Total Memory"] = "Memória total dos AddOns"
+L["Memory: "] = "Memória: "
 --@end-do-not-package@

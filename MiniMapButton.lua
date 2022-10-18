@@ -38,13 +38,13 @@ local broker = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject(ADDON_NAME,
 
 		if (totalMem > 0) then
 			ttp:AddLine("\n")
-			ttp:AddDoubleLine(L["AddOns Total Memory"], module:FormatMemory(totalMem), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+			ttp:AddDoubleLine(L["AddOns Total Memory"], frame:FormatMemory(totalMem), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
 
 			for i = 1, maxAddons do
 				if (topAddOns[i].value == 0) then
 					break
 				end
-				ttp:AddDoubleLine(topAddOns[i].name, module:FormatMemory(topAddOns[i].value), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+				ttp:AddDoubleLine(topAddOns[i].name, frame:FormatMemory(topAddOns[i].value), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
 			end
 		end
 	end,
@@ -69,14 +69,5 @@ function module:ToggleMinimapButton()
 		ldbIcon:Hide(ADDON_NAME)
 	else
 		ldbIcon:Show(ADDON_NAME)
-	end
-end
-
-function module:FormatMemory(value)
-	if (value >= 1000) then
-		value = value / 1000
-		return format("%.2f MB", value)
-	else
-		return format("%.2f KB", value)
 	end
 end

@@ -171,6 +171,15 @@ function frame:TableKeysToSortedList(...)
 	return list
 end
 
+function frame:FormatMemory(value)
+	if (value >= 1000) then
+		value = value / 1000
+		return format("%.2f MB", value)
+	else
+		return format("%.2f KB", value)
+	end
+end
+
 local modules = {}
 function frame:RegisterModule(name)
 	if (modules[name]) then

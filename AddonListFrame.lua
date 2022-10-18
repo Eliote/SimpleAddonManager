@@ -99,6 +99,10 @@ local function AddonButtonOnEnter(self)
 		if (author) then
 			GameTooltip:AddLine(L["Author: "] .. "|cFFFFFFFF" .. strtrim(author) .. "|r");
 		end
+		if (IsAddOnLoaded(addonIndex)) then
+			local mem = GetAddOnMemoryUsage(addonIndex)
+			GameTooltip:AddLine(L["Memory: "] .. "|cFFFFFFFF" .. frame:FormatMemory(mem) .. "|r");
+		end
 		GameTooltip:AddLine(AddonTooltipBuildDepsString(GetAddOnDependencies(addonIndex)), nil, nil, nil, true);
 		GameTooltip:AddLine(" ");
 		GameTooltip:AddLine(notes, 1.0, 1.0, 1.0, true);
