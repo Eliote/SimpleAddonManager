@@ -5,6 +5,7 @@ local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFr
 
 --- @type SimpleAddonManager
 local frame = T.AddonFrame
+local module = frame:RegisterModule("Category")
 
 local function CategoryMenu(categoryName)
 	local db = frame:GetDb()
@@ -105,7 +106,7 @@ local function CategoryButtonOnEnter(self)
 	GameTooltip:ClearLines();
 	GameTooltip:SetOwner(self, "ANCHOR_NONE")
 	GameTooltip:SetPoint("LEFT", self, "RIGHT")
-	GameTooltip:AddLine(name, 1, 1, 1);
+	GameTooltip:AddLine(frame:LocalizeCategoryName(name, userTable), 1, 1, 1);
 	if (not userTable) then
 		GameTooltip:AddLine(L["Category created from addons metadata"], nil, nil, nil, true);
 	else
@@ -144,7 +145,11 @@ local function UpdateCategoryList()
 			local categoryKey = frame.CategoryFrame.ScrollFrame.sortedItemsList[relativeButtonIndex]
 			local userCategory, tocCategory = frame:GetCategoryTable(categoryKey)
 			local category = userCategory or tocCategory
-			button.Name:SetText((not userCategory and "|cFFFFFF00" or "") .. category.name)
+			if (userCategory) then
+				button.Name:SetText(category.name)
+			else
+				button.Name:SetText("|cFFFFFF00" .. frame:LocalizeCategoryName(category.name))
+			end
 			local enabled = IsCategorySelected(category.name)
 
 			button.categoryName = category.name
@@ -208,6 +213,11 @@ local function UpdateListVariables()
 	end
 	local categoriesList = frame:TableKeysToSortedList(db.categories, categoryTocTable)
 	frame.CategoryFrame.ScrollFrame.sortedItemsList = categoriesList
+end
+
+function frame:LocalizeCategoryName(name, isUserCategory)
+	if (isUserCategory or not frame:GetDb().config.localizeCategoryName) then return name end
+	return rawget(L, string.lower(name)) or name
 end
 
 local function OnSizeChangedScrollFrame(self)
@@ -286,4 +296,11 @@ function frame:CreateCategoryFrame()
 	UpdateListVariables()
 
 	HybridScrollFrame_CreateButtons(self.CategoryFrame.ScrollFrame, "SimpleAddonManagerCategoryItem")
+end
+
+function module:OnLoad()
+	local db = frame:GetDb()
+	frame:CreateDefaultOptions(db.config, {
+		localizeCategoryName = true
+	})
 end

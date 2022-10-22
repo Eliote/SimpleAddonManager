@@ -22,7 +22,7 @@ local function AddonRightClickMenu(addonIndex)
 		local tocCategory = tocCategories[categoryName]
 		local isInToc = tocCategory and tocCategory.addons and tocCategory.addons[name]
 		table.insert(menu, {
-			text = categoryName .. (isInToc and (" |cFFFFFF00" .. L["(Automatically in category)"]) or ""),
+			text = frame:LocalizeCategoryName(categoryName, not isInToc) .. (isInToc and (" |cFFFFFF00" .. L["(Automatically in category)"]) or ""),
 			checked = categoryDb and categoryDb.addons and categoryDb.addons[name],
 			keepShownOnClick = true,
 			func = function(_, _, _, checked)
