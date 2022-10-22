@@ -132,6 +132,7 @@ function frame:Update()
 	self.CategoryFrame.ScrollFrame.updateDb()
 	self.CategoryFrame.ScrollFrame.update()
 	self:UpdateListFilters()
+	frame:UpdateOkButton()
 end
 
 frame:SetScript("OnShow", function()
@@ -194,6 +195,11 @@ function frame:GetModule(name)
 	return modules[name]
 end
 
+local addonsInitialState = {}
+function frame:GetAddonsInitialState()
+	return addonsInitialState
+end
+
 frame:SetScript("OnEvent", function(self, event, ...)
 	self[event](self, ...)
 end)
@@ -218,6 +224,10 @@ function frame:ADDON_LOADED(name)
 	})
 
 	frame:HookMenuButton()
+
+	for addonIndex = 1, GetNumAddOns() do
+		addonsInitialState[addonIndex] = frame:IsAddonSelected(addonIndex)
+	end
 
 	for _, v in pairs(modules) do
 		if (v.OnLoad) then

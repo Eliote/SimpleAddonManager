@@ -58,8 +58,6 @@ local function ToggleAddon(self)
 	end
 
 	local newValue = not frame:IsAddonSelected(addonIndex)
-	frame.edited = true
-	frame.OkButton:SetText(L["Reload UI"])
 	self:SetChecked(newValue)
 	if (newValue) then
 		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
@@ -70,6 +68,7 @@ local function ToggleAddon(self)
 		local character = frame:GetCharacter()
 		DisableAddOn(addonIndex, character)
 	end
+	frame:UpdateOkButton()
 	frame.ScrollFrame.update()
 end
 

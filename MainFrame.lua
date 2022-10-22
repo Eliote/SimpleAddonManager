@@ -83,7 +83,7 @@ local function ProfilesDropDownCreate()
 									for _, name in ipairs(enabledAddons) do
 										EnableAddOn(name, character)
 									end
-									frame.ScrollFrame.update()
+									frame:Update()
 								end
 						)
 					end
@@ -383,7 +383,9 @@ end
 
 local function AddonsInCategoriesFunc(categories)
 	if categories == nil or next(categories) == nil then
-		return function() return true end
+		return function()
+			return true
+		end
 	end
 	local m = {}
 	local fixedCategories = {}
@@ -405,7 +407,9 @@ local function AddonsInCategoriesFunc(categories)
 	end
 
 	return function(name)
-		if (m[name]) then return true end
+		if (m[name]) then
+			return true
+		end
 		for _, func in pairs(fixedCategories) do
 			if (func(name)) then
 				return true
@@ -479,6 +483,27 @@ end
 
 function frame:GetAddonsList()
 	return addons
+end
+
+function frame:DidAddonsStateChanged()
+	local initiallyEnabledAddons = frame:GetAddonsInitialState()
+	for addonIndex = 1, GetNumAddOns() do
+		local state = frame:IsAddonSelected(addonIndex)
+		local initialState = initiallyEnabledAddons[addonIndex]
+		if (state ~= initialState) then
+			return true
+		end
+	end
+end
+
+function frame:UpdateOkButton()
+	if (frame:DidAddonsStateChanged()) then
+		frame.edited = true
+		frame.OkButton:SetText(L["Reload UI"])
+	else
+		frame.edited = false
+		frame.OkButton:SetText(OKAY)
+	end
 end
 
 function frame:UpdateListFilters()
