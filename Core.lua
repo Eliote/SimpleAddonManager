@@ -111,12 +111,12 @@ function frame:ShowConfirmDialog(text, func)
 	self:ShowDialog(text, false, func)
 end
 
-function frame:IsAddonSelected(index)
+function frame:IsAddonSelected(nameOrIndex)
 	local character = self:GetCharacter()
 	if (character == true) then
 		character = nil;
 	end
-	return GetAddOnEnableState(character, index) > 0
+	return GetAddOnEnableState(character, nameOrIndex) > 0
 end
 
 local character = true -- name of the character, or [nil] for current character, or [true] for all characters on the realm
