@@ -10,7 +10,7 @@ local L = PRIVATE_TABLE.L
 --@localization(locale="ptBR", format="lua_additive_table")@
 
 --@do-not-package@
-L["Categories: "] = "Categorias: "
+L["Categories"] = "Categorias"
 L["Version: "] = "Versão: "
 L["Author: "] = "Autor: "
 L["(Automatically in category)"] = "(Automaticamente nesta categoria)"
@@ -63,6 +63,7 @@ L["Disabled Addons"] = "Addons desabilitados"
 L["Fixed category"]= "Categoria fixa"
 L["Currently Enabled Addons"] = "Addons atualmente habilitados"
 L["Currently Disabled Addons"] = "Addons atualmente desabilitados"
+L["Enable this Addon and its dependencies"] = "Habilitar este Addon e suas dependências"
 
 L["development tools"] = "Ferramentas de Desenvolvimento"
 --@end-do-not-package@

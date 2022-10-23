@@ -8,13 +8,53 @@ local frame = T.AddonFrame
 
 local BANNED_ADDON = "BANNED"
 
+local function AddonTooltipBuildDepsString(...)
+	local deps = "";
+	for i = 1, select("#", ...) do
+		if (i == 1) then
+			deps = ADDON_DEPENDENCIES .. "|cFFFFFFFF" .. select(i, ...);
+		else
+			deps = deps .. ", " .. select(i, ...);
+		end
+	end
+	return deps;
+end
+
+
+local function EnableAllDeps(addonIndex)
+	local requiredDeps = { GetAddOnDependencies(addonIndex) }
+	for _, depName in pairs(requiredDeps) do
+		local _, _, _, _, reason = GetAddOnInfo(depName)
+		if (reason ~= "MISSING") then
+			EnableAddOn(depName)
+			EnableAllDeps(depName)
+		end
+	end
+end
+
 local function AddonRightClickMenu(addonIndex)
 	local name, title = GetAddOnInfo(addonIndex)
 	local menu = {
 		{ text = title, isTitle = true, notCheckable = true },
-		T.spacer,
-		{ text = L["Categories: "], isTitle = true, notCheckable = true },
 	}
+
+	if (GetAddOnDependencies(addonIndex)) then
+		table.insert(menu, {
+			text = L["Enable this Addon and its dependencies"],
+			func = function()
+				EnableAddOn(addonIndex)
+				EnableAllDeps(addonIndex)
+				frame:Update()
+			end,
+			notCheckable = true,
+			tooltipOnButton = true,
+			tooltipTitle = title,
+			tooltipText = AddonTooltipBuildDepsString(GetAddOnDependencies(addonIndex))
+		})
+	end
+	table.insert(menu, T.spacer)
+	table.insert(menu, { text = L["Categories"], isTitle = true, notCheckable = true })
+
 	local userCategories, tocCategories = frame:GetCategoryTables()
 	local sortedCategories = frame:TableKeysToSortedList(userCategories, tocCategories)
 	for _, categoryName in ipairs(sortedCategories) do
@@ -23,7 +63,9 @@ local function AddonRightClickMenu(addonIndex)
 		local isInToc = tocCategory and tocCategory.addons and tocCategory.addons[name]
 		table.insert(menu, {
 			text = frame:LocalizeCategoryName(categoryName, not isInToc) .. (isInToc and (" |cFFFFFF00" .. L["(Automatically in category)"]) or ""),
-			checked = categoryDb and categoryDb.addons and categoryDb.addons[name],
+			checked = function()
+				return categoryDb and categoryDb.addons and categoryDb.addons[name]
+			end,
 			keepShownOnClick = true,
 			func = function(_, _, _, checked)
 				userCategories[categoryName] = userCategories[categoryName] or { name = categoryName }
@@ -36,18 +78,6 @@ local function AddonRightClickMenu(addonIndex)
 	table.insert(menu, T.separatorInfo)
 	table.insert(menu, T.closeMenuInfo)
 	return menu
-end
-
-local function AddonTooltipBuildDepsString(...)
-	local deps = "";
-	for i = 1, select("#", ...) do
-		if (i == 1) then
-			deps = ADDON_DEPENDENCIES .. "|cFFFFFFFF" .. select(i, ...);
-		else
-			deps = deps .. ", " .. select(i, ...);
-		end
-	end
-	return deps;
 end
 
 local function ToggleAddon(self)
