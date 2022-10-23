@@ -568,7 +568,9 @@ function frame:CreateMainFrame()
 	frame.EnableAllButton:SetText(ENABLE_ALL_ADDONS)
 	frame.EnableAllButton:SetScript("OnClick", function()
 		local character = frame:GetCharacter()
-		EnableAllAddOns(character)
+		for _, addon in pairs(frame:GetAddonsList()) do
+			EnableAddOn(addon.index, character)
+		end
 		frame.ScrollFrame.update()
 	end)
 
@@ -578,7 +580,9 @@ function frame:CreateMainFrame()
 	frame.DisableAllButton:SetText(DISABLE_ALL_ADDONS)
 	frame.DisableAllButton:SetScript("OnClick", function()
 		local character = frame:GetCharacter()
-		DisableAllAddOns(character)
+		for _, addon in pairs(frame:GetAddonsList()) do
+			DisableAddOn(addon.index, character)
+		end
 		frame.ScrollFrame.update()
 	end)
 
