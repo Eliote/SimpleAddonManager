@@ -226,7 +226,8 @@ function frame:ADDON_LOADED(name)
 	frame:HookMenuButton()
 
 	for addonIndex = 1, GetNumAddOns() do
-		addonsInitialState[addonIndex] = frame:IsAddonSelected(addonIndex)
+		local addonName = GetAddOnInfo(addonIndex)
+		addonsInitialState[addonName] = frame:IsAddonSelected(addonIndex)
 	end
 
 	for _, v in pairs(modules) do

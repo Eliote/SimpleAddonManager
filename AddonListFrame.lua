@@ -98,8 +98,7 @@ local function ToggleAddon(self)
 		local character = frame:GetCharacter()
 		DisableAddOn(addonIndex, character)
 	end
-	frame:UpdateOkButton()
-	frame.ScrollFrame.update()
+	frame:Update()
 end
 
 local function AddonButtonOnClick(self, mouseButton)

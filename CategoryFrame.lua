@@ -60,7 +60,7 @@ end
 local fixedCategories = {
 	["!!!!!_00_ENABLED_CATEGORY"] = {
 		type = "fixed",
-		name = L["Enabled Addons"],
+		name = "|cFF19FF19" .. L["Enabled Addons"],
 		description = L["Currently Enabled Addons"],
 		addons = function(key)
 			return frame:IsAddonSelected(key)
@@ -77,7 +77,7 @@ local fixedCategories = {
 	},
 	["!!!!!_01_DISABLED_CATEGORY"] = {
 		type = "fixed",
-		name = L["Disabled Addons"],
+		name = "|cFF19FF19" .. L["Disabled Addons"],
 		description = L["Currently Disabled Addons"],
 		addons = function(key)
 			return not frame:IsAddonSelected(key)
@@ -91,7 +91,25 @@ local fixedCategories = {
 			end
 			return count
 		end
-	}
+	},
+	["!!!!!_03_CHANGING_STATE"] = {
+		type = "fixed",
+		name = "|cFFFF1919" .. L["Addons being modified"],
+		description = L["Addons being modified in this session"],
+		addons = function(key)
+			return frame:DidAddonStateChanged(key)
+		end,
+		show = function() return frame:DidAnyAddonStateChanged() end,
+		count = function()
+			local count = 0
+			for addonIndex = 1, GetNumAddOns() do
+				if (frame:DidAddonStateChanged(addonIndex)) then
+					count = count + 1
+				end
+			end
+			return count
+		end
+	},
 }
 
 local function tablelength(t)
@@ -148,9 +166,9 @@ local function CategoryButtonOnEnter(self)
 	if (tocTable) then
 		GameTooltip:AddLine(L["Category created from addons metadata"], nil, nil, nil, true);
 	elseif (fixedTable) then
-		GameTooltip:AddLine(self.category.description);
+		GameTooltip:AddLine(self.category.description, nil, nil, nil, true);
 	else
-		GameTooltip:AddLine(L["User created category"]);
+		GameTooltip:AddLine(L["User created category"], nil, nil, nil, true);
 	end
 	GameTooltip:AddLine("\n");
 	if (fixedTable) then
@@ -192,9 +210,9 @@ local function UpdateCategoryList()
 			if (userCategory) then
 				button.Name:SetText(category.name)
 			elseif (fixed) then
-				button.Name:SetText("|cFF00FF00" .. category.name)
+				button.Name:SetText(category.name)
 			else
-				button.Name:SetText("|cFFFFFF00" .. frame:LocalizeCategoryName(category.name))
+				button.Name:SetText("|cFFFFFF19" .. frame:LocalizeCategoryName(category.name))
 			end
 			local enabled = IsCategorySelected(categoryKey)
 
@@ -249,6 +267,18 @@ local function OnClickNewButton()
 	end)
 end
 
+local function BuildFixedCategories()
+	local t = {}
+	for k, v in pairs(fixedCategories) do
+		if (v.show == nil) then
+			t[k] = v
+		elseif (v.show()) then
+			t[k] = v
+		end
+	end
+	return t
+end
+
 local categoryTocTable = {}
 
 local function UpdateListVariables()
@@ -259,7 +289,7 @@ local function UpdateListVariables()
 	else
 		categoryTocTable = BuildCategoryTableFromToc()
 	end
-	local categoriesList = frame:TableKeysToSortedList(db.categories, categoryTocTable, fixedCategories)
+	local categoriesList = frame:TableKeysToSortedList(db.categories, categoryTocTable, BuildFixedCategories())
 	frame.CategoryFrame.ScrollFrame.sortedItemsList = categoriesList
 end
 

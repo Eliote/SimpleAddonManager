@@ -485,19 +485,26 @@ function frame:GetAddonsList()
 	return addons
 end
 
-function frame:DidAddonsStateChanged()
+function frame:DidAddonStateChanged(addonNameOrIndex)
 	local initiallyEnabledAddons = frame:GetAddonsInitialState()
+	local state = frame:IsAddonSelected(addonNameOrIndex)
+	local name = GetAddOnInfo(addonNameOrIndex)
+	local initialState = initiallyEnabledAddons[name]
+	if (state ~= initialState) then
+		return true
+	end
+end
+
+function frame:DidAnyAddonStateChanged()
 	for addonIndex = 1, GetNumAddOns() do
-		local state = frame:IsAddonSelected(addonIndex)
-		local initialState = initiallyEnabledAddons[addonIndex]
-		if (state ~= initialState) then
+		if (frame:DidAddonStateChanged(addonIndex)) then
 			return true
 		end
 	end
 end
 
 function frame:UpdateOkButton()
-	if (frame:DidAddonsStateChanged()) then
+	if (frame:DidAnyAddonStateChanged()) then
 		frame.edited = true
 		frame.OkButton:SetText(L["Reload UI"])
 	else

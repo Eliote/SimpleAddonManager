@@ -64,6 +64,8 @@ L["Fixed category"]= "Categoria fixa"
 L["Currently Enabled Addons"] = "Addons atualmente habilitados"
 L["Currently Disabled Addons"] = "Addons atualmente desabilitados"
 L["Enable this Addon and its dependencies"] = "Habilitar este Addon e suas dependências"
+L["Addons being modified"] = "Addons sendo modificados"
+L["Addons being modified in this session"] = "Addons sendo modificados nesta sessão"
 
 L["development tools"] = "Ferramentas de Desenvolvimento"
 --@end-do-not-package@
