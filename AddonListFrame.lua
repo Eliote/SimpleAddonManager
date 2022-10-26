@@ -1,5 +1,7 @@
 local _, T = ...
 local L = T.L
+local C = T.Color
+
 local EDDM = LibStub("ElioteDropDownMenu-1.0")
 local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFrame")
 
@@ -9,24 +11,27 @@ local module = frame:RegisterModule("AddonList")
 
 local BANNED_ADDON = "BANNED"
 
-local function AddonTooltipBuildDepsString(...)
-	local deps = "";
-	for i = 1, select("#", ...) do
+local function AddonTooltipBuildDepsString(addonIndex)
+	local deps = { GetAddOnDependencies(addonIndex) }
+	local depsString = "";
+	for i, name in ipairs(deps) do
+		local color = C.white
+		if (not frame:IsAddonInstalled(name)) then
+			color = C.red
+		end
 		if (i == 1) then
-			deps = ADDON_DEPENDENCIES .. "|cFFFFFFFF" .. select(i, ...);
+			depsString = ADDON_DEPENDENCIES .. color:WrapText(name)
 		else
-			deps = deps .. ", " .. select(i, ...);
+			depsString = depsString .. ", " .. color:WrapText(name)
 		end
 	end
-	return deps;
+	return depsString;
 end
-
 
 local function EnableAllDeps(addonIndex)
 	local requiredDeps = { GetAddOnDependencies(addonIndex) }
 	for _, depName in pairs(requiredDeps) do
-		local _, _, _, _, reason = GetAddOnInfo(depName)
-		if (reason ~= "MISSING") then
+		if (frame:IsAddonInstalled(depName)) then
 			EnableAddOn(depName)
 			EnableAllDeps(depName)
 		end
@@ -50,7 +55,7 @@ local function AddonRightClickMenu(addonIndex)
 			notCheckable = true,
 			tooltipOnButton = true,
 			tooltipTitle = title,
-			tooltipText = AddonTooltipBuildDepsString(GetAddOnDependencies(addonIndex))
+			tooltipText = AddonTooltipBuildDepsString(addonIndex)
 		})
 	end
 	table.insert(menu, T.spacer)
@@ -112,7 +117,7 @@ end
 
 local function UpdateTooltip(self)
 	local addonIndex = self.addon.index
-	local name, title, notes, _, _, security = GetAddOnInfo(addonIndex)
+	local name, title, notes, _, reason, security = GetAddOnInfo(addonIndex)
 
 	GameTooltip:ClearLines();
 	GameTooltip:SetOwner(self, "ANCHOR_NONE")
@@ -124,8 +129,14 @@ local function UpdateTooltip(self)
 			GameTooltip:AddLine(title);
 			GameTooltip:AddLine(name, 0.7, 0.7, 0.7);
 			--GameTooltip:AddLine("debug: '" .. self.addon.name .. "'|r");
+			--GameTooltip:AddLine("dept: '" .. self.addon.dept .. "'|r");
+			--GameTooltip:AddLine("reason: '" .. (reason or "null") .. "'|r");
 		else
 			GameTooltip:AddLine(name);
+		end
+		if (reason == "MISSING") then
+			GameTooltip:AddLine(C.red:WrapText(L["UNKNOWN_ADDON_TTP_MESSAGE"]), nil, nil, nil, true);
+			return
 		end
 		local version = GetAddOnMetadata(addonIndex, "Version")
 		if (version) then
@@ -139,13 +150,12 @@ local function UpdateTooltip(self)
 			local mem = GetAddOnMemoryUsage(addonIndex)
 			GameTooltip:AddLine(L["Memory: "] .. "|cFFFFFFFF" .. frame:FormatMemory(mem) .. "|r");
 		end
-		GameTooltip:AddLine(AddonTooltipBuildDepsString(GetAddOnDependencies(addonIndex)), nil, nil, nil, true);
+		GameTooltip:AddLine(AddonTooltipBuildDepsString(addonIndex), nil, nil, nil, true);
 		GameTooltip:AddLine(" ");
 		GameTooltip:AddLine(notes, 1.0, 1.0, 1.0, true);
 		GameTooltip:AddLine(" ");
 		GameTooltip:AddLine("|A:newplayertutorial-icon-mouse-rightbutton:0:0|a " .. L["Right-click to edit"]);
 	end
-
 	GameTooltip:Show()
 end
 
@@ -168,6 +178,10 @@ local function ShouldColorStatus(enabled, loaded, reason)
 	end
 	return (enabled and not loaded) or
 			(enabled and loaded and reason == "INTERFACE_VERSION")
+end
+
+local function deptMargin(dept)
+	return 10 * (dept or 0)
 end
 
 local function UpdateList()
@@ -198,12 +212,18 @@ local function UpdateList()
 				version = (version and " |cff808080(" .. version .. ")|r") or ""
 			end
 
+			local margin = deptMargin(addon.dept)
+			button.Name:SetPoint("TOPLEFT",  30 + margin, 0)
+			button.EnabledButton:SetPoint("LEFT", 4 + margin, 0)
+
 			button.Name:SetText((title or name) .. version)
 
 			if (loadable or (enabled and (reason == "DEP_DEMAND_LOADED" or reason == "DEMAND_LOADED"))) then
 				button.Name:SetTextColor(1.0, 0.78, 0.0);
 			elseif enabled then
 				button.Name:SetTextColor(1.0, 0.1, 0.1);
+			elseif reason == "MISSING" then
+				button.Name:SetTextColor(C.red:GetRGB());
 			else
 				button.Name:SetTextColor(0.5, 0.5, 0.5);
 			end
@@ -220,7 +240,7 @@ local function UpdateList()
 
 			button.EnabledButton:SetChecked(enabled)
 			button.EnabledButton:SetScript("OnClick", ToggleAddon)
-			button.EnabledButton:SetEnabled(security ~= BANNED_ADDON)
+			button.EnabledButton:SetEnabled(security ~= BANNED_ADDON and addon.exists)
 
 			button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 			button:SetScript("OnClick", AddonButtonOnClick)

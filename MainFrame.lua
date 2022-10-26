@@ -6,8 +6,6 @@ local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFr
 --- @type SimpleAddonManager
 local frame = T.AddonFrame
 
-ButtonFrameTemplate_HidePortrait(frame)
-
 local function CharacterDropDown_Initialize()
 	local selectedValue = frame:GetCharacter() == true
 	local info = {
@@ -264,6 +262,26 @@ local function ConfigDropDownCreate()
 			end,
 		},
 		{
+			text = L["View AddOn list as dependency tree"],
+			checked = function()
+				return db.config.addonListStyle == "tree"
+			end,
+			func = function(_, _, _, value)
+				db.config.addonListStyle = (not value) and "tree" or "list"
+				frame:Update()
+			end,
+		},
+		{
+			text = L["Show Blizzard addons found in dependencies"],
+			checked = function()
+				return db.config.showSecureAddons
+			end,
+			func = function()
+				db.config.showSecureAddons = not db.config.showSecureAddons
+				frame:Update()
+			end,
+		},
+		{
 			text = L["Memory Update"],
 			notCheckable = true,
 			hasArrow = true,
@@ -406,111 +424,6 @@ function frame:SetCategoryVisibility(show, resize)
 	frame.CategoryFrame.ScrollFrame.update()
 end
 
-local function AddonsInCategoriesFunc(categories)
-	if categories == nil or next(categories) == nil then
-		return function()
-			return true
-		end
-	end
-	local m = {}
-	local fixedCategories = {}
-	for categoryName, _ in pairs(categories) do
-		local userTable, tocTable, fixedTable = frame:GetCategoryTable(categoryName)
-		if (userTable) then
-			for name, _ in pairs(userTable.addons) do
-				m[name] = true
-			end
-		end
-		if (tocTable) then
-			for name, _ in pairs(tocTable.addons) do
-				m[name] = true
-			end
-		end
-		if (fixedTable) then
-			fixedCategories[categoryName] = fixedTable.addons
-		end
-	end
-
-	return function(name)
-		if (m[name]) then
-			return true
-		end
-		for _, func in pairs(fixedCategories) do
-			if (func(name)) then
-				return true
-			end
-		end
-	end
-end
-
-local addons = {}
-
-local function SortAddons()
-	local db = frame:GetDb()
-	if (not db.config.sorting) then
-		return
-	end
-
-	if (db.config.sorting == "name") then
-		table.sort(addons, function(a, b)
-			return a.name < b.name
-		end)
-	elseif (db.config.sorting == "title") then
-		table.sort(addons, function(a, b)
-			return a.title < b.title
-		end)
-	elseif (db.config.sorting == "smart") then
-		table.sort(addons, function(a, b)
-			return a.smartName < b.smartName
-		end)
-	end
-end
-
-local function FilterAddon(addonIndex, filterLower, inCategoriesFunc)
-	local name, title = GetAddOnInfo(addonIndex)
-	if (not inCategoriesFunc(name)) then
-		return false
-	end
-
-	local searchBy = frame:GetDb().config.searchBy
-	if (searchBy.name and name:lower():find(filterLower, 0, true)) then
-		return true
-	end
-	if (searchBy.title and title:lower():find(filterLower, 0, true)) then
-		return true
-	end
-	if (searchBy.author) then
-		local author = GetAddOnMetadata(addonIndex, "Author")
-		if (author and author:lower():find(filterLower, 0, true)) then
-			return true
-		end
-	end
-end
-
-local function CreateList(filter, categories)
-	addons = {}
-	local inCategoriesFunc = AddonsInCategoriesFunc(categories)
-	local count = GetNumAddOns()
-	local filterLower = filter:lower()
-	for addonIndex = 1, count do
-		if (FilterAddon(addonIndex, filterLower, inCategoriesFunc)) then
-			local name, title = GetAddOnInfo(addonIndex)
-			table.insert(addons, {
-				index = addonIndex,
-				key = name,
-				name = name:lower(),
-				smartName = name:gsub(".-([%w].*)", "%1"):gsub("[_-]", " "):lower(),
-				title = (title or name):lower()
-			})
-		end
-	end
-	SortAddons()
-end
-
-function frame:GetAddonsList()
-	return addons
-end
-
 function frame:DidAddonStateChanged(addonNameOrIndex)
 	local initiallyEnabledAddons = frame:GetAddonsInitialState()
 	local state = frame:IsAddonSelected(addonNameOrIndex)
@@ -537,11 +450,6 @@ function frame:UpdateOkButton()
 		frame.edited = false
 		frame.OkButton:SetText(OKAY)
 	end
-end
-
-function frame:UpdateListFilters()
-	CreateList(frame.SearchBox:GetText(), frame:SelectedCategories())
-	frame.ScrollFrame.update()
 end
 
 function frame:CreateMainFrame()

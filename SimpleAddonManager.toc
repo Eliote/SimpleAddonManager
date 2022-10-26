@@ -35,8 +35,11 @@ Localization\zhTW.lua
 Templates\AddonItem.xml
 Templates\CategoryItem.xml
 
+ColorUtil.lua
+
 Core.lua
 MainFrame.lua
+Filters.lua
 AddonListFrame.lua
 CategoryFrame.lua
 MiniMapButton.lua

@@ -14,3 +14,5 @@ local localizationMetatable = {
 setmetatable(L, localizationMetatable)
 
 PRIVATE_TABLE.L = L
+
+L["UNKNOWN_ADDON_TTP_MESSAGE"] = "This addons is not installed!"
