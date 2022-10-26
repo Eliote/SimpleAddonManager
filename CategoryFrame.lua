@@ -323,6 +323,7 @@ function frame:ValidateCategoryName(name)
 	if (fixedCategories[name]) then
 		return false
 	end
+	return true
 end
 
 function frame:GetCategoryTable(name)
