@@ -28,6 +28,9 @@ end)
 frame:SetScript("OnMouseUp", function(self)
 	self:StopMovingOrSizing()
 end)
+frame:SetScript("OnHide", function()
+	StaticPopup_Hide("SimpleAddonManager_Dialog")
+end)
 table.insert(UISpecialFrames, frame:GetName()) -- Register frame to be closed with ESC
 
 function frame:GetDb()
@@ -40,7 +43,7 @@ StaticPopupDialogs["SimpleAddonManager_Dialog"] = {
 	OnShow = function(self)
 		self:SetFrameStrata("FULLSCREEN_DIALOG")
 		self:ClearAllPoints()
-		self:SetPoint("TOP", frame, "TOP", 0, -150)
+		self:SetPoint("TOP", frame, "TOP", 0, -120)
 		self.OldStrata = self:GetFrameStrata()
 		if (self.editBox) then
 			self.editBox:SetText("")
