@@ -5,7 +5,7 @@ local frame = CreateFrame("Frame", ADDON_NAME, UIParent, "ButtonFrameTemplate")
 frame:Hide()
 T.AddonFrame = frame
 frame.MIN_SIZE_W = 470
-frame.MIN_SIZE_H = 300
+frame.MIN_SIZE_H = 400
 frame.CATEGORY_SIZE_W = 250
 frame:SetFrameStrata("FULLSCREEN_DIALOG")
 frame:SetPoint("CENTER", 0, 24)
@@ -15,7 +15,11 @@ frame:SetMovable(true)
 frame:EnableMouse(true)
 frame:SetClampedToScreen(true)
 if (frame.SetResizeBounds) then
-	frame.SetMinResize = frame.SetResizeBounds
+	frame.SetMinResize = function(self, w, h)
+		self:SetResizeBounds(w, h)
+		local cw, ch = self:GetSize()
+		self:SetSize(cw < w and w or cw, ch < h and h or ch)
+	end
 end
 frame:SetMinResize(frame.MIN_SIZE_W, frame.MIN_SIZE_H)
 frame:SetScript("OnMouseDown", function(self)
