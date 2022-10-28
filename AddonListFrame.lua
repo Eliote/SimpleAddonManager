@@ -180,8 +180,22 @@ local function ShouldColorStatus(enabled, loaded, reason)
 			(enabled and loaded and reason == "INTERFACE_VERSION")
 end
 
+local function UpdateExpandOrCollapseButtonState(button, isCollapsed)
+	if (isCollapsed) then
+		button:SetNormalTexture("Interface\\Buttons\\UI-PlusButton-Up");
+	else
+		button:SetNormalTexture("Interface\\Buttons\\UI-MinusButton-Up");
+	end
+end
+
+local function ExpandOrCollapseButtonOnClick(self)
+	local addon = self:GetParent().addon
+	frame:ToggleAddonCollapsed(addon.key, addon.parentKey)
+	frame:Update()
+end
+
 local function deptMargin(dept)
-	return 10 * (dept or 0)
+	return 13 * (dept or 0)
 end
 
 local function UpdateList()
@@ -190,6 +204,7 @@ local function UpdateList()
 	local buttonHeight;
 	local addons = frame:GetAddonsList()
 	local count = #addons
+	local isInTreeMode = frame:GetDb().config.addonListStyle == "tree"
 
 	for buttonIndex = 1, #buttons do
 		local button = buttons[buttonIndex]
@@ -212,8 +227,22 @@ local function UpdateList()
 				version = (version and " |cff808080(" .. version .. ")|r") or ""
 			end
 
-			local margin = deptMargin(addon.dept)
-			button.Name:SetPoint("TOPLEFT",  30 + margin, 0)
+			button.ExpandOrCollapseButton:SetScript("OnClick", ExpandOrCollapseButtonOnClick)
+			local showExpandOrCollapseButton = isInTreeMode and addon.children and next(addon.children)
+			local isCollapsed = frame:IsAddonCollapsed(addon.key, addon.parentKey)
+			if showExpandOrCollapseButton then
+				button.ExpandOrCollapseButton:Show()
+				UpdateExpandOrCollapseButtonState(
+						button.ExpandOrCollapseButton,
+						isCollapsed
+				)
+			else
+				button.ExpandOrCollapseButton:Hide()
+			end
+
+			local expandOrCollapseButtonSize = isInTreeMode and button.ExpandOrCollapseButton:GetWidth() or 0
+			local margin = deptMargin(addon.dept) + expandOrCollapseButtonSize
+			button.Name:SetPoint("TOPLEFT", 30 + margin, 0)
 			button.EnabledButton:SetPoint("LEFT", 4 + margin, 0)
 
 			button.Name:SetText((title or name) .. version)

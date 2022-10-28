@@ -117,27 +117,45 @@ local function GetOrCreateAddonTableWithFilter(pool, addonIndex, filterLower, in
 	return pool[name]
 end
 
-local addedAsDepTable = {}
-local function InvertTreeInPlace(name, table, parentName, parentTable)
+local function InvertTreeInPlace(pool, name, table, parentName, parentTable)
 	if (table.dep and next(table.dep)) then
 		for n, t in pairs(table.dep) do
-			InvertTreeInPlace(n, t, name, table)
+			InvertTreeInPlace(pool, n, t, name, table)
 		end
 	end
-	if (parentName) then
+	if (parentName and parentTable ) then
 		table.children[parentName] = parentTable
-		--parentTable.dep[name] = nil
-		addedAsDepTable[parentName] = true
+		parentTable.dep[name] = nil
+		pool[parentName] = true
 		return true
 	end
 end
 
-local function SortAddonsTree(tree, out, dept)
+local rootKey = " *:root:* " -- Just add some invalid characters for folders name, avoiding colliding with real addons
+
+function frame:SetAddonCollapsed(addonKey, parentKey, isCollapsed)
+	parentKey = parentKey or rootKey
+	local collapsedAddons = frame:GetDb().collapsedAddons
+	collapsedAddons[addonKey] = collapsedAddons[addonKey] or { parent = {} }
+	collapsedAddons[addonKey].parent[parentKey] = isCollapsed
+end
+
+function frame:IsAddonCollapsed(addonKey, parentKey)
+	local collapsedAddons = frame:GetDb().collapsedAddons
+	return collapsedAddons[addonKey] and collapsedAddons[addonKey].parent[parentKey or rootKey]
+end
+
+function frame:ToggleAddonCollapsed(addonKey, parentKey)
+	frame:SetAddonCollapsed(addonKey, parentKey, not frame:IsAddonCollapsed(addonKey, parentKey))
+end
+
+local function PopulateAndSortAddonsTree(tree, out, dept, parentKey)
 	local list = {}
 	for _, v in pairs(tree) do
 		local newTable = {}
 		MergeTable(newTable, v)
 		newTable.dept = dept
+		newTable.parentKey = parentKey
 		table.insert(list, newTable)
 	end
 
@@ -145,21 +163,23 @@ local function SortAddonsTree(tree, out, dept)
 
 	for _, v in ipairs(list) do
 		table.insert(out, v)
-		SortAddonsTree(v.children, out, dept + 1)
+		if (not frame:IsAddonCollapsed(v.key, parentKey)) then
+			PopulateAndSortAddonsTree(v.children, out, dept + 1, v.key)
+		end
 	end
 end
 
 local function CreateAddonListAsTable(filterLower, inCategoriesFunc)
-	local pool = {} -- clear the table first
+	local pool = {}
 	local addonsTree = {}
 	local count = GetNumAddOns()
 	local showSecureAddons = frame:GetDb().config.showSecureAddons
+	local addedAsDepTable = {}
 	for addonIndex = 1, count do
 		local addon = GetOrCreateAddonTableWithFilter(pool, addonIndex, filterLower, inCategoriesFunc, true, showSecureAddons)
 		-- [GetOrCreateAddonTableWithFilter] returns 'false' if the addon didn't match the filter
 		if (addon) then
-			InvertTreeInPlace(addon.key, addon)
-			--addonsTree[addon.key] = addon
+			InvertTreeInPlace(addedAsDepTable, addon.key, addon)
 		end
 	end
 
@@ -170,7 +190,7 @@ local function CreateAddonListAsTable(filterLower, inCategoriesFunc)
 	end
 
 	local addons = {}
-	SortAddonsTree(addonsTree, addons, 0)
+	PopulateAndSortAddonsTree(addonsTree, addons, 0)
 	return addons
 end
 
@@ -214,10 +234,13 @@ end
 
 function module:OnLoad()
 	local db = frame:GetDb()
-	frame:CreateDefaultOptions(db.config, {
-		sorting = "smart",
-		addonListStyle = "list",
-		showSecureAddons = false,
-		searchBy = { name = true, title = true, author = false }
+	frame:CreateDefaultOptions(db, {
+		collapsedAddons = {},
+		config = {
+			sorting = "smart",
+			addonListStyle = "list",
+			showSecureAddons = false,
+			searchBy = { name = true, title = true, author = false }
+		}
 	})
 end
