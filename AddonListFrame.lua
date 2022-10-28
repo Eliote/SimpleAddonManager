@@ -109,7 +109,7 @@ local function AddonButtonOnClick(self, mouseButton)
 	end
 end
 
-local function AddonButtonOnEnter(self)
+local function UpdateTooltip(self)
 	local addonIndex = self.addon.index
 	local name, title, notes, _, _, security = GetAddOnInfo(addonIndex)
 
@@ -135,6 +135,7 @@ local function AddonButtonOnEnter(self)
 			GameTooltip:AddLine(L["Author: "] .. "|cFFFFFFFF" .. strtrim(author) .. "|r");
 		end
 		if (IsAddOnLoaded(addonIndex)) then
+			UpdateAddOnMemoryUsage()
 			local mem = GetAddOnMemoryUsage(addonIndex)
 			GameTooltip:AddLine(L["Memory: "] .. "|cFFFFFFFF" .. frame:FormatMemory(mem) .. "|r");
 		end
@@ -148,7 +149,14 @@ local function AddonButtonOnEnter(self)
 	GameTooltip:Show()
 end
 
-local function AddonButtonOnLeave()
+local function AddonButtonOnEnter(self)
+	self.UpdateTooltip = UpdateTooltip
+	self:UpdateTooltip()
+	GameTooltip:Show()
+end
+
+local function AddonButtonOnLeave(self)
+	self.UpdateTooltip = nil
 	GameTooltip:Hide()
 end
 
