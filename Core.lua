@@ -7,7 +7,7 @@ T.AddonFrame = frame
 frame.MIN_SIZE_W = 470
 frame.MIN_SIZE_H = 400
 frame.CATEGORY_SIZE_W = 250
-frame:SetFrameStrata("FULLSCREEN_DIALOG")
+frame:SetFrameStrata("FULLSCREEN")
 frame:SetPoint("CENTER", 0, 24)
 frame:SetSize(frame.MIN_SIZE_W, frame.MIN_SIZE_H)
 frame:SetResizable(true)
@@ -38,9 +38,18 @@ StaticPopupDialogs["SimpleAddonManager_Dialog"] = {
 	button1 = OKAY,
 	button2 = CANCEL,
 	OnShow = function(self)
+		self:SetFrameStrata("FULLSCREEN_DIALOG")
+		self:ClearAllPoints()
+		self:SetPoint("TOP", frame, "TOP", 0, -150)
+		self.OldStrata = self:GetFrameStrata()
 		if (self.editBox) then
 			self.editBox:SetText("")
 		end
+	end,
+	OnHide = function(self)
+		self:ClearAllPoints()
+		self:SetFrameStrata(self.OldStrata)
+		self.OldStrata = nil
 	end,
 	timeout = 0,
 	whileDead = true,
