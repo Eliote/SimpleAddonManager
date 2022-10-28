@@ -90,9 +90,14 @@ T.closeMenuInfo = {
 };
 
 function frame:CreateDefaultOptions(db, defaults)
+	if (defaults[1]) then
+		error("array with defaults is not supported!")
+	end
 	for k, v in pairs(defaults) do
 		if (db[k] == nil) then
 			db[k] = v
+		elseif (type(v) == "table") then
+			frame:CreateDefaultOptions(db[k], v)
 		end
 	end
 end
