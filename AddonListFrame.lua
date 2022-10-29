@@ -5,6 +5,7 @@ local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFr
 
 --- @type SimpleAddonManager
 local frame = T.AddonFrame
+local module = frame:RegisterModule("AddonList")
 
 local BANNED_ADDON = "BANNED"
 
@@ -135,7 +136,6 @@ local function UpdateTooltip(self)
 			GameTooltip:AddLine(L["Author: "] .. "|cFFFFFFFF" .. strtrim(author) .. "|r");
 		end
 		if (IsAddOnLoaded(addonIndex)) then
-			UpdateAddOnMemoryUsage()
 			local mem = GetAddOnMemoryUsage(addonIndex)
 			GameTooltip:AddLine(L["Memory: "] .. "|cFFFFFFFF" .. frame:FormatMemory(mem) .. "|r");
 		end
@@ -150,8 +150,10 @@ local function UpdateTooltip(self)
 end
 
 local function AddonButtonOnEnter(self)
-	self.UpdateTooltip = UpdateTooltip
-	self:UpdateTooltip()
+	if (frame:GetDb().config.memoryUpdate > 0) then
+		self.UpdateTooltip = UpdateTooltip
+	end
+	UpdateTooltip(self)
 	GameTooltip:Show()
 end
 
@@ -241,11 +243,38 @@ local function OnSizeChanged(self)
 	self:GetParent().update()
 end
 
+local function UpdateMemory()
+	UpdateAddOnMemoryUsage()
+end
+
+local function OnShow()
+	frame:UpdateMemoryTickerPeriod(frame:GetDb().config.memoryUpdate)
+	UpdateMemory()
+end
+
+local function OnHide()
+	frame:UpdateMemoryTickerPeriod(0)
+end
+
+function frame:UpdateMemoryTickerPeriod(period)
+	if (self.MemoryUpdateTicker) then
+		self.MemoryUpdateTicker:Cancel()
+		self.MemoryUpdateTicker = nil
+	end
+	if (period > 0) then
+		self.MemoryUpdateTicker = C_Timer.NewTicker(period, UpdateMemory)
+	end
+end
+
 function frame:CreateAddonListFrame()
 	self.ScrollFrame = CreateFrame("ScrollFrame", nil, self, "HybridScrollFrameTemplate")
+	self.ScrollFrame:Hide()
 	self.ScrollFrame:SetPoint("TOPLEFT", 7, -64)
 	self.ScrollFrame:SetPoint("BOTTOMRIGHT", -30, 30)
+	self.ScrollFrame:SetScript("OnShow", OnShow)
+	self.ScrollFrame:SetScript("OnHide", OnHide)
 	self.ScrollFrame.update = UpdateList
+	self.ScrollFrame:Show()
 
 	self.ScrollFrame.ScrollBar = CreateFrame("Slider", nil, self.ScrollFrame, "HybridScrollBarTemplate")
 	self.ScrollFrame.ScrollBar:SetPoint("TOPLEFT", self.ScrollFrame, "TOPRIGHT", 1, -16)
@@ -254,4 +283,11 @@ function frame:CreateAddonListFrame()
 	self.ScrollFrame.ScrollBar.doNotHide = true
 
 	HybridScrollFrame_CreateButtons(self.ScrollFrame, "SimpleAddonManagerAddonItem")
+end
+
+function module:OnLoad()
+	local db = frame:GetDb()
+	frame:CreateDefaultOptions(db.config, {
+		memoryUpdate = 0
+	})
 end

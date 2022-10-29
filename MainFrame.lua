@@ -189,6 +189,25 @@ local function SearchResultDropDownCreate()
 	return menu
 end
 
+local function MemoryUpdateMenuList()
+	local db = frame:GetDb()
+	local menu = {}
+	local periods = { 0, 5, 10, 15, 30 }
+	for _, v in ipairs(periods) do
+		table.insert(menu, {
+			text = (v == 0) and L["Update only when opening the main window"] or L("${n} seconds", { n = v }),
+			checked = function()
+				return db.config.memoryUpdate == v
+			end,
+			func = function()
+				db.config.memoryUpdate = v
+				frame:UpdateMemoryTickerPeriod(v)
+			end,
+		})
+	end
+	return menu
+end
+
 local function ConfigDropDownCreate()
 	local db = frame:GetDb()
 	return {
@@ -243,6 +262,12 @@ local function ConfigDropDownCreate()
 				db.config.showVersions = not db.config.showVersions
 				frame:Update()
 			end,
+		},
+		{
+			text = L["Memory Update"],
+			notCheckable = true,
+			hasArrow = true,
+			menuList = MemoryUpdateMenuList(),
 		},
 		T.separatorInfo,
 		{ text = L["Category Options"], isTitle = true, notCheckable = true },

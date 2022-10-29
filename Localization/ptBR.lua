@@ -66,6 +66,9 @@ L["Currently Disabled Addons"] = "Addons atualmente desabilitados"
 L["Enable this Addon and its dependencies"] = "Habilitar este Addon e suas dependências"
 L["Addons being modified"] = "Addons sendo modificados"
 L["Addons being modified in this session"] = "Addons sendo modificados nesta sessão"
+L["Memory Update"] = "Atualização de Memória"
+L["Update only when opening the main window"] = "Atualizar somente quando abrir a janela principal"
+L["${n} seconds"] = "${n} segundos"
 
 L["development tools"] = "Ferramentas de Desenvolvimento"
 --@end-do-not-package@
