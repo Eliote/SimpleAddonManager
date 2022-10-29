@@ -497,6 +497,7 @@ local function CreateList(filter, categories)
 			local name, title = GetAddOnInfo(addonIndex)
 			table.insert(addons, {
 				index = addonIndex,
+				key = name,
 				name = name:lower(),
 				smartName = name:gsub(".-([%w].*)", "%1"):gsub("[_-]", " "):lower(),
 				title = (title or name):lower()
@@ -603,7 +604,7 @@ function frame:CreateMainFrame()
 		for _, addon in pairs(frame:GetAddonsList()) do
 			EnableAddOn(addon.index, character)
 		end
-		frame.ScrollFrame.update()
+		frame:Update()
 	end)
 
 	frame.DisableAllButton = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
@@ -611,11 +612,35 @@ function frame:CreateMainFrame()
 	frame.DisableAllButton:SetSize(120, 22)
 	frame.DisableAllButton:SetText(DISABLE_ALL_ADDONS)
 	frame.DisableAllButton:SetScript("OnClick", function()
-		local character = frame:GetCharacter()
-		for _, addon in pairs(frame:GetAddonsList()) do
-			DisableAddOn(addon.index, character)
+		local addonsList = frame:GetAddonsList()
+		local disablingMe = false
+		for _, addon in pairs(addonsList) do
+			if (addon.key == ADDON_NAME) then
+				disablingMe = frame:IsAddonSelected(ADDON_NAME)
+				break
+			end
 		end
-		frame.ScrollFrame.update()
+		local function disableList()
+			local character = frame:GetCharacter()
+			for _, addon in pairs(addonsList) do
+				DisableAddOn(addon.index, character)
+			end
+			frame:Update()
+		end
+		if (disablingMe) then
+			frame:ShowYesNoDialog(
+					L["Also disable Simple Addon Manager?"],
+					function()
+						disableList()
+					end,
+					function()
+						disableList()
+						EnableAddOn(ADDON_NAME)
+					end
+			)
+		else
+			disableList()
+		end
 	end)
 
 	frame.CategoryButton = CreateFrame("Button", nil, frame, "UIPanelSquareButton")

@@ -69,6 +69,7 @@ L["Addons being modified in this session"] = "Addons sendo modificados nesta ses
 L["Memory Update"] = "Atualização de Memória"
 L["Update only when opening the main window"] = "Atualizar somente quando abrir a janela principal"
 L["${n} seconds"] = "${n} segundos"
+L["Also disable Simple Addon Manager?"] = "Também desativar o Simple Addon Manager?"
 
 L["development tools"] = "Ferramentas de Desenvolvimento"
 --@end-do-not-package@
