@@ -123,10 +123,12 @@ local function InvertTreeInPlace(pool, name, table, parentName, parentTable)
 			InvertTreeInPlace(pool, n, t, name, table)
 		end
 	end
-	if (parentName and parentTable ) then
+	if (parentName and parentTable) then
 		table.children[parentName] = parentTable
 		parentTable.dep[name] = nil
-		pool[parentName] = true
+		if (pool) then
+			pool[parentName] = true
+		end
 		return true
 	end
 end
@@ -149,7 +151,14 @@ function frame:ToggleAddonCollapsed(addonKey, parentKey)
 	frame:SetAddonCollapsed(addonKey, parentKey, not frame:IsAddonCollapsed(addonKey, parentKey))
 end
 
-local function PopulateAndSortAddonsTree(tree, out, dept, parentKey)
+local function PopulateAddonsTreeFast(tree, addedChildren)
+	for n, v in pairs(tree) do
+		addedChildren[n] = true
+		PopulateAddonsTreeFast(v.children, addedChildren)
+	end
+end
+
+local function PopulateAndSortAddonsTree(tree, out, dept, parentKey, parentAddedChildren)
 	local list = {}
 	for _, v in pairs(tree) do
 		local newTable = {}
@@ -161,11 +170,35 @@ local function PopulateAndSortAddonsTree(tree, out, dept, parentKey)
 
 	SortAddons(list)
 
+	local addedHere = {}
+	local addedChildren = {}
 	for _, v in ipairs(list) do
-		table.insert(out, v)
-		if (not frame:IsAddonCollapsed(v.key, parentKey)) then
-			PopulateAndSortAddonsTree(v.children, out, dept + 1, v.key)
+		if (not addedChildren[v.key]) then
+			if (out) then
+				table.insert(out, v)
+				table.insert(addedHere, { i = #out, n = v.key })
+			else
+				table.insert(addedHere, { n = v.key })
+			end
+			if (not frame:IsAddonCollapsed(v.key, parentKey)) then
+				PopulateAndSortAddonsTree(v.children, out, dept + 1, v.key, addedChildren)
+			else
+				-- we need to to populate [addedChildren] even if its collapsed
+				PopulateAddonsTreeFast(v.children, addedChildren)
+			end
 		end
+		if (parentAddedChildren) then
+			parentAddedChildren[v.key] = true
+		end
+	end
+
+	-- remove duplicated AddOns added to the list before they were added to [addedChildren]
+	for i = #addedHere, 1, -1 do
+		local t = addedHere[i]
+		if (addedChildren[t.n] and t.i) then
+			table.remove(out, t.i)
+		end
+		addedChildren[t.n] = true
 	end
 end
 
@@ -174,17 +207,17 @@ local function CreateAddonListAsTable(filterLower, inCategoriesFunc)
 	local addonsTree = {}
 	local count = GetNumAddOns()
 	local showSecureAddons = frame:GetDb().config.showSecureAddons
-	local addedAsDepTable = {}
+	local addedAsChildTable = {}
 	for addonIndex = 1, count do
 		local addon = GetOrCreateAddonTableWithFilter(pool, addonIndex, filterLower, inCategoriesFunc, true, showSecureAddons)
 		-- [GetOrCreateAddonTableWithFilter] returns 'false' if the addon didn't match the filter
 		if (addon) then
-			InvertTreeInPlace(addedAsDepTable, addon.key, addon)
+			InvertTreeInPlace(addedAsChildTable, addon.key, addon)
 		end
 	end
 
 	for name, v in pairs(pool) do
-		if (not addedAsDepTable[name] and v) then
+		if (not addedAsChildTable[name] and v) then
 			addonsTree[name] = v
 		end
 	end

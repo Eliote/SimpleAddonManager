@@ -18,6 +18,8 @@ local function AddonTooltipBuildDepsString(addonIndex)
 		local color = C.white
 		if (not frame:IsAddonInstalled(name)) then
 			color = C.red
+		elseif (frame:IsAddonSelected(name)) then
+			color = C.green
 		end
 		if (i == 1) then
 			depsString = ADDON_DEPENDENCIES .. color:WrapText(name)
@@ -28,9 +30,29 @@ local function AddonTooltipBuildDepsString(addonIndex)
 	return depsString;
 end
 
+local function AddonTooltipBuildChildrenString(children)
+	local childrenString = "";
+	local first = true
+	for name, _ in pairs(children) do
+		local color = C.white
+		if (not frame:IsAddonInstalled(name)) then
+			color = C.red
+		elseif (frame:IsAddonSelected(name)) then
+			color = C.green
+		end
+		if (first) then
+			first = false
+			childrenString = L["AddOns: "] .. color:WrapText(name)
+		else
+			childrenString = childrenString .. ", " .. color:WrapText(name)
+		end
+	end
+	return childrenString;
+end
+
 local function EnableAllDeps(addonIndex)
 	local requiredDeps = { GetAddOnDependencies(addonIndex) }
-	for _, depName in pairs(requiredDeps) do
+	for _, depName in ipairs(requiredDeps) do
 		if (frame:IsAddonInstalled(depName)) then
 			EnableAddOn(depName)
 			EnableAllDeps(depName)
@@ -38,7 +60,38 @@ local function EnableAllDeps(addonIndex)
 	end
 end
 
-local function AddonRightClickMenu(addonIndex)
+local function CreateAddonChildrenList(name)
+	local list = {}
+	for i = 1, GetNumAddOns() do
+		local addon = GetAddOnInfo(i)
+		local requiredDeps = { GetAddOnDependencies(i) }
+		for _, depName in ipairs(requiredDeps) do
+			if (depName == name) then
+				list[addon] = true
+				break
+			end
+		end
+	end
+	return list
+end
+
+local function SetAllChildren(children, state)
+	for name, _ in pairs(children) do
+		if (frame:IsAddonInstalled(name)) then
+			if (state) then
+				EnableAddOn(name)
+			else
+				DisableAddOn(name)
+			end
+		end
+	end
+end
+
+local function AddonRightClickMenu(addon)
+	if (not frame:IsAddonInstalled(addon.index)) then
+		return
+	end
+	local addonIndex = addon.index
 	local name, title = GetAddOnInfo(addonIndex)
 	local menu = {
 		{ text = title, isTitle = true, notCheckable = true },
@@ -58,6 +111,35 @@ local function AddonRightClickMenu(addonIndex)
 			tooltipText = AddonTooltipBuildDepsString(addonIndex)
 		})
 	end
+
+	local children = CreateAddonChildrenList(name)
+	if (next(children)) then
+		table.insert(menu, {
+			text = L["Enable this and every AddOn that depends on it"],
+			func = function()
+				EnableAddOn(addonIndex)
+				SetAllChildren(children, true)
+				frame:Update()
+			end,
+			notCheckable = true,
+			tooltipOnButton = true,
+			tooltipTitle = title,
+			tooltipText = AddonTooltipBuildChildrenString(children)
+		})
+		table.insert(menu, {
+			text = L["Disable this and every AddOn that depends on it"],
+			func = function()
+				DisableAddOn(addonIndex)
+				SetAllChildren(children, false)
+				frame:Update()
+			end,
+			notCheckable = true,
+			tooltipOnButton = true,
+			tooltipTitle = title,
+			tooltipText = AddonTooltipBuildChildrenString(children)
+		})
+	end
+
 	table.insert(menu, T.spacer)
 	table.insert(menu, { text = L["Categories"], isTitle = true, notCheckable = true })
 
@@ -111,7 +193,7 @@ local function AddonButtonOnClick(self, mouseButton)
 	if (mouseButton == "LeftButton") then
 		ToggleAddon(self.EnabledButton)
 	else
-		EDDM.EasyMenu(AddonRightClickMenu(self.addon.index), dropdownFrame, "cursor", 0, 0, "MENU")
+		EDDM.EasyMenu(AddonRightClickMenu(self.addon), dropdownFrame, "cursor", 0, 0, "MENU")
 	end
 end
 
@@ -135,7 +217,7 @@ local function UpdateTooltip(self)
 			GameTooltip:AddLine(name);
 		end
 		if (reason == "MISSING") then
-			GameTooltip:AddLine(C.red:WrapText(L["UNKNOWN_ADDON_TTP_MESSAGE"]), nil, nil, nil, true);
+			GameTooltip:AddLine(C.red:WrapText(L["This addons is not installed!"]), nil, nil, nil, true);
 			return
 		end
 		local version = GetAddOnMetadata(addonIndex, "Version")

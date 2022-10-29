@@ -70,9 +70,12 @@ L["Memory Update"] = "Atualização de Memória"
 L["Update only when opening the main window"] = "Atualizar somente quando abrir a janela principal"
 L["${n} seconds"] = "${n} segundos"
 L["Also disable Simple Addon Manager?"] = "Também desativar o Simple Addon Manager?"
-L["UNKNOWN_ADDON_TTP_MESSAGE"] = "Este addon não está instalado!"
+L["This addons is not installed!"] = "Este addon não está instalado!"
 L["View AddOn list as dependency tree"] = "Visualizar lista de addons como árvore de dependência"
 L["Show Blizzard addons found in dependencies"] = "Exibir addons da Blizzard encontrados em dependências"
+L["AddOns: "] = "AddOns: "
+L["Enable this and every AddOn that depends on it"] = "Habilitar este AddOn e todos que dependem dele."
+L["Disable this and every AddOn that depends on it"] = "Desabilitar este AddOn e todos que dependem dele."
 
 L["development tools"] = "Ferramentas de Desenvolvimento"
 --@end-do-not-package@
