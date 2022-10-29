@@ -588,7 +588,7 @@ function frame:CreateMainFrame()
 	frame.ResultOptionsButton.icon:SetTexCoord(0, 1, 0, 1)
 	frame.ResultOptionsButton.icon:SetSize(15, 9)
 	frame.ResultOptionsButton:SetScript("OnClick", function()
-		EDDM.EasyMenu(SearchResultDropDownCreate(), dropdownFrame, frame.ConfigButton, 0, 0, "MENU")
+		EDDM.EasyMenu(SearchResultDropDownCreate(), dropdownFrame, frame.ResultOptionsButton, 0, 0, "MENU")
 	end)
 
 	frame.ConfigButton = CreateFrame("Button", nil, frame, "UIPanelSquareButton")
