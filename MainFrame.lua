@@ -210,7 +210,6 @@ local function ConfigDropDownCreate()
 	local db = frame:GetDb()
 	return {
 		{ text = L["Options"], isTitle = true, notCheckable = true },
-		T.separatorInfo,
 		{
 			text = ADDON_FORCE_LOAD,
 			checked = function()
