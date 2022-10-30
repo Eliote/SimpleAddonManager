@@ -468,14 +468,8 @@ function frame:CreateMainFrame()
 	end)
 	frame.Sizer:SetPoint("BOTTOMRIGHT", -4, 4)
 
-	frame.CharacterDropDown = CreateFrame("Frame", nil, frame, "UIDropDownMenuTemplate")
+	frame.CharacterDropDown = EDDM.UIDropDownMenu_Create("SAM_CharacterDropDown", frame)
 	frame.CharacterDropDown:SetPoint("TOPLEFT", 0, -30)
-	frame.CharacterDropDown.Button:SetScript("OnMouseDown", function(self)
-		if self:IsEnabled() then
-			EDDM.ToggleDropDownMenu(nil, nil, self:GetParent());
-			PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
-		end
-	end)
 	EDDM.UIDropDownMenu_Initialize(frame.CharacterDropDown, CharacterDropDown_Initialize)
 	EDDM.UIDropDownMenu_SetSelectedValue(frame.CharacterDropDown, true)
 
@@ -565,7 +559,11 @@ function frame:CreateMainFrame()
 	frame.SetsButton:SetSize(80, 22)
 	frame.SetsButton:SetText(L["Profiles"])
 	frame.SetsButton:SetScript("OnClick", function()
-		EDDM.EasyMenu(ProfilesDropDownCreate(), dropdownFrame, frame.SetsButton, 0, 0, "MENU")
+		if (EDDM.UIDROPDOWNMENU_OPEN_MENU == dropdownFrame) then
+			EDDM.CloseDropDownMenus()
+		else
+			EDDM.EasyMenu(ProfilesDropDownCreate(), dropdownFrame, frame.SetsButton, 0, 0, "MENU")
+		end
 	end)
 
 	frame.SearchBox = CreateFrame("EditBox", nil, frame, "SearchBoxTemplate")
@@ -588,7 +586,11 @@ function frame:CreateMainFrame()
 	frame.ResultOptionsButton.icon:SetTexCoord(0, 1, 0, 1)
 	frame.ResultOptionsButton.icon:SetSize(15, 9)
 	frame.ResultOptionsButton:SetScript("OnClick", function()
-		EDDM.EasyMenu(SearchResultDropDownCreate(), dropdownFrame, frame.ResultOptionsButton, 0, 0, "MENU")
+		if (EDDM.UIDROPDOWNMENU_OPEN_MENU == dropdownFrame) then
+			EDDM.CloseDropDownMenus()
+		else
+			EDDM.EasyMenu(SearchResultDropDownCreate(), dropdownFrame, frame.ResultOptionsButton, 0, 0, "MENU")
+		end
 	end)
 
 	frame.ConfigButton = CreateFrame("Button", nil, frame, "UIPanelSquareButton")
@@ -598,6 +600,10 @@ function frame:CreateMainFrame()
 	frame.ConfigButton.icon:SetTexCoord(0, 1, 0, 1)
 	frame.ConfigButton.icon:SetSize(16, 16)
 	frame.ConfigButton:SetScript("OnClick", function()
-		EDDM.EasyMenu(ConfigDropDownCreate(), dropdownFrame, frame.ConfigButton, 0, 0, "MENU")
+		if (EDDM.UIDROPDOWNMENU_OPEN_MENU == dropdownFrame) then
+			EDDM.CloseDropDownMenus()
+		else
+			EDDM.EasyMenu(ConfigDropDownCreate(), dropdownFrame, frame.ConfigButton, 0, 0, "MENU")
+		end
 	end)
 end
