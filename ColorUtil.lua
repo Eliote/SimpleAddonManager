@@ -1,12 +1,8 @@
 local _, T = ...
 
-local function WrapText(self, text)
-	return WrapTextInColor(text, self)
-end
-
 local function CreateColor(hex)
 	local color = CreateColorFromHexString(hex)
-	color.WrapText = WrapText
+	color.WrapText = color.WrapTextInColorCode
 	return color
 end
 
