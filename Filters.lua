@@ -1,4 +1,6 @@
 local _, T = ...
+local L = T.L
+local C = T.Color
 
 --- @type SimpleAddonManager
 local frame = T.AddonFrame
@@ -117,17 +119,28 @@ local function GetOrCreateAddonTableWithFilter(pool, addonIndex, filterLower, in
 	return pool[name]
 end
 
-local function InvertTreeInPlace(pool, name, table, parentName, parentTable)
+local function InvertTreeInPlace(pool, name, table, parentName, parentTable, cycle)
+	cycle = cycle or {}
 	if (table.dep and next(table.dep)) then
 		for n, t in pairs(table.dep) do
-			InvertTreeInPlace(pool, n, t, name, table)
+			local lCycle = setmetatable({}, { __index = cycle })
+			if (not lCycle[name]) then
+				lCycle[name] = table
+				InvertTreeInPlace(pool, n, t, name, table, lCycle)
+			else
+				pool[name] = false
+				table.warning = C.red:WrapText(L["Circular dependency: "]) .. n .. " <--> " .. name
+				lCycle[n].warning = C.red:WrapText(L["Circular dependency: "]) .. name .. " <--> " .. n
+			end
 		end
 	end
 	if (parentName and parentTable) then
 		table.children[parentName] = parentTable
 		parentTable.dep[name] = nil
-		if (pool) then
+		if (pool[parentName] == nil) then
 			pool[parentName] = true
+		elseif (pool[parentName] == false) then
+			table.children[parentName] = nil
 		end
 		return true
 	end
@@ -261,8 +274,10 @@ function frame:GetAddonsList()
 end
 
 function frame:UpdateListFilters()
+	--local t = GetTimePreciseSec()
 	CreateList(frame.SearchBox:GetText(), frame:SelectedCategories())
 	frame.ScrollFrame.update()
+	--print(GetTimePreciseSec() - t)
 end
 
 function module:OnLoad()
@@ -271,7 +286,7 @@ function module:OnLoad()
 		collapsedAddons = {},
 		config = {
 			sorting = "smart",
-			addonListStyle = "list",
+			addonListStyle = "list", -- tree, list
 			showSecureAddons = false,
 			searchBy = { name = true, title = true, author = false }
 		}

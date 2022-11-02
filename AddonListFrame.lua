@@ -233,6 +233,9 @@ local function UpdateTooltip(self)
 			GameTooltip:AddLine(L["Memory: "] .. "|cFFFFFFFF" .. frame:FormatMemory(mem) .. "|r");
 		end
 		GameTooltip:AddLine(AddonTooltipBuildDepsString(addonIndex), nil, nil, nil, true);
+		if (self.addon.warning) then
+			GameTooltip:AddLine(self.addon.warning, nil, nil, nil, true);
+		end
 		GameTooltip:AddLine(" ");
 		GameTooltip:AddLine(notes, 1.0, 1.0, 1.0, true);
 		GameTooltip:AddLine(" ");
