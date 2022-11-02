@@ -1,4 +1,4 @@
-local libName, libVersion = "ElioteDropDownMenu-1.0", 5
+local libName, libVersion = "ElioteDropDownMenu-1.0", 10
 
 --- @class ElioteDropDownMenu
 local lib = LibStub:NewLibrary(libName, libVersion)
@@ -8,8 +8,6 @@ local _G = _G
 
 local prefixDropDownList = "ElioteDDM_DropDownList"
 local prefixDropDownListButtonRegex = "^" .. prefixDropDownList .. "[0-9]+$"
-
-local IS_CLASSIC = select(4, GetBuildInfo()) < 20000
 
 local BACKDROP_DROPDOWN = {
 	bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
@@ -279,6 +277,7 @@ local function CreateDropDownMenu(name, parent)
 		lib.ToggleDropDownMenu(nil, nil, self:GetParent())
 		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
 	end)
+	Mixin(button, lib.HandlesGlobalMouseEventMixin)
 
 	local buttonNormalTexture = button:CreateTexture(name .. "ButtonNormalTexture")
 	buttonNormalTexture:SetTexture("Interface\\ChatFrame\\UI-ChatIcon-ScrollDown-Up")
@@ -334,6 +333,7 @@ function lib.UIDropDownMenuDelegate_OnAttributeChanged(self, attribute, value)
 		lib.UIDROPDOWNMENU_INIT_MENU = value;
 	elseif (attribute == "openmenu") then
 		lib.UIDROPDOWNMENU_OPEN_MENU = value;
+		lib.UIDROPDOWNMENU_OPEN_MENU_ANCHOR = self:GetAttribute("anchorframe")
 	end
 end
 
@@ -500,6 +500,10 @@ function lib.UIDropDownMenuButton_OnEnter(self)
 	if (self.mouseOverIcon ~= nil) then
 		self.Icon:SetTexture(self.mouseOverIcon);
 		self.Icon:Show();
+	end
+
+	if GetValueOrCallFunction then
+		GetValueOrCallFunction(self, "funcOnEnter", self);
 	end
 end
 
@@ -805,7 +809,13 @@ function lib.UIDropDownMenu_AddButton(info, level)
 
 	-- If not checkable move everything over to the left to fill in the gap where the check would be
 	local xPos = 5;
-	local yPos = -((button:GetID() - 1) * lib.UIDROPDOWNMENU_BUTTON_HEIGHT) - lib.UIDROPDOWNMENU_BORDER_HEIGHT;
+	local previousButton = _G[listFrameName .. "Button" .. (index - 1)];
+	local yPos
+	if (previousButton and previousButton.yPos) then
+		yPos = previousButton.yPos - previousButton:GetHeight();
+	else
+		yPos = -lib.UIDROPDOWNMENU_BORDER_HEIGHT;
+	end
 	local displayInfo = normalText;
 	if (info.iconOnly) then
 		displayInfo = icon;
@@ -840,6 +850,7 @@ function lib.UIDropDownMenu_AddButton(info, level)
 		xPos = xPos + info.leftPadding;
 	end
 	button:SetPoint("TOPLEFT", button:GetParent(), "TOPLEFT", xPos, yPos);
+	button.yPos = yPos
 
 	-- See if button is selected by id or name
 	if (frame) then
@@ -942,8 +953,18 @@ function lib.UIDropDownMenu_AddButton(info, level)
 		listFrame.maxWidth = width;
 	end
 
+	if (button.customFrame) then
+		button:SetHeight(button.customFrame:GetPreferredEntryHeight())
+	else
+		button:SetHeight(lib.UIDROPDOWNMENU_BUTTON_HEIGHT)
+	end
+
+	local height = (-yPos) + button:GetHeight() + lib.UIDROPDOWNMENU_BORDER_HEIGHT
+
 	-- Set the height of the listframe
-	listFrame:SetHeight((index * lib.UIDROPDOWNMENU_BUTTON_HEIGHT) + (lib.UIDROPDOWNMENU_BORDER_HEIGHT * 2));
+	listFrame:SetHeight(height);
+
+	return button
 end
 
 function lib.UIDropDownMenu_CheckAddCustomFrame(self, button, info)
@@ -1247,6 +1268,8 @@ function lib.ToggleDropDownMenu(level, value, dropDownFrame, anchorName, xOffset
 	lib.UIDROPDOWNMENU_MENU_VALUE = value;
 	local listFrameName = prefixDropDownList .. level;
 	local listFrame = _G[listFrameName];
+	lib.UIDropDownMenu_ClearCustomFrames(listFrame);
+
 	local tempFrame;
 	local point, relativePoint, relativeTo;
 	if (not dropDownFrame) then
@@ -1279,6 +1302,7 @@ function lib.ToggleDropDownMenu(level, value, dropDownFrame, anchorName, xOffset
 		-- Display stuff
 		-- Level specific stuff
 		if (level == 1) then
+			UIDropDownMenuDelegate:SetAttribute("anchorframe", anchorName);
 			UIDropDownMenuDelegate:SetAttribute("openmenu", dropDownFrame);
 			listFrame:ClearAllPoints();
 			-- If there's no specified anchorName then use left side of the dropdown menu
@@ -1508,6 +1532,10 @@ function lib.UIDropDownMenu_OnHide(self)
 		lib.UIDROPDOWNMENU_OPEN_MENU = nil;
 	end
 
+	lib.UIDropDownMenu_ClearCustomFrames(self);
+end
+
+function lib.UIDropDownMenu_ClearCustomFrames(self)
 	if self.customFrames then
 		for index, frame in ipairs(self.customFrames) do
 			frame:Hide();
@@ -1671,6 +1699,14 @@ function lib.UIDropDownMenu_EnableDropDown(dropDown)
 	dropDown.isDisabled = nil;
 end
 
+function lib.UIDropDownMenu_SetDropDownEnabled(dropDown, enabled)
+	if enabled then
+		return lib.UIDropDownMenu_EnableDropDown(dropDown);
+	else
+		return lib.UIDropDownMenu_DisableDropDown(dropDown);
+	end
+end
+
 function lib.UIDropDownMenu_IsEnabled(dropDown)
 	return not dropDown.isDisabled;
 end
@@ -1705,7 +1741,7 @@ end
 function lib.UIDropDownMenu_StartCounting() end -- no op
 function lib.UIDropDownMenu_StopCounting() end -- no op
 
-if IS_CLASSIC then
+if not UIDropDownMenu_HandleGlobalMouseEvent then
 	-- Start the countdown on a frame
 	function lib.UIDropDownMenu_StartCounting(frame)
 		if (frame.parent) then
@@ -1748,7 +1784,17 @@ function lib.EasyMenu(menuList, menuFrame, anchor, x, y, displayMode, autoHideDe
 	lib.ToggleDropDownMenu(1, nil, menuFrame, anchor, x, y, menuList, nil, autoHideDelay);
 end
 
+--- "temporary" ;) fix to avoid showing the menu when it is already visible
+function lib.ToggleEasyMenu(menuList, menuFrame, anchor, ...)
+	if (lib.UIDROPDOWNMENU_OPEN_MENU == menuFrame and lib.UIDROPDOWNMENU_OPEN_MENU_ANCHOR == anchor) then
+		lib.CloseDropDownMenus()
+	else
+		lib.EasyMenu(menuList, menuFrame, anchor,...)
+	end
+end
+
 function lib.EasyMenu_Initialize(frame, level, menuList)
+	if not menuList then return end
 	for index = 1, #menuList do
 		local value = menuList[index]
 		if (value.text) then
@@ -1757,6 +1803,18 @@ function lib.EasyMenu_Initialize(frame, level, menuList)
 		end
 	end
 end
+
+--- Mixin to prevent clicks in a button to close the menu because of GLOBAL_MOUSE_DOWN,
+--- and immediately open again, because the button was clicked.
+--- use: Mixin(frame, EDDM.HandlesGlobalMouseEventMixin)
+--- Frames created with [EDDM.UIDropDownMenu_Create] or [EDDM.UIDropDownMenu_GetOrCreate] already have this mixin.
+lib.HandlesGlobalMouseEventMixin = {
+	HandlesGlobalMouseEvent = function(_, buttonID, event)
+		if (event == "GLOBAL_MOUSE_DOWN" and buttonID == "LeftButton") then
+			return true
+		end
+	end
+}
 --------------------------
 --- Blizzard's code end
 --------------------------
@@ -1766,10 +1824,14 @@ lib.UIDropDownMenu_CreateFrames(2, 1)
 local _, fontHeight, _ = _G[prefixDropDownList .. 1 .. "Button" .. 1 .. "NormalText"]:GetFont()
 lib.UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT = fontHeight
 
-UIDropDownMenuDelegate:RegisterEvent("PLAYER_ENTERING_WORLD")
-UIDropDownMenuDelegate:SetScript("OnEvent", function(self, event, ...)
-	UIDropDownMenuDelegate:UnregisterEvent("PLAYER_ENTERING_WORLD")
-	if (UIDropDownMenu_HandleGlobalMouseEvent) then
-		hooksecurefunc("UIDropDownMenu_HandleGlobalMouseEvent", lib.UIDropDownMenu_HandleGlobalMouseEvent)
+local function HandlesGlobalMouseEvent(focus, buttonID, event)
+	return focus and focus.HandlesGlobalMouseEvent and focus:HandlesGlobalMouseEvent(buttonID, event);
+end
+
+UIDropDownMenuDelegate:RegisterEvent("GLOBAL_MOUSE_DOWN")
+UIDropDownMenuDelegate:SetScript("OnEvent", function(self, event, buttonID)
+	local mouseFocus = GetMouseFocus();
+	if not HandlesGlobalMouseEvent(mouseFocus, buttonID, event) then
+		lib.UIDropDownMenu_HandleGlobalMouseEvent(buttonID, event);
 	end
 end)

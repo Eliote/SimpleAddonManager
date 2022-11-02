@@ -554,16 +554,15 @@ function frame:CreateMainFrame()
 		frame:SetCategoryVisibility(db.isCategoryFrameVisible, true)
 	end)
 
-	frame.SetsButton = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+	frame.SetsButton = Mixin(
+			CreateFrame("Button", nil, frame, "UIPanelButtonTemplate"),
+			EDDM.HandlesGlobalMouseEventMixin
+	)
 	frame.SetsButton:SetPoint("LEFT", frame.CharacterDropDown.Button, "RIGHT", 4, 0)
 	frame.SetsButton:SetSize(80, 22)
 	frame.SetsButton:SetText(L["Profiles"])
 	frame.SetsButton:SetScript("OnClick", function()
-		if (EDDM.UIDROPDOWNMENU_OPEN_MENU == dropdownFrame) then
-			EDDM.CloseDropDownMenus()
-		else
-			EDDM.EasyMenu(ProfilesDropDownCreate(), dropdownFrame, frame.SetsButton, 0, 0, "MENU")
-		end
+		EDDM.ToggleEasyMenu(ProfilesDropDownCreate(), dropdownFrame, frame.SetsButton, 0, 0, "MENU")
 	end)
 
 	frame.SearchBox = CreateFrame("EditBox", nil, frame, "SearchBoxTemplate")
@@ -579,31 +578,29 @@ function frame:CreateMainFrame()
 		end
 	end)
 
-	frame.ResultOptionsButton = CreateFrame("Button", nil, frame, "UIPanelSquareButton")
+	frame.ResultOptionsButton = Mixin(
+			CreateFrame("Button", nil, frame, "UIPanelSquareButton"),
+			EDDM.HandlesGlobalMouseEventMixin
+	)
 	frame.ResultOptionsButton:SetPoint("LEFT", frame.SearchBox, "RIGHT", 1, 0)
 	frame.ResultOptionsButton:SetSize(26, 26)
 	frame.ResultOptionsButton.icon:SetAtlas("transmog-icon-downarrow")
 	frame.ResultOptionsButton.icon:SetTexCoord(0, 1, 0, 1)
 	frame.ResultOptionsButton.icon:SetSize(15, 9)
 	frame.ResultOptionsButton:SetScript("OnClick", function()
-		if (EDDM.UIDROPDOWNMENU_OPEN_MENU == dropdownFrame) then
-			EDDM.CloseDropDownMenus()
-		else
-			EDDM.EasyMenu(SearchResultDropDownCreate(), dropdownFrame, frame.ResultOptionsButton, 0, 0, "MENU")
-		end
+		EDDM.ToggleEasyMenu(SearchResultDropDownCreate(), dropdownFrame, frame.ResultOptionsButton, 0, 0, "MENU")
 	end)
 
-	frame.ConfigButton = CreateFrame("Button", nil, frame, "UIPanelSquareButton")
+	frame.ConfigButton = Mixin(
+			CreateFrame("Button", nil, frame, "UIPanelSquareButton"),
+			EDDM.HandlesGlobalMouseEventMixin
+	)
 	frame.ConfigButton:SetPoint("RIGHT", frame.CategoryButton, "LEFT", -4, 0)
 	frame.ConfigButton:SetSize(30, 30)
 	frame.ConfigButton.icon:SetAtlas("OptionsIcon-Brown")
 	frame.ConfigButton.icon:SetTexCoord(0, 1, 0, 1)
 	frame.ConfigButton.icon:SetSize(16, 16)
 	frame.ConfigButton:SetScript("OnClick", function()
-		if (EDDM.UIDROPDOWNMENU_OPEN_MENU == dropdownFrame) then
-			EDDM.CloseDropDownMenus()
-		else
-			EDDM.EasyMenu(ConfigDropDownCreate(), dropdownFrame, frame.ConfigButton, 0, 0, "MENU")
-		end
+		EDDM.ToggleEasyMenu(ConfigDropDownCreate(), dropdownFrame, frame.ConfigButton, 0, 0, "MENU")
 	end)
 end
