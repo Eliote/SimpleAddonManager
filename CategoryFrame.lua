@@ -1,5 +1,6 @@
 local _, T = ...
 local L = T.L
+local C = T.Color
 local EDDM = LibStub("ElioteDropDownMenu-1.0")
 local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFrame")
 
@@ -57,58 +58,54 @@ local function CategoryMenu(categoryKey, categoryName)
 	return menu
 end
 
+local function CommonCountFunction(self)
+	local count = 0
+	for addonIndex = 1, GetNumAddOns() do
+		if (self.addons(addonIndex)) then
+			count = count + 1
+		end
+	end
+	return count
+end
+
 local fixedCategories = {
 	["!!!!!_00_ENABLED_CATEGORY"] = {
 		type = "fixed",
-		name = "|cFF19FF19" .. L["Enabled Addons"],
+		name = C.green:WrapText(L["Enabled Addons"]),
 		description = L["Currently Enabled Addons"],
 		addons = function(key)
 			return frame:IsAddonSelected(key)
 		end,
-		count = function()
-			local count = 0
-			for addonIndex = 1, GetNumAddOns() do
-				if (frame:IsAddonSelected(addonIndex)) then
-					count = count + 1
-				end
-			end
-			return count
-		end
+		count = CommonCountFunction
 	},
 	["!!!!!_01_DISABLED_CATEGORY"] = {
 		type = "fixed",
-		name = "|cFF19FF19" .. L["Disabled Addons"],
+		name = C.green:WrapText(L["Disabled Addons"]),
 		description = L["Currently Disabled Addons"],
 		addons = function(key)
 			return not frame:IsAddonSelected(key)
 		end,
-		count = function()
-			local count = 0
-			for addonIndex = 1, GetNumAddOns() do
-				if (not frame:IsAddonSelected(addonIndex)) then
-					count = count + 1
-				end
-			end
-			return count
-		end
+		count = CommonCountFunction
 	},
-	["!!!!!_03_CHANGING_STATE"] = {
+	["!!!!!_02_ACTIVE_CATEGORY"] = {
 		type = "fixed",
-		name = "|cFFFF1919" .. L["Addons being modified"],
+		name = C.green:WrapText(L["Active Addons"]),
+		description = L["Addons enabled and loaded, or ready to be loaded on demand"],
+		addons = function(key)
+			local _, _, _, loadable, reason = GetAddOnInfo(key)
+			return loadable or reason == "DEMAND_LOADED"
+		end,
+		count = CommonCountFunction
+	},
+	["!!!!!_55_CHANGING_STATE"] = {
+		type = "fixed",
+		name = C.red:WrapText(L["Addons being modified"]),
 		description = L["Addons being modified in this session"],
 		addons = function(key)
 			return frame:DidAddonStateChanged(key)
 		end,
 		show = function() return frame:DidAnyAddonStateChanged() end,
-		count = function()
-			local count = 0
-			for addonIndex = 1, GetNumAddOns() do
-				if (frame:DidAddonStateChanged(addonIndex)) then
-					count = count + 1
-				end
-			end
-			return count
-		end
+		count = CommonCountFunction
 	},
 }
 
@@ -172,7 +169,7 @@ local function CategoryButtonOnEnter(self)
 	end
 	GameTooltip:AddLine("\n");
 	if (fixedTable) then
-		GameTooltip:AddDoubleLine(L["Addons:"], self.category.count(), nil, nil, nil, 1, 1, 1);
+		GameTooltip:AddDoubleLine(L["Addons:"], self.category:count(), nil, nil, nil, 1, 1, 1);
 	else
 		GameTooltip:AddDoubleLine(L["Manually added:"], userTable and tablelength(userTable.addons) or 0, nil, nil, nil, 1, 1, 1);
 		local fromTocCount = tocTable and tablelength(tocTable.addons) or 0
@@ -293,7 +290,7 @@ local function UpdateListVariables()
 	local categoriesList = frame:TableKeysToSortedList(db.categories, categoryTocTable, auto)
 	frame.CategoryFrame.ScrollFrame.sortedItemsList = categoriesList
 	local selectedItems = frame.CategoryFrame.ScrollFrame.selectedItems
-	for k, v in pairs(selectedItems) do
+	for k, _ in pairs(selectedItems) do
 		if (not db.categories[k] and not categoryTocTable[k] and not auto[k]) then
 			selectedItems[k] = nil
 		end
