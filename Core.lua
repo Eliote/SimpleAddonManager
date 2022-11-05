@@ -158,8 +158,7 @@ function frame:SetCharacter(value)
 end
 
 function frame:Update()
-	self.CategoryFrame.ScrollFrame.updateDb()
-	self.CategoryFrame.ScrollFrame.update()
+	self:UpdateCategoryFrame()
 	self:UpdateListFilters()
 	frame:UpdateOkButton()
 end

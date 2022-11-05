@@ -61,7 +61,7 @@ end
 local function CommonCountFunction(self)
 	local count = 0
 	for addonIndex = 1, GetNumAddOns() do
-		if (self.addons(addonIndex)) then
+		if (self:addons(addonIndex)) then
 			count = count + 1
 		end
 	end
@@ -73,7 +73,7 @@ local fixedCategories = {
 		type = "fixed",
 		name = C.green:WrapText(L["Enabled Addons"]),
 		description = L["Currently Enabled Addons"],
-		addons = function(key)
+		addons = function(_, key)
 			return frame:IsAddonSelected(key)
 		end,
 		count = CommonCountFunction
@@ -82,7 +82,7 @@ local fixedCategories = {
 		type = "fixed",
 		name = C.green:WrapText(L["Disabled Addons"]),
 		description = L["Currently Disabled Addons"],
-		addons = function(key)
+		addons = function(_, key)
 			return not frame:IsAddonSelected(key)
 		end,
 		count = CommonCountFunction
@@ -90,21 +90,47 @@ local fixedCategories = {
 	["!!!!!_02_ACTIVE_CATEGORY"] = {
 		type = "fixed",
 		name = C.green:WrapText(L["Active Addons"]),
-		description = L["Addons enabled and loaded, or ready to be loaded on demand"],
-		addons = function(key)
+		description = L["Addons enabled and loaded, or ready to be loaded on demand."],
+		addons = function(_, key)
 			local _, _, _, loadable, reason = GetAddOnInfo(key)
 			return loadable or reason == "DEMAND_LOADED"
 		end,
 		count = CommonCountFunction
 	},
+	["!!!!!_03_UNCATEGORIZED_CATEGORY"] = {
+		type = "fixed",
+		name = C.green:WrapText(L["Uncategorized Addons"]),
+		description = L["Addons not in any category. It will be taken into account if you are viewing or not auto-generated categories."],
+		prepare = function(self)
+			local cache = {}
+			local user, toc = frame:GetCategoryTables()
+			for _, v in pairs(user) do
+				MergeTable(cache, v.addons)
+			end
+			for _, v in pairs(toc) do
+				MergeTable(cache, v.addons)
+			end
+			self.cache = cache
+		end,
+		addons = function(self, key)
+			local name = GetAddOnInfo(key)
+			return not self.cache[name]
+		end,
+		count = function(self)
+			self:prepare()
+			return CommonCountFunction(self)
+		end
+	},
 	["!!!!!_55_CHANGING_STATE"] = {
 		type = "fixed",
 		name = C.red:WrapText(L["Addons being modified"]),
 		description = L["Addons being modified in this session"],
-		addons = function(key)
+		addons = function(_, key)
 			return frame:DidAddonStateChanged(key)
 		end,
-		show = function() return frame:DidAnyAddonStateChanged() end,
+		show = function()
+			return frame:DidAnyAddonStateChanged()
+		end,
 		count = CommonCountFunction
 	},
 }
@@ -259,8 +285,7 @@ local function OnClickNewButton()
 		end
 
 		db.categories[text] = { name = text, addons = {} }
-		frame.CategoryFrame.ScrollFrame.updateDb()
-		frame.CategoryFrame.ScrollFrame.update()
+		frame:UpdateCategoryFrame()
 	end)
 end
 
@@ -337,13 +362,18 @@ end
 
 function frame:GetCategoryTables()
 	local db = self:GetDb()
-	local userCategory = db.categories
-	local tocCategory = categoryTocTable
-	return userCategory, tocCategory, fixedCategories
+	local userCategories = db.categories
+	local tocCategories = categoryTocTable
+	return userCategories, tocCategories, fixedCategories
 end
 
 function frame:SelectedCategories()
 	return self.CategoryFrame.ScrollFrame.selectedItems
+end
+
+function frame:UpdateCategoryFrame()
+	self.CategoryFrame.ScrollFrame.updateDb()
+	self.CategoryFrame.ScrollFrame.update()
 end
 
 function frame:CreateCategoryFrame()
