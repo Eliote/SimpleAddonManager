@@ -84,69 +84,71 @@ local function AddonMatchFilter(addonIndex, filterLower, inCategoriesFunc)
 	end
 end
 
-local function GetOrCreateAddonTableWithFilter(pool, addonIndex, filterLower, inCategoriesFunc, addUnknownDep, exposeBlizzardDep)
-	local name, title, _, _, _, security = GetAddOnInfo(addonIndex)
-	if (pool[name] == nil) then
+local function GetOrCreateAddonTableWithFilter(
+		pool,
+		key,
+		filteredCache,
+		createChildren,
+		filterLower,
+		inCategoriesFunc,
+		addUnknownDep,
+		exposeBlizzardDep
+)
+	local node = filteredCache[key]
+	if (node) then
+		return nil
+	end
+
+	node = pool[key]
+	if (node) then
+		return node
+	end
+
+	if (pool[key] == nil) then
+		local _, title, _, _, _, security = GetAddOnInfo(key)
 		local exposeAddon = (exposeBlizzardDep) or security ~= "SECURE"
-		if (exposeAddon and AddonMatchFilter(addonIndex, filterLower, inCategoriesFunc)) then
-			pool[name] = {
+		if (exposeAddon and AddonMatchFilter(key, filterLower, inCategoriesFunc)) then
+			node = {
 				dep = {},
 				children = {},
-				exists = frame:IsAddonInstalled(addonIndex),
-				index = addonIndex,
-				key = strtrim(name),
-				name = name:lower(),
-				smartName = name:gsub(".-([%w].*)", "%1"):gsub("[_-]", " "):lower(),
-				title = (title or name):lower()
+				exists = frame:IsAddonInstalled(key),
+				index = key,
+				key = strtrim(key),
+				name = key:lower(),
+				smartName = key:gsub(".-([%w].*)", "%1"):gsub("[_-]", " "):lower(),
+				title = (title or key):lower()
 			}
-			local deps = { GetAddOnDependencies(addonIndex) }
-			if (#deps > 0) then
+			pool[key] = node
+			if (createChildren and node.exists) then
+				local deps = { GetAddOnDependencies(key) }
 				for _, depName in ipairs(deps) do
 					depName = strtrim(depName)
 					if (addUnknownDep or frame:IsAddonInstalled(depName)) then
-						local addon = GetOrCreateAddonTableWithFilter(pool, depName, filterLower, inCategoriesFunc, addUnknownDep, exposeBlizzardDep)
-						if (addon) then
-							pool[name].dep[depName] = addon
+						local depNode = GetOrCreateAddonTableWithFilter(
+								pool,
+								depName,
+								filteredCache,
+								createChildren,
+								filterLower,
+								inCategoriesFunc,
+								addUnknownDep,
+								exposeBlizzardDep
+						)
+						if (depNode) then
+							depNode.children[key] = node
 						end
 					end
 				end
 			end
+			return node
 		else
-			-- Add it to the table to avoid filtering the same addon multiple times
-			pool[name] = false
+			filteredCache[key] = true
+			return nil
 		end
-	end
-	return pool[name]
-end
-
-local function InvertTreeInPlace(pool, name, table, parentName, parentTable, cycle)
-	cycle = cycle or {}
-	if (table.dep and next(table.dep)) then
-		for n, t in pairs(table.dep) do
-			local lCycle = setmetatable({}, { __index = cycle })
-			if (not lCycle[name]) then
-				lCycle[name] = table
-				InvertTreeInPlace(pool, n, t, name, table, lCycle)
-			else
-				pool[name] = false
-				table.warning = C.red:WrapText(L["Circular dependency: "]) .. n .. " <--> " .. name
-				lCycle[n].warning = C.red:WrapText(L["Circular dependency: "]) .. name .. " <--> " .. n
-			end
-		end
-	end
-	if (parentName and parentTable) then
-		table.children[parentName] = parentTable
-		parentTable.dep[name] = nil
-		if (pool[parentName] == nil) then
-			pool[parentName] = true
-		elseif (pool[parentName] == false) then
-			table.children[parentName] = nil
-		end
-		return true
 	end
 end
 
-local rootKey = " *:root:* " -- Just add some invalid characters for folders name, avoiding colliding with real addons
+local rootKey = " *:/root/:* " -- Just add some invalid characters for folders name, to avoid collision with real addons
 
 function frame:SetAddonCollapsed(addonKey, parentKey, isCollapsed)
 	parentKey = parentKey or rootKey
@@ -164,14 +166,7 @@ function frame:ToggleAddonCollapsed(addonKey, parentKey)
 	frame:SetAddonCollapsed(addonKey, parentKey, not frame:IsAddonCollapsed(addonKey, parentKey))
 end
 
-local function PopulateAddonsTreeFast(tree, addedChildren)
-	for n, v in pairs(tree) do
-		addedChildren[n] = true
-		PopulateAddonsTreeFast(v.children, addedChildren)
-	end
-end
-
-local function PopulateAndSortAddonsTree(tree, out, dept, parentKey, parentAddedChildren)
+local function CreateSortedAddonsTreeAsList(tree, out, dept, parentKey)
 	local list = {}
 	for _, v in pairs(tree) do
 		local newTable = {}
@@ -183,71 +178,97 @@ local function PopulateAndSortAddonsTree(tree, out, dept, parentKey, parentAdded
 
 	SortAddons(list)
 
-	local addedHere = {}
-	local addedChildren = {}
 	for _, v in ipairs(list) do
-		if (not addedChildren[v.key]) then
-			if (out) then
-				table.insert(out, v)
-				table.insert(addedHere, { i = #out, n = v.key })
-			else
-				table.insert(addedHere, { n = v.key })
-			end
-			if (not frame:IsAddonCollapsed(v.key, parentKey)) then
-				PopulateAndSortAddonsTree(v.children, out, dept + 1, v.key, addedChildren)
-			else
-				-- we need to to populate [addedChildren] even if its collapsed
-				PopulateAddonsTreeFast(v.children, addedChildren)
-			end
+		table.insert(out, v)
+		if (not frame:IsAddonCollapsed(v.key, parentKey)) then
+			CreateSortedAddonsTreeAsList(v.children, out, dept + 1, v.key)
 		end
-		if (parentAddedChildren) then
-			parentAddedChildren[v.key] = true
-		end
-	end
-
-	-- remove duplicated AddOns added to the list before they were added to [addedChildren]
-	for i = #addedHere, 1, -1 do
-		local t = addedHere[i]
-		if (addedChildren[t.n] and t.i) then
-			table.remove(out, t.i)
-		end
-		addedChildren[t.n] = true
 	end
 end
 
 local function CreateAddonListAsTable(filterLower, inCategoriesFunc)
-	local pool = {}
-	local addonsTree = {}
-	local count = GetNumAddOns()
 	local showSecureAddons = frame:GetDb().config.showSecureAddons
-	local addedAsChildTable = {}
+	local nodesPool = {}
+	local filteredCache = {}
+	local count = GetNumAddOns()
 	for addonIndex = 1, count do
-		local addon = GetOrCreateAddonTableWithFilter(pool, addonIndex, filterLower, inCategoriesFunc, true, showSecureAddons)
-		-- [GetOrCreateAddonTableWithFilter] returns 'false' if the addon didn't match the filter
-		if (addon) then
-			InvertTreeInPlace(addedAsChildTable, addon.key, addon)
+		local name = GetAddOnInfo(addonIndex)
+		GetOrCreateAddonTableWithFilter(
+				nodesPool,
+				name,
+				filteredCache,
+				true,
+				filterLower,
+				inCategoriesFunc,
+				true,
+				showSecureAddons
+		)
+	end
+
+	local function removeFromParents(node, k)
+		if (node) then
+			if (node.isRemovingFromParents) then
+				return true
+			end
+			node.isRemovingFromParents = true
+			node.children[k] = nil
+			local cycleFound = false
+			if (node.parent) then
+				cycleFound = removeFromParents(node.parent, k)
+				if (cycleFound) then
+					node.warning = C.red:WrapText(L["Circular dependency detected!"])
+				end
+			end
+			node.isRemovingFromParents = false
+			return cycleFound
 		end
 	end
 
-	for name, v in pairs(pool) do
-		if (not addedAsChildTable[name] and v) then
-			addonsTree[name] = v
+	local function visit(node)
+		if (node.isVisiting) then
+			-- cycle detected!
+			return
 		end
+		node.isVisiting = true
+		for k, child in pairs(node.children) do
+			child.parent = node
+			removeFromParents(node.parent, k)
+			visit(child)
+		end
+		node.isVisiting = false
 	end
 
-	local addons = {}
-	PopulateAndSortAddonsTree(addonsTree, addons, 0)
-	return addons
+	local root = {
+		key = "root",
+		children = nodesPool
+	}
+
+	visit(root)
+
+	local addonsList = {}
+	CreateSortedAddonsTreeAsList(root.children, addonsList, 0)
+
+	return addonsList
 end
 
 local function CreateAddonListAsList(filterLower, inCategoriesFunc)
 	local addons = {}
-	local pool = {}
-	local count = GetNumAddOns()
 	local showSecureAddons = frame:GetDb().config.showSecureAddons
+	local nodesPool = {}
+	local filteredCache = {}
+	local count = GetNumAddOns()
 	for addonIndex = 1, count do
-		local addon = GetOrCreateAddonTableWithFilter(pool, addonIndex, filterLower, inCategoriesFunc, false, showSecureAddons)
-		-- [GetOrCreateAddonTableWithFilter] returns 'false' if the addon didn't match the filter
+		local name = GetAddOnInfo(addonIndex)
+		local addon = GetOrCreateAddonTableWithFilter(
+				nodesPool,
+				name,
+				filteredCache,
+				false,
+				filterLower,
+				inCategoriesFunc,
+				false,
+				showSecureAddons
+		)
 		if (addon) then
 			table.insert(addons, addon)
 		end

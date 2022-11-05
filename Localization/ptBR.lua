@@ -76,6 +76,7 @@ L["Show Blizzard addons found in dependencies"] = "Exibir addons da Blizzard enc
 L["AddOns: "] = "AddOns: "
 L["Enable this and every AddOn that depends on it"] = "Habilitar este AddOn e todos que dependem dele."
 L["Disable this and every AddOn that depends on it"] = "Desabilitar este AddOn e todos que dependem dele."
+L["Circular dependency detected!"] = "Dependência circular encontrada!"
 
 L["development tools"] = "Ferramentas de Desenvolvimento"
 --@end-do-not-package@
