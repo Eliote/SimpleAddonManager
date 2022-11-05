@@ -2,6 +2,7 @@ local ADDON_NAME, T = ...
 
 --- @class SimpleAddonManager
 local frame = CreateFrame("Frame", ADDON_NAME, UIParent, "ButtonFrameTemplate")
+ButtonFrameTemplate_HidePortrait(frame)
 frame:Hide()
 T.AddonFrame = frame
 frame.MIN_SIZE_W = 470
@@ -228,6 +229,11 @@ function frame:GetAddonsInitialState()
 	return addonsInitialState
 end
 
+function frame:IsAddonInstalled(indexOrName)
+	local _, _, _, _, reason = GetAddOnInfo(indexOrName)
+	return reason ~= "MISSING"
+end
+
 frame:SetScript("OnEvent", function(self, event, ...)
 	self[event](self, ...)
 end)
@@ -246,9 +252,7 @@ function frame:ADDON_LOADED(name)
 
 	frame:CreateDefaultOptions(SimpleAddonManagerDB.config, {
 		showVersions = false,
-		sorting = "smart",
 		hookMenuButton = true,
-		searchBy = { name = true, title = true, author = false }
 	})
 
 	frame:HookMenuButton()

@@ -1,5 +1,7 @@
 local _, T = ...
 local L = T.L
+local C = T.Color
+
 local EDDM = LibStub("ElioteDropDownMenu-1.0")
 local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFrame")
 
@@ -9,31 +11,87 @@ local module = frame:RegisterModule("AddonList")
 
 local BANNED_ADDON = "BANNED"
 
-local function AddonTooltipBuildDepsString(...)
-	local deps = "";
-	for i = 1, select("#", ...) do
+local function AddonTooltipBuildDepsString(addonIndex)
+	local deps = { GetAddOnDependencies(addonIndex) }
+	local depsString = "";
+	for i, name in ipairs(deps) do
+		local color = C.white
+		if (not frame:IsAddonInstalled(name)) then
+			color = C.red
+		elseif (frame:IsAddonSelected(name)) then
+			color = C.green
+		end
 		if (i == 1) then
-			deps = ADDON_DEPENDENCIES .. "|cFFFFFFFF" .. select(i, ...);
+			depsString = ADDON_DEPENDENCIES .. color:WrapText(name)
 		else
-			deps = deps .. ", " .. select(i, ...);
+			depsString = depsString .. ", " .. color:WrapText(name)
 		end
 	end
-	return deps;
+	return depsString;
 end
 
+local function AddonTooltipBuildChildrenString(children)
+	local childrenString = "";
+	local first = true
+	for name, _ in pairs(children) do
+		local color = C.white
+		if (not frame:IsAddonInstalled(name)) then
+			color = C.red
+		elseif (frame:IsAddonSelected(name)) then
+			color = C.green
+		end
+		if (first) then
+			first = false
+			childrenString = L["AddOns: "] .. color:WrapText(name)
+		else
+			childrenString = childrenString .. ", " .. color:WrapText(name)
+		end
+	end
+	return childrenString;
+end
 
 local function EnableAllDeps(addonIndex)
 	local requiredDeps = { GetAddOnDependencies(addonIndex) }
-	for _, depName in pairs(requiredDeps) do
-		local _, _, _, _, reason = GetAddOnInfo(depName)
-		if (reason ~= "MISSING") then
+	for _, depName in ipairs(requiredDeps) do
+		if (frame:IsAddonInstalled(depName)) then
 			EnableAddOn(depName)
 			EnableAllDeps(depName)
 		end
 	end
 end
 
-local function AddonRightClickMenu(addonIndex)
+local function CreateAddonChildrenList(name)
+	local list = {}
+	for i = 1, GetNumAddOns() do
+		local addon = GetAddOnInfo(i)
+		local requiredDeps = { GetAddOnDependencies(i) }
+		for _, depName in ipairs(requiredDeps) do
+			if (depName == name) then
+				list[addon] = true
+				break
+			end
+		end
+	end
+	return list
+end
+
+local function SetAllChildren(children, state)
+	for name, _ in pairs(children) do
+		if (frame:IsAddonInstalled(name)) then
+			if (state) then
+				EnableAddOn(name)
+			else
+				DisableAddOn(name)
+			end
+		end
+	end
+end
+
+local function AddonRightClickMenu(addon)
+	if (not frame:IsAddonInstalled(addon.index)) then
+		return
+	end
+	local addonIndex = addon.index
 	local name, title = GetAddOnInfo(addonIndex)
 	local menu = {
 		{ text = title, isTitle = true, notCheckable = true },
@@ -50,9 +108,38 @@ local function AddonRightClickMenu(addonIndex)
 			notCheckable = true,
 			tooltipOnButton = true,
 			tooltipTitle = title,
-			tooltipText = AddonTooltipBuildDepsString(GetAddOnDependencies(addonIndex))
+			tooltipText = AddonTooltipBuildDepsString(addonIndex)
 		})
 	end
+
+	local children = CreateAddonChildrenList(name)
+	if (next(children)) then
+		table.insert(menu, {
+			text = L["Enable this and every AddOn that depends on it"],
+			func = function()
+				EnableAddOn(addonIndex)
+				SetAllChildren(children, true)
+				frame:Update()
+			end,
+			notCheckable = true,
+			tooltipOnButton = true,
+			tooltipTitle = title,
+			tooltipText = AddonTooltipBuildChildrenString(children)
+		})
+		table.insert(menu, {
+			text = L["Disable this and every AddOn that depends on it"],
+			func = function()
+				DisableAddOn(addonIndex)
+				SetAllChildren(children, false)
+				frame:Update()
+			end,
+			notCheckable = true,
+			tooltipOnButton = true,
+			tooltipTitle = title,
+			tooltipText = AddonTooltipBuildChildrenString(children)
+		})
+	end
+
 	table.insert(menu, T.spacer)
 	table.insert(menu, { text = L["Categories"], isTitle = true, notCheckable = true })
 
@@ -106,13 +193,13 @@ local function AddonButtonOnClick(self, mouseButton)
 	if (mouseButton == "LeftButton") then
 		ToggleAddon(self.EnabledButton)
 	else
-		EDDM.EasyMenu(AddonRightClickMenu(self.addon.index), dropdownFrame, "cursor", 0, 0, "MENU")
+		EDDM.EasyMenu(AddonRightClickMenu(self.addon), dropdownFrame, "cursor", 0, 0, "MENU")
 	end
 end
 
 local function UpdateTooltip(self)
 	local addonIndex = self.addon.index
-	local name, title, notes, _, _, security = GetAddOnInfo(addonIndex)
+	local name, title, notes, _, reason, security = GetAddOnInfo(addonIndex)
 
 	GameTooltip:ClearLines();
 	GameTooltip:SetOwner(self, "ANCHOR_NONE")
@@ -124,8 +211,14 @@ local function UpdateTooltip(self)
 			GameTooltip:AddLine(title);
 			GameTooltip:AddLine(name, 0.7, 0.7, 0.7);
 			--GameTooltip:AddLine("debug: '" .. self.addon.name .. "'|r");
+			--GameTooltip:AddLine("dept: '" .. self.addon.dept .. "'|r");
+			--GameTooltip:AddLine("reason: '" .. (reason or "null") .. "'|r");
 		else
 			GameTooltip:AddLine(name);
+		end
+		if (reason == "MISSING") then
+			GameTooltip:AddLine(C.red:WrapText(L["This addons is not installed!"]), nil, nil, nil, true);
+			return
 		end
 		local version = GetAddOnMetadata(addonIndex, "Version")
 		if (version) then
@@ -139,13 +232,15 @@ local function UpdateTooltip(self)
 			local mem = GetAddOnMemoryUsage(addonIndex)
 			GameTooltip:AddLine(L["Memory: "] .. "|cFFFFFFFF" .. frame:FormatMemory(mem) .. "|r");
 		end
-		GameTooltip:AddLine(AddonTooltipBuildDepsString(GetAddOnDependencies(addonIndex)), nil, nil, nil, true);
+		GameTooltip:AddLine(AddonTooltipBuildDepsString(addonIndex), nil, nil, nil, true);
+		if (self.addon.warning) then
+			GameTooltip:AddLine(self.addon.warning, nil, nil, nil, true);
+		end
 		GameTooltip:AddLine(" ");
 		GameTooltip:AddLine(notes, 1.0, 1.0, 1.0, true);
 		GameTooltip:AddLine(" ");
 		GameTooltip:AddLine("|A:newplayertutorial-icon-mouse-rightbutton:0:0|a " .. L["Right-click to edit"]);
 	end
-
 	GameTooltip:Show()
 end
 
@@ -170,12 +265,31 @@ local function ShouldColorStatus(enabled, loaded, reason)
 			(enabled and loaded and reason == "INTERFACE_VERSION")
 end
 
+local function UpdateExpandOrCollapseButtonState(button, isCollapsed)
+	if (isCollapsed) then
+		button:SetNormalTexture("Interface\\Buttons\\UI-PlusButton-Up");
+	else
+		button:SetNormalTexture("Interface\\Buttons\\UI-MinusButton-Up");
+	end
+end
+
+local function ExpandOrCollapseButtonOnClick(self)
+	local addon = self:GetParent().addon
+	frame:ToggleAddonCollapsed(addon.key, addon.parentKey)
+	frame:Update()
+end
+
+local function deptMargin(dept)
+	return 13 * (dept or 0)
+end
+
 local function UpdateList()
 	local buttons = HybridScrollFrame_GetButtons(frame.ScrollFrame);
 	local offset = HybridScrollFrame_GetOffset(frame.ScrollFrame);
 	local buttonHeight;
 	local addons = frame:GetAddonsList()
 	local count = #addons
+	local isInTreeMode = frame:GetDb().config.addonListStyle == "tree"
 
 	for buttonIndex = 1, #buttons do
 		local button = buttons[buttonIndex]
@@ -198,12 +312,32 @@ local function UpdateList()
 				version = (version and " |cff808080(" .. version .. ")|r") or ""
 			end
 
+			button.ExpandOrCollapseButton:SetScript("OnClick", ExpandOrCollapseButtonOnClick)
+			local showExpandOrCollapseButton = isInTreeMode and addon.children and next(addon.children)
+			local isCollapsed = frame:IsAddonCollapsed(addon.key, addon.parentKey)
+			if showExpandOrCollapseButton then
+				button.ExpandOrCollapseButton:Show()
+				UpdateExpandOrCollapseButtonState(
+						button.ExpandOrCollapseButton,
+						isCollapsed
+				)
+			else
+				button.ExpandOrCollapseButton:Hide()
+			end
+
+			local expandOrCollapseButtonSize = isInTreeMode and button.ExpandOrCollapseButton:GetWidth() or 0
+			local margin = deptMargin(addon.dept) + expandOrCollapseButtonSize
+			button.Name:SetPoint("TOPLEFT", 30 + margin, 0)
+			button.EnabledButton:SetPoint("LEFT", 4 + margin, 0)
+
 			button.Name:SetText((title or name) .. version)
 
 			if (loadable or (enabled and (reason == "DEP_DEMAND_LOADED" or reason == "DEMAND_LOADED"))) then
 				button.Name:SetTextColor(1.0, 0.78, 0.0);
 			elseif enabled then
 				button.Name:SetTextColor(1.0, 0.1, 0.1);
+			elseif reason == "MISSING" then
+				button.Name:SetTextColor(C.red:GetRGB());
 			else
 				button.Name:SetTextColor(0.5, 0.5, 0.5);
 			end
@@ -220,7 +354,7 @@ local function UpdateList()
 
 			button.EnabledButton:SetChecked(enabled)
 			button.EnabledButton:SetScript("OnClick", ToggleAddon)
-			button.EnabledButton:SetEnabled(security ~= BANNED_ADDON)
+			button.EnabledButton:SetEnabled(security ~= BANNED_ADDON and addon.exists)
 
 			button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 			button:SetScript("OnClick", AddonButtonOnClick)

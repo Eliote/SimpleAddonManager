@@ -43,6 +43,27 @@
                 <CheckedTexture name="$parentCheckedTexture" file="Interface\Buttons\UI-CheckBox-Check"/>
                 <DisabledCheckedTexture file="Interface\Buttons\UI-CheckBox-Check-Disabled"/>
             </CheckButton>
+            <Button parentKey="ExpandOrCollapseButton">
+                <Size x="13" y="13"/>
+                <Anchors>
+                    <Anchor point="RIGHT" relativeKey="$parent.EnabledButton" relativePoint="LEFT" x="-6" y="0" />
+                </Anchors>
+                <HitRectInsets>
+                    <AbsInset left="1" right="-4" top="-2" bottom="-2"/>
+                </HitRectInsets>
+                <NormalTexture file="Interface\Buttons\UI-MinusButton-UP">
+                    <Size x="16" y="16"/>
+                    <Anchors>
+                        <Anchor point="LEFT" x="3" y="0"/>
+                    </Anchors>
+                </NormalTexture>
+                <HighlightTexture parentKey="Highlight" file="Interface\Buttons\UI-PlusButton-Hilight" alphaMode="ADD">
+                    <Size x="16" y="16"/>
+                    <Anchors>
+                        <Anchor point="LEFT" x="3" y="0"/>
+                    </Anchors>
+                </HighlightTexture>
+            </Button>
         </Frames>
     </Button>
 </UI>
