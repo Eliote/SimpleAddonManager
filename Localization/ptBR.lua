@@ -77,6 +77,8 @@ L["AddOns: "] = "AddOns: "
 L["Enable this and every AddOn that depends on it"] = "Habilitar este AddOn e todos que dependem dele."
 L["Disable this and every AddOn that depends on it"] = "Desabilitar este AddOn e todos que dependem dele."
 L["Circular dependency detected!"] = "Dependência circular encontrada!"
+L["List Options"]= "Opções da Lista"
+L["Search Options"]= "Opções de Busca"
 
 L["development tools"] = "Ferramentas de Desenvolvimento"
 --@end-do-not-package@
