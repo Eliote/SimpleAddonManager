@@ -47,7 +47,18 @@ local function ProfilesDropDownCreate()
 	}
 	local db = frame:GetDb()
 
-	for profileName, set in pairs(db.sets) do
+	local setsList = {}
+	for key, v in pairs(db.sets) do
+		table.insert(setsList, {
+			key = key,
+			name = key:lower(),
+			value = v
+		})
+	end
+	table.sort(setsList, function(a, b) return a.name < b.name end)
+
+	for _, pair in ipairs(setsList) do
+		local profileName, set = pair.key, pair.value
 		local setMenu = {
 			text = profileName,
 			notCheckable = true,
