@@ -11,4 +11,5 @@ T.Color = {
 	green = CreateColor("FF19FF19"),
 	yellow = CreateColor("FFFFC700"),
 	white = CreateColor("FFFFFFFF"),
+	grey = CreateColor("FF808080"),
 }

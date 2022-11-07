@@ -235,7 +235,7 @@ local function UpdateCategoryList()
 			elseif (fixed) then
 				button.Name:SetText(category.name)
 			else
-				button.Name:SetText("|cFFFFFF19" .. frame:LocalizeCategoryName(category.name))
+				button.Name:SetText(C.yellow:WrapText(frame:LocalizeCategoryName(category.name)))
 			end
 			local enabled = IsCategorySelected(categoryKey)
 
