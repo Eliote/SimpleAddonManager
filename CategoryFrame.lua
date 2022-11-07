@@ -376,47 +376,30 @@ function frame:UpdateCategoryFrame()
 	self.CategoryFrame.ScrollFrame.update()
 end
 
-function frame:CreateCategoryFrame()
-	self.CategoryFrame = CreateFrame("Frame", nil, self)
-	self.CategoryFrame:SetPoint("TOPLEFT", self.ScrollFrame, "TOPRIGHT", 20, 0)
-	self.CategoryFrame:SetPoint("BOTTOMRIGHT", 0, 30)
 
-	self.CategoryFrame.NewButton = CreateFrame("Button", nil, self.CategoryFrame, "UIPanelButtonTemplate")
-	self.CategoryFrame.NewButton:SetPoint("TOP", 0, 43)
-	self.CategoryFrame.NewButton:SetSize(self.CATEGORY_SIZE_W - 50, 20)
-	self.CategoryFrame.NewButton:SetText(L["New Category"])
-	self.CategoryFrame.NewButton:SetScript("OnClick", OnClickNewButton)
-
-	self.CategoryFrame.SelectAllButton = CreateFrame("Button", nil, self.CategoryFrame, "UIPanelButtonTemplate")
-	self.CategoryFrame.SelectAllButton:SetPoint("TOPLEFT", 8, 23)
-	self.CategoryFrame.SelectAllButton:SetSize((self.CATEGORY_SIZE_W / 2) - 4, 20)
-	self.CategoryFrame.SelectAllButton:SetText(L["Select All"])
-	self.CategoryFrame.SelectAllButton:SetScript("OnClick", SetAll)
-	self.CategoryFrame.SelectAllButton.value = true
-
-	self.CategoryFrame.ClearSelectionButton = CreateFrame("Button", nil, self.CategoryFrame, "UIPanelButtonTemplate")
-	self.CategoryFrame.ClearSelectionButton:SetPoint("TOPRIGHT", -8, 23)
-	self.CategoryFrame.ClearSelectionButton:SetSize((self.CATEGORY_SIZE_W / 2) - 4, 20)
-	self.CategoryFrame.ClearSelectionButton:SetText(L["Select None"])
-	self.CategoryFrame.ClearSelectionButton:SetScript("OnClick", SetAll)
-	self.CategoryFrame.ClearSelectionButton.value = nil
-
-	self.CategoryFrame.ScrollFrame = CreateFrame("ScrollFrame", nil, self.CategoryFrame, "HybridScrollFrameTemplate")
-	self.CategoryFrame.ScrollFrame:SetPoint("TOPLEFT", 0, 0)
-	self.CategoryFrame.ScrollFrame:SetPoint("BOTTOMRIGHT", -30, 0)
-	self.CategoryFrame.ScrollFrame.selectedItems = {}
-	self.CategoryFrame.ScrollFrame.update = UpdateCategoryList
-	self.CategoryFrame.ScrollFrame.updateDb = UpdateListVariables
-
-	self.CategoryFrame.ScrollFrame.ScrollBar = CreateFrame("Slider", nil, self.CategoryFrame.ScrollFrame, "HybridScrollBarTemplate")
-	self.CategoryFrame.ScrollFrame.ScrollBar:SetPoint("TOPLEFT", self.CategoryFrame.ScrollFrame, "TOPRIGHT", 1, -16)
-	self.CategoryFrame.ScrollFrame.ScrollBar:SetPoint("BOTTOMLEFT", self.CategoryFrame.ScrollFrame, "BOTTOMRIGHT", 1, 12)
-	self.CategoryFrame.ScrollFrame.ScrollBar:SetScript("OnSizeChanged", OnSizeChangedScrollFrame)
-	self.CategoryFrame.ScrollFrame.ScrollBar.doNotHide = true
-
-	UpdateListVariables()
-
-	HybridScrollFrame_CreateButtons(self.CategoryFrame.ScrollFrame, "SimpleAddonManagerCategoryItem")
+function frame:SetCategoryVisibility(show, resize)
+	local fw = frame:GetWidth()
+	if (show) then
+		SquareButton_SetIcon(frame.CategoryButton, "LEFT")
+		frame.ScrollFrame:SetPoint("BOTTOMRIGHT", (-30 - frame.CATEGORY_SIZE_W), 30)
+		if (resize) then
+			frame:SetWidth(math.max(frame.MIN_SIZE_W, fw + frame.CATEGORY_SIZE_W))
+		end
+		frame.CategoryButton:SetPoint("TOPRIGHT", (-7 - frame.CATEGORY_SIZE_W), -27)
+		frame:SetMinResize(frame.MIN_SIZE_W + frame.CATEGORY_SIZE_W, frame.MIN_SIZE_H)
+		frame.CategoryFrame:Show()
+	else
+		SquareButton_SetIcon(frame.CategoryButton, "RIGHT")
+		frame.ScrollFrame:SetPoint("BOTTOMRIGHT", -30, 30)
+		if (resize) then
+			frame:SetWidth(math.max(frame.MIN_SIZE_W, fw - frame.CATEGORY_SIZE_W))
+		end
+		frame.CategoryButton:SetPoint("TOPRIGHT", -7, -27)
+		frame:SetMinResize(frame.MIN_SIZE_W, frame.MIN_SIZE_H)
+		frame.CategoryFrame:Hide()
+	end
+	frame.ScrollFrame.update()
+	frame.CategoryFrame.ScrollFrame.update()
 end
 
 local function RenameInvalidDb(table, name, index)
@@ -428,6 +411,62 @@ local function RenameInvalidDb(table, name, index)
 	end
 	db.categories[newName] = table
 	table.name = newName
+end
+
+function module:PreInitialize()
+	frame.CategoryFrame = CreateFrame("Frame", nil, frame)
+	frame.CategoryFrame.NewButton = CreateFrame("Button", nil, frame.CategoryFrame, "UIPanelButtonTemplate")
+	frame.CategoryFrame.SelectAllButton = CreateFrame("Button", nil, frame.CategoryFrame, "UIPanelButtonTemplate")
+	frame.CategoryFrame.ClearSelectionButton = CreateFrame("Button", nil, frame.CategoryFrame, "UIPanelButtonTemplate")
+	frame.CategoryFrame.ScrollFrame = CreateFrame("ScrollFrame", nil, frame.CategoryFrame, "HybridScrollFrameTemplate")
+	frame.CategoryFrame.ScrollFrame.ScrollBar = CreateFrame("Slider", nil, frame.CategoryFrame.ScrollFrame, "HybridScrollBarTemplate")
+	frame.CategoryButton = CreateFrame("Button", nil, frame, "UIPanelSquareButton")
+end
+
+function module:Initialize()
+	frame.CategoryFrame:SetPoint("TOPLEFT", frame.ScrollFrame, "TOPRIGHT", 20, 0)
+	frame.CategoryFrame:SetPoint("BOTTOMRIGHT", 0, 30)
+
+	frame.CategoryFrame.NewButton:SetPoint("TOP", 0, 43)
+	frame.CategoryFrame.NewButton:SetSize(frame.CATEGORY_SIZE_W - 50, 20)
+	frame.CategoryFrame.NewButton:SetText(L["New Category"])
+	frame.CategoryFrame.NewButton:SetScript("OnClick", OnClickNewButton)
+
+	frame.CategoryFrame.SelectAllButton:SetPoint("TOPLEFT", 8, 23)
+	frame.CategoryFrame.SelectAllButton:SetSize((frame.CATEGORY_SIZE_W / 2) - 4, 20)
+	frame.CategoryFrame.SelectAllButton:SetText(L["Select All"])
+	frame.CategoryFrame.SelectAllButton:SetScript("OnClick", SetAll)
+	frame.CategoryFrame.SelectAllButton.value = true
+
+	frame.CategoryFrame.ClearSelectionButton:SetPoint("TOPRIGHT", -8, 23)
+	frame.CategoryFrame.ClearSelectionButton:SetSize((frame.CATEGORY_SIZE_W / 2) - 4, 20)
+	frame.CategoryFrame.ClearSelectionButton:SetText(L["Select None"])
+	frame.CategoryFrame.ClearSelectionButton:SetScript("OnClick", SetAll)
+	frame.CategoryFrame.ClearSelectionButton.value = nil
+
+	frame.CategoryFrame.ScrollFrame:SetPoint("TOPLEFT", 0, 0)
+	frame.CategoryFrame.ScrollFrame:SetPoint("BOTTOMRIGHT", -30, 0)
+	frame.CategoryFrame.ScrollFrame.selectedItems = {}
+	frame.CategoryFrame.ScrollFrame.update = UpdateCategoryList
+	frame.CategoryFrame.ScrollFrame.updateDb = UpdateListVariables
+
+	frame.CategoryFrame.ScrollFrame.ScrollBar:SetPoint("TOPLEFT", frame.CategoryFrame.ScrollFrame, "TOPRIGHT", 1, -16)
+	frame.CategoryFrame.ScrollFrame.ScrollBar:SetPoint("BOTTOMLEFT", frame.CategoryFrame.ScrollFrame, "BOTTOMRIGHT", 1, 12)
+	frame.CategoryFrame.ScrollFrame.ScrollBar:SetScript("OnSizeChanged", OnSizeChangedScrollFrame)
+	frame.CategoryFrame.ScrollFrame.ScrollBar.doNotHide = true
+
+	frame.CategoryButton:SetPoint("TOPRIGHT", -7, -27)
+	frame.CategoryButton:SetSize(30, 30)
+	frame.CategoryButton.icon:SetTexture("Interface\\Buttons\\SquareButtonTextures")
+	frame.CategoryButton:SetScript("OnClick", function()
+		local db = frame:GetDb()
+		db.isCategoryFrameVisible = not db.isCategoryFrameVisible
+		frame:SetCategoryVisibility(db.isCategoryFrameVisible, true)
+	end)
+
+	UpdateListVariables()
+
+	HybridScrollFrame_CreateButtons(frame.CategoryFrame.ScrollFrame, "SimpleAddonManagerCategoryItem")
 end
 
 function module:OnLoad()

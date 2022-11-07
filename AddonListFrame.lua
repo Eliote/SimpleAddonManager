@@ -400,23 +400,26 @@ function frame:UpdateMemoryTickerPeriod(period)
 	end
 end
 
-function frame:CreateAddonListFrame()
-	self.ScrollFrame = CreateFrame("ScrollFrame", nil, self, "HybridScrollFrameTemplate")
-	self.ScrollFrame:Hide()
-	self.ScrollFrame:SetPoint("TOPLEFT", 7, -64)
-	self.ScrollFrame:SetPoint("BOTTOMRIGHT", -30, 30)
-	self.ScrollFrame:SetScript("OnShow", OnShow)
-	self.ScrollFrame:SetScript("OnHide", OnHide)
-	self.ScrollFrame.update = UpdateList
-	self.ScrollFrame:Show()
+function module:PreInitialize()
+	frame.ScrollFrame = CreateFrame("ScrollFrame", nil, frame, "HybridScrollFrameTemplate")
+	frame.ScrollFrame.ScrollBar = CreateFrame("Slider", nil, frame.ScrollFrame, "HybridScrollBarTemplate")
+end
 
-	self.ScrollFrame.ScrollBar = CreateFrame("Slider", nil, self.ScrollFrame, "HybridScrollBarTemplate")
-	self.ScrollFrame.ScrollBar:SetPoint("TOPLEFT", self.ScrollFrame, "TOPRIGHT", 1, -16)
-	self.ScrollFrame.ScrollBar:SetPoint("BOTTOMLEFT", self.ScrollFrame, "BOTTOMRIGHT", 1, 12)
-	self.ScrollFrame.ScrollBar:SetScript("OnSizeChanged", OnSizeChanged)
-	self.ScrollFrame.ScrollBar.doNotHide = true
+function module:Initialize()
+	frame.ScrollFrame:Hide()
+	frame.ScrollFrame:SetPoint("TOPLEFT", 7, -64)
+	frame.ScrollFrame:SetPoint("BOTTOMRIGHT", -30, 30)
+	frame.ScrollFrame:SetScript("OnShow", OnShow)
+	frame.ScrollFrame:SetScript("OnHide", OnHide)
+	frame.ScrollFrame.update = UpdateList
+	frame.ScrollFrame:Show()
 
-	HybridScrollFrame_CreateButtons(self.ScrollFrame, "SimpleAddonManagerAddonItem")
+	frame.ScrollFrame.ScrollBar:SetPoint("TOPLEFT", frame.ScrollFrame, "TOPRIGHT", 1, -16)
+	frame.ScrollFrame.ScrollBar:SetPoint("BOTTOMLEFT", frame.ScrollFrame, "BOTTOMRIGHT", 1, 12)
+	frame.ScrollFrame.ScrollBar:SetScript("OnSizeChanged", OnSizeChanged)
+	frame.ScrollFrame.ScrollBar.doNotHide = true
+
+	HybridScrollFrame_CreateButtons(frame.ScrollFrame, "SimpleAddonManagerAddonItem")
 end
 
 function module:OnLoad()
