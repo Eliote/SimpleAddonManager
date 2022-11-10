@@ -43,4 +43,7 @@ Filters.lua
 AddonListFrame.lua
 CategoryFrame.lua
 MiniMapButton.lua
+Options.lua
+Profile.lua
+Search.lua
 SlashCommand.lua

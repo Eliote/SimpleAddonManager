@@ -1,5 +1,6 @@
 local _, T = ...
 local L = T.L
+local C = T.Color
 local EDDM = LibStub("ElioteDropDownMenu-1.0")
 local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFrame")
 
@@ -57,58 +58,80 @@ local function CategoryMenu(categoryKey, categoryName)
 	return menu
 end
 
+local function CommonCountFunction(self)
+	local count = 0
+	for addonIndex = 1, GetNumAddOns() do
+		if (self:addons(addonIndex)) then
+			count = count + 1
+		end
+	end
+	return count
+end
+
 local fixedCategories = {
 	["!!!!!_00_ENABLED_CATEGORY"] = {
 		type = "fixed",
-		name = "|cFF19FF19" .. L["Enabled Addons"],
+		name = C.green:WrapText(L["Enabled Addons"]),
 		description = L["Currently Enabled Addons"],
-		addons = function(key)
+		addons = function(_, key)
 			return frame:IsAddonSelected(key)
 		end,
-		count = function()
-			local count = 0
-			for addonIndex = 1, GetNumAddOns() do
-				if (frame:IsAddonSelected(addonIndex)) then
-					count = count + 1
-				end
-			end
-			return count
-		end
+		count = CommonCountFunction
 	},
 	["!!!!!_01_DISABLED_CATEGORY"] = {
 		type = "fixed",
-		name = "|cFF19FF19" .. L["Disabled Addons"],
+		name = C.green:WrapText(L["Disabled Addons"]),
 		description = L["Currently Disabled Addons"],
-		addons = function(key)
+		addons = function(_, key)
 			return not frame:IsAddonSelected(key)
 		end,
-		count = function()
-			local count = 0
-			for addonIndex = 1, GetNumAddOns() do
-				if (not frame:IsAddonSelected(addonIndex)) then
-					count = count + 1
-				end
+		count = CommonCountFunction
+	},
+	["!!!!!_02_ACTIVE_CATEGORY"] = {
+		type = "fixed",
+		name = C.green:WrapText(L["Active Addons"]),
+		description = L["Addons enabled and loaded, or ready to be loaded on demand."],
+		addons = function(_, key)
+			local _, _, _, loadable, reason = GetAddOnInfo(key)
+			return loadable or reason == "DEMAND_LOADED"
+		end,
+		count = CommonCountFunction
+	},
+	["!!!!!_03_UNCATEGORIZED_CATEGORY"] = {
+		type = "fixed",
+		name = C.green:WrapText(L["Uncategorized Addons"]),
+		description = L["Addons not in any category. It will be taken into account if you are viewing or not auto-generated categories."],
+		prepare = function(self)
+			local cache = {}
+			local user, toc = frame:GetCategoryTables()
+			for _, v in pairs(user) do
+				MergeTable(cache, v.addons)
 			end
-			return count
+			for _, v in pairs(toc) do
+				MergeTable(cache, v.addons)
+			end
+			self.cache = cache
+		end,
+		addons = function(self, key)
+			local name = GetAddOnInfo(key)
+			return not self.cache[name]
+		end,
+		count = function(self)
+			self:prepare()
+			return CommonCountFunction(self)
 		end
 	},
-	["!!!!!_03_CHANGING_STATE"] = {
+	["!!!!!_55_CHANGING_STATE"] = {
 		type = "fixed",
-		name = "|cFFFF1919" .. L["Addons being modified"],
+		name = C.red:WrapText(L["Addons being modified"]),
 		description = L["Addons being modified in this session"],
-		addons = function(key)
+		addons = function(_, key)
 			return frame:DidAddonStateChanged(key)
 		end,
-		show = function() return frame:DidAnyAddonStateChanged() end,
-		count = function()
-			local count = 0
-			for addonIndex = 1, GetNumAddOns() do
-				if (frame:DidAddonStateChanged(addonIndex)) then
-					count = count + 1
-				end
-			end
-			return count
-		end
+		show = function()
+			return frame:DidAnyAddonStateChanged()
+		end,
+		count = CommonCountFunction
 	},
 }
 
@@ -172,7 +195,7 @@ local function CategoryButtonOnEnter(self)
 	end
 	GameTooltip:AddLine("\n");
 	if (fixedTable) then
-		GameTooltip:AddDoubleLine(L["Addons:"], self.category.count(), nil, nil, nil, 1, 1, 1);
+		GameTooltip:AddDoubleLine(L["Addons:"], self.category:count(), nil, nil, nil, 1, 1, 1);
 	else
 		GameTooltip:AddDoubleLine(L["Manually added:"], userTable and tablelength(userTable.addons) or 0, nil, nil, nil, 1, 1, 1);
 		local fromTocCount = tocTable and tablelength(tocTable.addons) or 0
@@ -212,7 +235,7 @@ local function UpdateCategoryList()
 			elseif (fixed) then
 				button.Name:SetText(category.name)
 			else
-				button.Name:SetText("|cFFFFFF19" .. frame:LocalizeCategoryName(category.name))
+				button.Name:SetText(C.yellow:WrapText(frame:LocalizeCategoryName(category.name)))
 			end
 			local enabled = IsCategorySelected(categoryKey)
 
@@ -262,8 +285,7 @@ local function OnClickNewButton()
 		end
 
 		db.categories[text] = { name = text, addons = {} }
-		frame.CategoryFrame.ScrollFrame.updateDb()
-		frame.CategoryFrame.ScrollFrame.update()
+		frame:UpdateCategoryFrame()
 	end)
 end
 
@@ -293,7 +315,7 @@ local function UpdateListVariables()
 	local categoriesList = frame:TableKeysToSortedList(db.categories, categoryTocTable, auto)
 	frame.CategoryFrame.ScrollFrame.sortedItemsList = categoriesList
 	local selectedItems = frame.CategoryFrame.ScrollFrame.selectedItems
-	for k, v in pairs(selectedItems) do
+	for k, _ in pairs(selectedItems) do
 		if (not db.categories[k] and not categoryTocTable[k] and not auto[k]) then
 			selectedItems[k] = nil
 		end
@@ -340,56 +362,44 @@ end
 
 function frame:GetCategoryTables()
 	local db = self:GetDb()
-	local userCategory = db.categories
-	local tocCategory = categoryTocTable
-	return userCategory, tocCategory, fixedCategories
+	local userCategories = db.categories
+	local tocCategories = categoryTocTable
+	return userCategories, tocCategories, fixedCategories
 end
 
 function frame:SelectedCategories()
 	return self.CategoryFrame.ScrollFrame.selectedItems
 end
 
-function frame:CreateCategoryFrame()
-	self.CategoryFrame = CreateFrame("Frame", nil, self)
-	self.CategoryFrame:SetPoint("TOPLEFT", self.ScrollFrame, "TOPRIGHT", 20, 0)
-	self.CategoryFrame:SetPoint("BOTTOMRIGHT", 0, 30)
+function frame:UpdateCategoryFrame()
+	self.CategoryFrame.ScrollFrame.updateDb()
+	self.CategoryFrame.ScrollFrame.update()
+end
 
-	self.CategoryFrame.NewButton = CreateFrame("Button", nil, self.CategoryFrame, "UIPanelButtonTemplate")
-	self.CategoryFrame.NewButton:SetPoint("TOP", 0, 43)
-	self.CategoryFrame.NewButton:SetSize(self.CATEGORY_SIZE_W - 50, 20)
-	self.CategoryFrame.NewButton:SetText(L["New Category"])
-	self.CategoryFrame.NewButton:SetScript("OnClick", OnClickNewButton)
 
-	self.CategoryFrame.SelectAllButton = CreateFrame("Button", nil, self.CategoryFrame, "UIPanelButtonTemplate")
-	self.CategoryFrame.SelectAllButton:SetPoint("TOPLEFT", 8, 23)
-	self.CategoryFrame.SelectAllButton:SetSize((self.CATEGORY_SIZE_W / 2) - 4, 20)
-	self.CategoryFrame.SelectAllButton:SetText(L["Select All"])
-	self.CategoryFrame.SelectAllButton:SetScript("OnClick", SetAll)
-	self.CategoryFrame.SelectAllButton.value = true
-
-	self.CategoryFrame.ClearSelectionButton = CreateFrame("Button", nil, self.CategoryFrame, "UIPanelButtonTemplate")
-	self.CategoryFrame.ClearSelectionButton:SetPoint("TOPRIGHT", -8, 23)
-	self.CategoryFrame.ClearSelectionButton:SetSize((self.CATEGORY_SIZE_W / 2) - 4, 20)
-	self.CategoryFrame.ClearSelectionButton:SetText(L["Select None"])
-	self.CategoryFrame.ClearSelectionButton:SetScript("OnClick", SetAll)
-	self.CategoryFrame.ClearSelectionButton.value = nil
-
-	self.CategoryFrame.ScrollFrame = CreateFrame("ScrollFrame", nil, self.CategoryFrame, "HybridScrollFrameTemplate")
-	self.CategoryFrame.ScrollFrame:SetPoint("TOPLEFT", 0, 0)
-	self.CategoryFrame.ScrollFrame:SetPoint("BOTTOMRIGHT", -30, 0)
-	self.CategoryFrame.ScrollFrame.selectedItems = {}
-	self.CategoryFrame.ScrollFrame.update = UpdateCategoryList
-	self.CategoryFrame.ScrollFrame.updateDb = UpdateListVariables
-
-	self.CategoryFrame.ScrollFrame.ScrollBar = CreateFrame("Slider", nil, self.CategoryFrame.ScrollFrame, "HybridScrollBarTemplate")
-	self.CategoryFrame.ScrollFrame.ScrollBar:SetPoint("TOPLEFT", self.CategoryFrame.ScrollFrame, "TOPRIGHT", 1, -16)
-	self.CategoryFrame.ScrollFrame.ScrollBar:SetPoint("BOTTOMLEFT", self.CategoryFrame.ScrollFrame, "BOTTOMRIGHT", 1, 12)
-	self.CategoryFrame.ScrollFrame.ScrollBar:SetScript("OnSizeChanged", OnSizeChangedScrollFrame)
-	self.CategoryFrame.ScrollFrame.ScrollBar.doNotHide = true
-
-	UpdateListVariables()
-
-	HybridScrollFrame_CreateButtons(self.CategoryFrame.ScrollFrame, "SimpleAddonManagerCategoryItem")
+function frame:SetCategoryVisibility(show, resize)
+	local fw = frame:GetWidth()
+	if (show) then
+		SquareButton_SetIcon(frame.CategoryButton, "LEFT")
+		frame.ScrollFrame:SetPoint("BOTTOMRIGHT", (-30 - frame.CATEGORY_SIZE_W), 30)
+		if (resize) then
+			frame:SetWidth(math.max(frame.MIN_SIZE_W, fw + frame.CATEGORY_SIZE_W))
+		end
+		frame.CategoryButton:SetPoint("TOPRIGHT", (-7 - frame.CATEGORY_SIZE_W), -27)
+		frame:SetMinResize(frame.MIN_SIZE_W + frame.CATEGORY_SIZE_W, frame.MIN_SIZE_H)
+		frame.CategoryFrame:Show()
+	else
+		SquareButton_SetIcon(frame.CategoryButton, "RIGHT")
+		frame.ScrollFrame:SetPoint("BOTTOMRIGHT", -30, 30)
+		if (resize) then
+			frame:SetWidth(math.max(frame.MIN_SIZE_W, fw - frame.CATEGORY_SIZE_W))
+		end
+		frame.CategoryButton:SetPoint("TOPRIGHT", -7, -27)
+		frame:SetMinResize(frame.MIN_SIZE_W, frame.MIN_SIZE_H)
+		frame.CategoryFrame:Hide()
+	end
+	frame.ScrollFrame.update()
+	frame.CategoryFrame.ScrollFrame.update()
 end
 
 local function RenameInvalidDb(table, name, index)
@@ -401,6 +411,62 @@ local function RenameInvalidDb(table, name, index)
 	end
 	db.categories[newName] = table
 	table.name = newName
+end
+
+function module:PreInitialize()
+	frame.CategoryFrame = CreateFrame("Frame", nil, frame)
+	frame.CategoryFrame.NewButton = CreateFrame("Button", nil, frame.CategoryFrame, "UIPanelButtonTemplate")
+	frame.CategoryFrame.SelectAllButton = CreateFrame("Button", nil, frame.CategoryFrame, "UIPanelButtonTemplate")
+	frame.CategoryFrame.ClearSelectionButton = CreateFrame("Button", nil, frame.CategoryFrame, "UIPanelButtonTemplate")
+	frame.CategoryFrame.ScrollFrame = CreateFrame("ScrollFrame", nil, frame.CategoryFrame, "HybridScrollFrameTemplate")
+	frame.CategoryFrame.ScrollFrame.ScrollBar = CreateFrame("Slider", nil, frame.CategoryFrame.ScrollFrame, "HybridScrollBarTemplate")
+	frame.CategoryButton = CreateFrame("Button", nil, frame, "UIPanelSquareButton")
+end
+
+function module:Initialize()
+	frame.CategoryFrame:SetPoint("TOPLEFT", frame.ScrollFrame, "TOPRIGHT", 20, 0)
+	frame.CategoryFrame:SetPoint("BOTTOMRIGHT", 0, 30)
+
+	frame.CategoryFrame.NewButton:SetPoint("TOP", 0, 43)
+	frame.CategoryFrame.NewButton:SetSize(frame.CATEGORY_SIZE_W - 50, 20)
+	frame.CategoryFrame.NewButton:SetText(L["New Category"])
+	frame.CategoryFrame.NewButton:SetScript("OnClick", OnClickNewButton)
+
+	frame.CategoryFrame.SelectAllButton:SetPoint("TOPLEFT", 8, 23)
+	frame.CategoryFrame.SelectAllButton:SetSize((frame.CATEGORY_SIZE_W / 2) - 4, 20)
+	frame.CategoryFrame.SelectAllButton:SetText(L["Select All"])
+	frame.CategoryFrame.SelectAllButton:SetScript("OnClick", SetAll)
+	frame.CategoryFrame.SelectAllButton.value = true
+
+	frame.CategoryFrame.ClearSelectionButton:SetPoint("TOPRIGHT", -8, 23)
+	frame.CategoryFrame.ClearSelectionButton:SetSize((frame.CATEGORY_SIZE_W / 2) - 4, 20)
+	frame.CategoryFrame.ClearSelectionButton:SetText(L["Select None"])
+	frame.CategoryFrame.ClearSelectionButton:SetScript("OnClick", SetAll)
+	frame.CategoryFrame.ClearSelectionButton.value = nil
+
+	frame.CategoryFrame.ScrollFrame:SetPoint("TOPLEFT", 0, 0)
+	frame.CategoryFrame.ScrollFrame:SetPoint("BOTTOMRIGHT", -30, 0)
+	frame.CategoryFrame.ScrollFrame.selectedItems = {}
+	frame.CategoryFrame.ScrollFrame.update = UpdateCategoryList
+	frame.CategoryFrame.ScrollFrame.updateDb = UpdateListVariables
+
+	frame.CategoryFrame.ScrollFrame.ScrollBar:SetPoint("TOPLEFT", frame.CategoryFrame.ScrollFrame, "TOPRIGHT", 1, -16)
+	frame.CategoryFrame.ScrollFrame.ScrollBar:SetPoint("BOTTOMLEFT", frame.CategoryFrame.ScrollFrame, "BOTTOMRIGHT", 1, 12)
+	frame.CategoryFrame.ScrollFrame.ScrollBar:SetScript("OnSizeChanged", OnSizeChangedScrollFrame)
+	frame.CategoryFrame.ScrollFrame.ScrollBar.doNotHide = true
+
+	frame.CategoryButton:SetPoint("TOPRIGHT", -7, -27)
+	frame.CategoryButton:SetSize(30, 30)
+	frame.CategoryButton.icon:SetTexture("Interface\\Buttons\\SquareButtonTextures")
+	frame.CategoryButton:SetScript("OnClick", function()
+		local db = frame:GetDb()
+		db.isCategoryFrameVisible = not db.isCategoryFrameVisible
+		frame:SetCategoryVisibility(db.isCategoryFrameVisible, true)
+	end)
+
+	UpdateListVariables()
+
+	HybridScrollFrame_CreateButtons(frame.CategoryFrame.ScrollFrame, "SimpleAddonManagerCategoryItem")
 end
 
 function module:OnLoad()

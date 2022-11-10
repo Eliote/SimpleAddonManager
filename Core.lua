@@ -158,8 +158,7 @@ function frame:SetCharacter(value)
 end
 
 function frame:Update()
-	self.CategoryFrame.ScrollFrame.updateDb()
-	self.CategoryFrame.ScrollFrame.update()
+	self:UpdateCategoryFrame()
 	self:UpdateListFilters()
 	frame:UpdateOkButton()
 end
@@ -180,10 +179,19 @@ function frame:Initialize()
 		return
 	end
 
-	frame:CreateMainFrame()
-	frame:CreateAddonListFrame()
-	frame:CreateCategoryFrame()
 	frame.initialized = true
+
+	for _, module in pairs(frame:GetModules()) do
+		if (module.PreInitialize) then
+			module:PreInitialize()
+		end
+	end
+
+	for _, module in pairs(frame:GetModules()) do
+		if (module.Initialize) then
+			module:Initialize()
+		end
+	end
 end
 
 function frame:TableKeysToSortedList(...)
@@ -222,6 +230,10 @@ end
 
 function frame:GetModule(name)
 	return modules[name]
+end
+
+function frame:GetModules()
+	return modules
 end
 
 local addonsInitialState = {}

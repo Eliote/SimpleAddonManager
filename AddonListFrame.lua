@@ -150,7 +150,7 @@ local function AddonRightClickMenu(addon)
 		local tocCategory = tocCategories[categoryName]
 		local isInToc = tocCategory and tocCategory.addons and tocCategory.addons[name]
 		table.insert(menu, {
-			text = frame:LocalizeCategoryName(categoryName, not isInToc) .. (isInToc and (" |cFFFFFF00" .. L["(Automatically in category)"]) or ""),
+			text = frame:LocalizeCategoryName(categoryName, not isInToc) .. (isInToc and (" " .. C.yellow:WrapText(L["(Automatically in category)"])) or ""),
 			checked = function()
 				return categoryDb and categoryDb.addons and categoryDb.addons[name]
 			end,
@@ -222,15 +222,15 @@ local function UpdateTooltip(self)
 		end
 		local version = GetAddOnMetadata(addonIndex, "Version")
 		if (version) then
-			GameTooltip:AddLine(L["Version: "] .. "|cFFFFFFFF" .. version .. "|r");
+			GameTooltip:AddLine(L["Version: "] .. C.white:WrapText(version));
 		end
 		local author = GetAddOnMetadata(addonIndex, "Author")
 		if (author) then
-			GameTooltip:AddLine(L["Author: "] .. "|cFFFFFFFF" .. strtrim(author) .. "|r");
+			GameTooltip:AddLine(L["Author: "] .. C.white:WrapText(strtrim(author)));
 		end
 		if (IsAddOnLoaded(addonIndex)) then
 			local mem = GetAddOnMemoryUsage(addonIndex)
-			GameTooltip:AddLine(L["Memory: "] .. "|cFFFFFFFF" .. frame:FormatMemory(mem) .. "|r");
+			GameTooltip:AddLine(L["Memory: "] .. C.white:WrapText(frame:FormatMemory(mem)));
 		end
 		GameTooltip:AddLine(AddonTooltipBuildDepsString(addonIndex), nil, nil, nil, true);
 		if (self.addon.warning) then
@@ -309,7 +309,7 @@ local function UpdateList()
 
 			if (frame:GetDb().config.showVersions) then
 				version = GetAddOnMetadata(addonIndex, "Version")
-				version = (version and " |cff808080(" .. version .. ")|r") or ""
+				version = (version and C.grey:WrapText(" (" .. version .. ")")) or ""
 			end
 
 			button.ExpandOrCollapseButton:SetScript("OnClick", ExpandOrCollapseButtonOnClick)
@@ -333,20 +333,20 @@ local function UpdateList()
 			button.Name:SetText((title or name) .. version)
 
 			if (loadable or (enabled and (reason == "DEP_DEMAND_LOADED" or reason == "DEMAND_LOADED"))) then
-				button.Name:SetTextColor(1.0, 0.78, 0.0);
+				button.Name:SetTextColor(C.yellow:GetRGB());
 			elseif enabled then
-				button.Name:SetTextColor(1.0, 0.1, 0.1);
+				button.Name:SetTextColor(C.red:GetRGB());
 			elseif reason == "MISSING" then
 				button.Name:SetTextColor(C.red:GetRGB());
 			else
-				button.Name:SetTextColor(0.5, 0.5, 0.5);
+				button.Name:SetTextColor(C.grey:GetRGB());
 			end
 
 			button.addon = addon
-			button.Status:SetTextColor(0.5, 0.5, 0.5);
+			button.Status:SetTextColor(C.grey:GetRGB());
 			button.Status:SetText((not loadable and reason and _G["ADDON_" .. reason]) or "")
 			if (ShouldColorStatus(enabled, loaded, reason)) then
-				button.Status:SetTextColor(1.0, 0.1, 0.1);
+				button.Status:SetTextColor(C.red:GetRGB());
 				if (reason == nil) then
 					button.Status:SetText(REQUIRES_RELOAD)
 				end
@@ -400,23 +400,26 @@ function frame:UpdateMemoryTickerPeriod(period)
 	end
 end
 
-function frame:CreateAddonListFrame()
-	self.ScrollFrame = CreateFrame("ScrollFrame", nil, self, "HybridScrollFrameTemplate")
-	self.ScrollFrame:Hide()
-	self.ScrollFrame:SetPoint("TOPLEFT", 7, -64)
-	self.ScrollFrame:SetPoint("BOTTOMRIGHT", -30, 30)
-	self.ScrollFrame:SetScript("OnShow", OnShow)
-	self.ScrollFrame:SetScript("OnHide", OnHide)
-	self.ScrollFrame.update = UpdateList
-	self.ScrollFrame:Show()
+function module:PreInitialize()
+	frame.ScrollFrame = CreateFrame("ScrollFrame", nil, frame, "HybridScrollFrameTemplate")
+	frame.ScrollFrame.ScrollBar = CreateFrame("Slider", nil, frame.ScrollFrame, "HybridScrollBarTemplate")
+end
 
-	self.ScrollFrame.ScrollBar = CreateFrame("Slider", nil, self.ScrollFrame, "HybridScrollBarTemplate")
-	self.ScrollFrame.ScrollBar:SetPoint("TOPLEFT", self.ScrollFrame, "TOPRIGHT", 1, -16)
-	self.ScrollFrame.ScrollBar:SetPoint("BOTTOMLEFT", self.ScrollFrame, "BOTTOMRIGHT", 1, 12)
-	self.ScrollFrame.ScrollBar:SetScript("OnSizeChanged", OnSizeChanged)
-	self.ScrollFrame.ScrollBar.doNotHide = true
+function module:Initialize()
+	frame.ScrollFrame:Hide()
+	frame.ScrollFrame:SetPoint("TOPLEFT", 7, -64)
+	frame.ScrollFrame:SetPoint("BOTTOMRIGHT", -30, 30)
+	frame.ScrollFrame:SetScript("OnShow", OnShow)
+	frame.ScrollFrame:SetScript("OnHide", OnHide)
+	frame.ScrollFrame.update = UpdateList
+	frame.ScrollFrame:Show()
 
-	HybridScrollFrame_CreateButtons(self.ScrollFrame, "SimpleAddonManagerAddonItem")
+	frame.ScrollFrame.ScrollBar:SetPoint("TOPLEFT", frame.ScrollFrame, "TOPRIGHT", 1, -16)
+	frame.ScrollFrame.ScrollBar:SetPoint("BOTTOMLEFT", frame.ScrollFrame, "BOTTOMRIGHT", 1, 12)
+	frame.ScrollFrame.ScrollBar:SetScript("OnSizeChanged", OnSizeChanged)
+	frame.ScrollFrame.ScrollBar.doNotHide = true
+
+	HybridScrollFrame_CreateButtons(frame.ScrollFrame, "SimpleAddonManagerAddonItem")
 end
 
 function module:OnLoad()

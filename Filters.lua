@@ -27,7 +27,10 @@ local function AddonsInCategoriesFunc(categories)
 			end
 		end
 		if (fixedTable) then
-			fixedCategories[categoryName] = fixedTable.addons
+			table.insert(fixedCategories, fixedTable)
+			if (fixedTable.prepare) then
+				fixedTable:prepare()
+			end
 		end
 	end
 
@@ -35,8 +38,8 @@ local function AddonsInCategoriesFunc(categories)
 		if (m[name]) then
 			return true
 		end
-		for _, func in pairs(fixedCategories) do
-			if (func(name)) then
+		for _, fixedCategory in ipairs(fixedCategories) do
+			if (fixedCategory:addons(name)) then
 				return true
 			end
 		end
