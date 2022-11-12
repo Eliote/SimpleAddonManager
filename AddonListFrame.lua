@@ -92,10 +92,20 @@ local function AddonRightClickMenu(addon)
 		return
 	end
 	local addonIndex = addon.index
-	local name, title = GetAddOnInfo(addonIndex)
+	local name, title, _, _, reason = GetAddOnInfo(addonIndex)
 	local menu = {
 		{ text = title, isTitle = true, notCheckable = true },
 	}
+
+	if (not IsAddOnLoaded(addonIndex) and IsAddOnLoadOnDemand(addonIndex) and reason == "DEMAND_LOADED") then
+		table.insert(menu, {
+			text = L["Load AddOn"],
+			func = function()
+				frame:Update()
+			end,
+			notCheckable = true,
+		})
+	end
 
 	if (GetAddOnDependencies(addonIndex)) then
 		table.insert(menu, {
@@ -140,7 +150,7 @@ local function AddonRightClickMenu(addon)
 		})
 	end
 
-	table.insert(menu, T.spacer)
+	table.insert(menu, T.separatorInfo)
 	table.insert(menu, { text = L["Categories"], isTitle = true, notCheckable = true })
 
 	local userCategories, tocCategories = frame:GetCategoryTables()
@@ -344,7 +354,7 @@ local function UpdateList()
 
 			button.addon = addon
 			button.Status:SetTextColor(C.grey:GetRGB());
-			button.Status:SetText((not loadable and reason and _G["ADDON_" .. reason]) or "")
+			button.Status:SetText((not loaded and not loadable and reason and _G["ADDON_" .. reason]) or "")
 			if (ShouldColorStatus(enabled, loaded, reason)) then
 				button.Status:SetTextColor(C.red:GetRGB());
 				if (reason == nil) then
