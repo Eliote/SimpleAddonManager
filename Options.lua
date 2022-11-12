@@ -62,6 +62,15 @@ local function ConfigDropDownCreate()
 			end,
 		},
 		{
+			text = L["Show memory usage in broker/minimap tooltip"],
+			checked = function()
+				return db.config.showMemoryInBrokerTtp
+			end,
+			func = function()
+				db.config.showMemoryInBrokerTtp = not db.config.showMemoryInBrokerTtp
+			end,
+		},
+		{
 			text = L["Memory Update"],
 			notCheckable = true,
 			hasArrow = true,
@@ -219,6 +228,12 @@ local function ConfigDropDownCreate()
 		T.separatorInfo,
 		T.closeMenuInfo
 	}
+end
+
+function module:OnLoad()
+	frame:CreateDefaultOptions(frame:GetDb().config, {
+		showMemoryInBrokerTtp = true,
+	})
 end
 
 function module:PreInitialize()

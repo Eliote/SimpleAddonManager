@@ -16,12 +16,16 @@ local broker = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject(ADDON_NAME,
 		ttp:AddLine(title)
 		ttp:AddLine(leftClickButtonIcon .. L["Left-click to open"])
 
+		if (not frame:GetDb().config.showMemoryInBrokerTtp) then
+			return
+		end
+
 		local topAddOns = {}
 		local maxAddons = 10
 
-		UpdateAddOnMemoryUsage();
+		UpdateAddOnMemoryUsage()
 
-		local totalMem = 0;
+		local totalMem = 0
 		for addonIndex = 1, GetNumAddOns() do
 			local mem = GetAddOnMemoryUsage(addonIndex)
 			totalMem = totalMem + mem
