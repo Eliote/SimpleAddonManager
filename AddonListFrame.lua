@@ -54,7 +54,7 @@ local function EnableAllDeps(addonIndex)
 	local requiredDeps = { GetAddOnDependencies(addonIndex) }
 	for _, depName in ipairs(requiredDeps) do
 		if (frame:IsAddonInstalled(depName)) then
-			EnableAddOn(depName)
+			frame:EnableAddon(depName)
 			EnableAllDeps(depName)
 		end
 	end
@@ -79,9 +79,9 @@ local function SetAllChildren(children, state)
 	for name, _ in pairs(children) do
 		if (frame:IsAddonInstalled(name)) then
 			if (state) then
-				EnableAddOn(name)
+				frame:EnableAddOn(name)
 			else
-				DisableAddOn(name)
+				frame:DisableAddOn(name)
 			end
 		end
 	end
@@ -111,7 +111,7 @@ local function AddonRightClickMenu(addon)
 		table.insert(menu, {
 			text = L["Enable this Addon and its dependencies"],
 			func = function()
-				EnableAddOn(addonIndex)
+				frame:EnableAddOn(addonIndex)
 				EnableAllDeps(addonIndex)
 				frame:Update()
 			end,
@@ -127,7 +127,7 @@ local function AddonRightClickMenu(addon)
 		table.insert(menu, {
 			text = L["Enable this and every AddOn that depends on it"],
 			func = function()
-				EnableAddOn(addonIndex)
+				frame:EnableAddOn(addonIndex)
 				SetAllChildren(children, true)
 				frame:Update()
 			end,
@@ -139,7 +139,7 @@ local function AddonRightClickMenu(addon)
 		table.insert(menu, {
 			text = L["Disable this and every AddOn that depends on it"],
 			func = function()
-				DisableAddOn(addonIndex)
+				frame:DisableAddOn(addonIndex)
 				SetAllChildren(children, false)
 				frame:Update()
 			end,
@@ -189,12 +189,10 @@ local function ToggleAddon(self)
 	self:SetChecked(newValue)
 	if (newValue) then
 		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
-		local character = frame:GetCharacter()
-		EnableAddOn(addonIndex, character)
+		frame:EnableAddOn(addonIndex)
 	else
 		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
-		local character = frame:GetCharacter()
-		DisableAddOn(addonIndex, character)
+		frame:DisableAddOn(addonIndex)
 	end
 	frame:Update()
 end

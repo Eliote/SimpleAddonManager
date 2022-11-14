@@ -35,7 +35,9 @@ local function ProfilesDropDownCreate()
 			value = v
 		})
 	end
-	table.sort(setsList, function(a, b) return a.name < b.name end)
+	table.sort(setsList, function(a, b)
+		return a.name < b.name
+	end)
 
 	for _, pair in ipairs(setsList) do
 		local profileName, set = pair.key, pair.value
@@ -67,10 +69,9 @@ local function ProfilesDropDownCreate()
 								L("Load the profile '${profile}'?", { profile = profileName }),
 								function()
 									local enabledAddons = db.sets[profileName].addons
-									local character = frame:GetCharacter()
-									DisableAllAddOns(character)
+									frame:DisableAllAddOns()
 									for _, name in ipairs(enabledAddons) do
-										EnableAddOn(name, character)
+										frame:EnableAddOn(name)
 									end
 									frame:Update()
 								end

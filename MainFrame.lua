@@ -109,9 +109,8 @@ function module:Initialize()
 	frame.EnableAllButton:SetSize(120, 22)
 	frame.EnableAllButton:SetText(ENABLE_ALL_ADDONS)
 	frame.EnableAllButton:SetScript("OnClick", function()
-		local character = frame:GetCharacter()
 		for _, addon in pairs(frame:GetAddonsList()) do
-			EnableAddOn(addon.index, character)
+			frame:EnableAddOn(addon.index)
 		end
 		frame:Update()
 	end)
@@ -129,9 +128,8 @@ function module:Initialize()
 			end
 		end
 		local function disableList()
-			local character = frame:GetCharacter()
 			for _, addon in pairs(addonsList) do
-				DisableAddOn(addon.index, character)
+				frame:DisableAddOn(addon.index)
 			end
 			frame:Update()
 		end
@@ -143,7 +141,7 @@ function module:Initialize()
 					end,
 					function()
 						disableList()
-						EnableAddOn(ADDON_NAME)
+						frame:EnableAddOn(ADDON_NAME)
 					end
 			)
 		else

@@ -246,6 +246,26 @@ function frame:IsAddonInstalled(indexOrName)
 	return reason ~= "MISSING"
 end
 
+function frame:EnableAddOn(indexOrName)
+	local c = frame:GetCharacter()
+	EnableAddOn(indexOrName, c)
+end
+
+function frame:DisableAddOn(indexOrName)
+	local c = frame:GetCharacter()
+	DisableAddOn(indexOrName, c)
+end
+
+function frame:EnableAllAddOns()
+	local c = frame:GetCharacter()
+	EnableAllAddOns(c)
+end
+
+function frame:DisableAllAddOns()
+	local c = frame:GetCharacter()
+	DisableAllAddOns(c)
+end
+
 frame:SetScript("OnEvent", function(self, event, ...)
 	self[event](self, ...)
 end)
