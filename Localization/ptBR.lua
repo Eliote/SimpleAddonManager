@@ -85,6 +85,8 @@ L["Uncategorized Addons"] = "Addons não categorizados"
 L["Addons not in any category. It will be taken into account if you are viewing or not auto-generated categories."] = "Addons em nenhuma categoria. Será levado em conta se você está ou não exibindo categorias autogeradas."
 L["Show memory usage in broker/minimap tooltip"] = "Exibir uso de memória no tooltip do broker/minimapa"
 L["Load AddOn"] = "Carregar AddOn"
+L["Characters"] = "Personagens"
+L["Load the AddOns from '${char}'?"] = "Carregar AddOns de '${char}'?"
 
 L["development tools"] = "Ferramentas de Desenvolvimento"
 --@end-do-not-package@

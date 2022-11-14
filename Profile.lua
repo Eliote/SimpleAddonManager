@@ -27,17 +27,54 @@ local function ProfilesDropDownCreate()
 	}
 	local db = frame:GetDb()
 
-	local setsList = {}
-	for key, v in pairs(db.sets) do
-		table.insert(setsList, {
-			key = key,
-			name = key:lower(),
-			value = v
-		})
-	end
-	table.sort(setsList, function(a, b)
-		return a.name < b.name
+	local me = frame:GetPlayerInfo().id
+	local charsTable = frame:TableAsSortedPairList(db.autoProfile, function(k)
+		return k ~= me
 	end)
+	local charsMenuList = {}
+	table.insert(menu, {
+		text = L["Characters"],
+		notCheckable = true,
+		hasArrow = true,
+		menuList = charsMenuList
+	})
+
+	for _, pair in ipairs(charsTable) do
+		local info = pair.value
+		local title = "|c" .. info.playerColor .. info.playerId .. "|r"
+		local charMenu = {
+			text = title,
+			notCheckable = true,
+			hasArrow = true,
+			menuList = {
+				{ text = title, isTitle = true, notCheckable = true },
+				{ text = #info.addons .. " AddOns", notCheckable = true },
+				T.separatorInfo,
+				{
+					text = L["Load"],
+					notCheckable = true,
+					func = function()
+						frame:ShowConfirmDialog(
+								L("Load the AddOns from '${char}'?", { char = title }),
+								function()
+									local enabledAddons = info.addons
+									frame:DisableAllAddOns()
+									for _, name in ipairs(enabledAddons) do
+										frame:EnableAddOn(name)
+									end
+									frame:Update()
+								end
+						)
+					end
+				},
+			}
+		}
+		table.insert(charsMenuList, charMenu)
+	end
+
+	table.insert(menu, T.separatorInfo)
+
+	local setsList = frame:TableAsSortedPairList(db.sets)
 
 	for _, pair in ipairs(setsList) do
 		local profileName, set = pair.key, pair.value
@@ -141,4 +178,34 @@ function module:Initialize()
 	frame.SetsButton:SetScript("OnClick", function()
 		EDDM.ToggleEasyMenu(ProfilesDropDownCreate(), dropdownFrame, frame.SetsButton, 0, 0, "MENU")
 	end)
+end
+
+function module:UpdatePlayerProfileAddons()
+	local playerInfo = frame:GetPlayerInfo()
+	local db = frame:GetDb()
+	db.autoProfile = db.autoProfile or {}
+
+	local addons = {}
+	for addonIndex = 1, GetNumAddOns() do
+		local addonName = GetAddOnInfo(addonIndex)
+		if (GetAddOnEnableState(playerInfo.name, addonIndex) > 0) then
+			table.insert(addons, addonName)
+		end
+	end
+
+	db.autoProfile[playerInfo.id] = {
+		addons = addons,
+		playerId = playerInfo.id,
+		playerColor = playerInfo.color.colorStr
+	}
+end
+
+function module:OnPlayerEnteringWorld(isInitialLogin, isReloadingUi)
+	if (isInitialLogin or isReloadingUi) then
+		module:UpdatePlayerProfileAddons()
+	end
+end
+
+function module:OnPlayerLeavingWorld()
+	module:UpdatePlayerProfileAddons()
 end

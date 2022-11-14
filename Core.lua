@@ -1,5 +1,7 @@
 local ADDON_NAME, T = ...
 
+local C = T.Color
+
 --- @class SimpleAddonManager
 local frame = CreateFrame("Frame", ADDON_NAME, UIParent, "ButtonFrameTemplate")
 ButtonFrameTemplate_HidePortrait(frame)
@@ -209,6 +211,23 @@ function frame:TableKeysToSortedList(...)
 	return list
 end
 
+function frame:TableAsSortedPairList(t, filter)
+	local list = {}
+	for key, v in pairs(t) do
+		if (filter == nil or filter(key, v)) then
+			table.insert(list, {
+				key = key,
+				name = key:lower(),
+				value = v
+			})
+		end
+	end
+	table.sort(list, function(a, b)
+		return a.name < b.name
+	end)
+	return list
+end
+
 function frame:FormatMemory(value)
 	if (value >= 1000) then
 		value = value / 1000
@@ -266,10 +285,31 @@ function frame:DisableAllAddOns()
 	DisableAllAddOns(c)
 end
 
+-- When entering/leaving lfg, realm returns nil. Cache to avoid errors.
+local nameCache, realmCache, classColor
+function frame:GetPlayerInfo()
+	if (nameCache == nil) then
+		nameCache, realmCache = UnitNameUnmodified("player")
+		if (realmCache == nil or realmCache == "") then
+			realmCache = select(2, UnitFullName("player"))
+		end
+		classColor = RAID_CLASS_COLORS[select(2, UnitClass("player"))] or C.white
+	end
+	return {
+		id = nameCache .. "-" .. realmCache,
+		name = nameCache,
+		realm = realmCache,
+		color = classColor
+	}
+end
+
 frame:SetScript("OnEvent", function(self, event, ...)
 	self[event](self, ...)
 end)
 frame:RegisterEvent("ADDON_LOADED")
+frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+frame:RegisterEvent("PLAYER_LEAVING_WORLD")
+
 function frame:ADDON_LOADED(name)
 	if name ~= ADDON_NAME then
 		return
@@ -297,6 +337,22 @@ function frame:ADDON_LOADED(name)
 	for _, v in pairs(modules) do
 		if (v.OnLoad) then
 			v:OnLoad()
+		end
+	end
+end
+
+function frame:PLAYER_ENTERING_WORLD(...)
+	for _, v in pairs(modules) do
+		if (v.OnPlayerEnteringWorld) then
+			v:OnPlayerEnteringWorld(...)
+		end
+	end
+end
+
+function frame:PLAYER_LEAVING_WORLD(...)
+	for _, v in pairs(modules) do
+		if (v.OnPlayerLeavingWorld) then
+			v:OnPlayerLeavingWorld(...)
 		end
 	end
 end
