@@ -32,6 +32,10 @@ local function CategoryMenu(categoryKey, categoryName)
 								selectedItems[categoryKey] = nil
 							end
 							frame:Update()
+						end,
+						function(self)
+							self.editBox:SetText(categoryName)
+							self.editBox:HighlightText()
 						end
 				)
 			end

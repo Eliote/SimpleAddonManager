@@ -124,6 +124,10 @@ local function ProfilesDropDownCreate()
 								function(text)
 									db.sets[text] = db.sets[profileName]
 									db.sets[profileName] = nil
+								end,
+								function(self)
+									self.editBox:SetText(profileName)
+									self.editBox:HighlightText()
 								end
 						)
 					end

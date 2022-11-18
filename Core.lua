@@ -43,20 +43,6 @@ end
 StaticPopupDialogs["SimpleAddonManager_Dialog"] = {
 	button1 = OKAY,
 	button2 = CANCEL,
-	OnShow = function(self)
-		self:SetFrameStrata("FULLSCREEN_DIALOG")
-		self:ClearAllPoints()
-		self:SetPoint("TOP", frame, "TOP", 0, -120)
-		self.OldStrata = self:GetFrameStrata()
-		if (self.editBox) then
-			self.editBox:SetText("")
-		end
-	end,
-	OnHide = function(self)
-		self:ClearAllPoints()
-		self:SetFrameStrata(self.OldStrata)
-		self.OldStrata = nil
-	end,
 	timeout = 0,
 	whileDead = true,
 	hideOnEscape = true,
@@ -117,21 +103,50 @@ function frame:CreateDefaultOptions(db, defaults)
 	end
 end
 
-function frame:ShowDialog(text, hasEditBox, funcAccept, funcCancel, button1, button2)
+function frame:ShowDialog(text, hasEditBox, funcAccept, funcCancel, button1, button2, funcOnShow)
 	local dialog = StaticPopupDialogs["SimpleAddonManager_Dialog"]
 	dialog.text = text
 	dialog.OnAccept = funcAccept
 	dialog.OnCancel = funcCancel
+	dialog.OnShow = function(self, ...)
+		self:SetFrameStrata("FULLSCREEN_DIALOG")
+		self:ClearAllPoints()
+		self:SetPoint("TOP", frame, "TOP", 0, -120)
+		self.OldStrata = self:GetFrameStrata()
+		if (self.editBox) then
+			self.editBox:SetText("")
+		end
+		if (funcOnShow) then
+			funcOnShow(self, ...)
+		end
+	end
+	dialog.OnHide = function(self)
+		self:ClearAllPoints()
+		self:SetFrameStrata(self.OldStrata)
+		self.OldStrata = nil
+	end
 	dialog.hasEditBox = hasEditBox
 	dialog.button1 = button1 or OKAY
-	dialog.button2 = button2 or CANCEL
+	if (button2 == false) then
+		dialog.button2 = nil
+	else
+		dialog.button2 = button2 or CANCEL
+	end
 	StaticPopup_Show("SimpleAddonManager_Dialog")
 end
 
-function frame:ShowInputDialog(text, func)
-	self:ShowDialog(text, true, function(self)
-		func(self.editBox:GetText())
-	end)
+function frame:ShowInputDialog(text, func, funcOnShow)
+	self:ShowDialog(
+			text,
+			true,
+			function(self)
+				func(self.editBox:GetText())
+			end,
+			nil,
+			nil,
+			nil,
+			funcOnShow
+	)
 end
 
 function frame:ShowConfirmDialog(text, func)
