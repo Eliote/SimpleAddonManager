@@ -84,7 +84,7 @@ function module:Initialize()
 	EDDM.UIDropDownMenu_Initialize(frame.CharacterDropDown, CharacterDropDown_Initialize)
 	EDDM.UIDropDownMenu_SetSelectedValue(frame.CharacterDropDown, true)
 
-	frame.CancelButton:SetPoint("BOTTOMRIGHT", -24, 4)
+	frame.CancelButton:SetPoint("BOTTOMRIGHT", -22, 4)
 	frame.CancelButton:SetSize(100, 22)
 	frame.CancelButton:SetText(CANCEL)
 	frame.CancelButton:SetScript("OnClick", function()
@@ -105,7 +105,7 @@ function module:Initialize()
 		end
 	end)
 
-	frame.EnableAllButton:SetPoint("BOTTOMLEFT", 4, 4)
+	frame.EnableAllButton:SetPoint("BOTTOMLEFT", 6, 4)
 	frame.EnableAllButton:SetSize(120, 22)
 	frame.EnableAllButton:SetText(ENABLE_ALL_ADDONS)
 	frame.EnableAllButton:SetScript("OnClick", function()

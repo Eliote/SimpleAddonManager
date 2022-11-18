@@ -287,9 +287,11 @@ local function ExpandOrCollapseButtonOnClick(self)
 	frame:Update()
 end
 
-local function deptMargin(dept)
+local function DeptMargin(dept)
 	return 13 * (dept or 0)
 end
+
+local wowExpMargin = LE_EXPANSION_LEVEL_CURRENT >= 9 and 4 or 0
 
 local function UpdateList()
 	local buttons = HybridScrollFrame_GetButtons(frame.ScrollFrame);
@@ -334,7 +336,8 @@ local function UpdateList()
 			end
 
 			local expandOrCollapseButtonSize = isInTreeMode and button.ExpandOrCollapseButton:GetWidth() or 0
-			local margin = deptMargin(addon.dept) + expandOrCollapseButtonSize
+			local marginCorrection = isInTreeMode and 3 or 0
+			local margin = DeptMargin(addon.dept) + expandOrCollapseButtonSize + marginCorrection + wowExpMargin
 			button.Name:SetPoint("TOPLEFT", 30 + margin, 0)
 			button.EnabledButton:SetPoint("LEFT", 4 + margin, 0)
 
