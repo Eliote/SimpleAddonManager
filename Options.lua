@@ -109,6 +109,26 @@ local function ConfigDropDownCreate()
 			end,
 		},
 		{
+			text = L["Collapse all"],
+			notCheckable = true,
+			func = function()
+				for _, v in pairs(frame:GetAddonsList()) do
+					frame:SetAddonCollapsed(v.key, v.parentKey, true)
+				end
+				frame:Update()
+			end,
+			disabled = db.config.addonListStyle ~= "tree",
+		},
+		{
+			text = L["Expand all"],
+			notCheckable = true,
+			func = function()
+				frame:GetDb().collapsedAddons = {}
+				frame:Update()
+			end,
+			disabled = db.config.addonListStyle ~= "tree",
+		},
+		{
 			text = L["Sort by"],
 			notCheckable = true,
 			hasArrow = true,

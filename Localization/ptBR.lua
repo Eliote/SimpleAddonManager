@@ -87,6 +87,8 @@ L["Show memory usage in broker/minimap tooltip"] = "Exibir uso de memória no to
 L["Load AddOn"] = "Carregar AddOn"
 L["Characters"] = "Personagens"
 L["Load the AddOns from '${char}'?"] = "Carregar AddOns de '${char}'?"
+L["Collapse all"] = "Recolher todos"
+L["Expand all"] = "Expandir todos"
 
 L["development tools"] = "Ferramentas de Desenvolvimento"
 --@end-do-not-package@
