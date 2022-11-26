@@ -178,6 +178,36 @@ local function ProfilesDropDownCreate()
 		return subSetsMenuList
 	end
 
+	local function addonsIn(set)
+		local list = frame:TableAsSortedPairList(set.addons)
+		local maxPerMenu = 30
+
+		local function next(from)
+			local menu = {}
+			for i = from, from + maxPerMenu do
+				if (i == from + maxPerMenu and list[i]) then
+					table.insert(menu, function()
+						return {
+							text = L["..."],
+							notCheckable = true,
+							hasArrow = true,
+							menuList = next(i)
+						}
+					end)
+					break
+				end
+				if (not list[i]) then
+					break
+				end
+				table.insert(menu, { text = list[i].key, notCheckable = true })
+			end
+
+			return menu
+		end
+
+		return next(1)
+	end
+
 	for _, pair in ipairs(setsList) do
 		local profileName, set = pair.key, pair.value
 		set.subSets = set.subSets or {}
@@ -190,7 +220,14 @@ local function ProfilesDropDownCreate()
 			hasArrow = true,
 			menuList = {
 				{ text = profileName, isTitle = true, notCheckable = true },
-				{ text = set.addonsCount .. " AddOns", notCheckable = true },
+				function()
+					return {
+						text = set.addonsCount .. " AddOns",
+						notCheckable = true,
+						hasArrow = true,
+						menuList = addonsIn(set),
+					}
+				end,
 				T.separatorInfo,
 				{
 					text = L["Save (*)"],
