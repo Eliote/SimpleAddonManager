@@ -7,18 +7,95 @@ local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFr
 local frame = T.AddonFrame
 local module = frame:RegisterModule("Profiles")
 
-local function SaveCurrentAddonsToSet(setName)
+local function MigrateProfileAddonsTable()
+	local db = frame:GetDb()
+	if (not db.setsVersion) then
+		for _, profile in pairs(db.sets) do
+			local newTable = {}
+			for _, addon in ipairs(profile.addons) do
+				newTable[addon] = true
+			end
+			profile.addonsCount = #profile.addons
+			profile.addons = newTable
+		end
+		for _, profile in pairs(db.autoProfile) do
+			local newTable = {}
+			for _, addon in ipairs(profile.addons) do
+				newTable[addon] = true
+			end
+			profile.addonsCount = #profile.addons
+			profile.addons = newTable
+		end
+		db.setsVersion = 1
+	end
+end
+
+local function AddonsInProfilesRec(profiles)
+	local recMark = {}
+	local addons = {}
+
+	local function walkProfile(name)
+		if (recMark[name]) then
+			return
+		end
+		recMark[name] = true
+
+		local db = frame:GetDb()
+		if (not db.sets[name]) then
+			return
+		end
+		for addon, v in pairs(db.sets[name].addons) do
+			if (v) then
+				addons[addon] = true
+			end
+		end
+
+		if (not db.sets[name].subSets) then
+			return false
+		end
+		for sName, enabled in pairs(db.sets[name].subSets) do
+			if (enabled) then
+				walkProfile(sName)
+			end
+		end
+	end
+
+	for sName, enabled in pairs(profiles) do
+		if (enabled) then
+			walkProfile(sName)
+		end
+	end
+
+	return addons
+end
+
+local function SaveCurrentAddonsToProfile(profileName, depAware)
 	local db = frame:GetDb()
 	local enabledAddons = {}
 	local count = GetNumAddOns()
+	db.sets[profileName] = db.sets[profileName] or {}
+	local subSets = db.sets[profileName].subSets or {}
+	local addonsCount = 0
+	local subSetsAddons = depAware and AddonsInProfilesRec(subSets) or {}
 	for i = 1, count do
-		if frame:IsAddonSelected(i) then
-			local name = GetAddOnInfo(i)
-			table.insert(enabledAddons, name)
+		local name = GetAddOnInfo(i)
+		if not subSetsAddons[name] and frame:IsAddonSelected(i) then
+			enabledAddons[name] = true
+			addonsCount = addonsCount + 1
 		end
 	end
-	db.sets[setName] = db.sets[setName] or {}
-	db.sets[setName].addons = enabledAddons
+	db.sets[profileName].addons = enabledAddons
+	db.sets[profileName].addonsCount = addonsCount
+	db.sets[profileName].subSets = subSets
+end
+
+local function LoadAddonsFromProfile(profileName)
+	local addons = AddonsInProfilesRec({ [profileName] = true })
+	frame:DisableAllAddOns()
+	for name, _ in pairs(addons) do
+		frame:EnableAddOn(name)
+	end
+	frame:Update()
 end
 
 local function ProfilesDropDownCreate()
@@ -48,7 +125,7 @@ local function ProfilesDropDownCreate()
 			hasArrow = true,
 			menuList = {
 				{ text = title, isTitle = true, notCheckable = true },
-				{ text = #info.addons .. " AddOns", notCheckable = true },
+				{ text = info.addonsCount .. " AddOns", notCheckable = true },
 				T.separatorInfo,
 				{
 					text = L["Load"],
@@ -59,7 +136,7 @@ local function ProfilesDropDownCreate()
 								function()
 									local enabledAddons = info.addons
 									frame:DisableAllAddOns()
-									for _, name in ipairs(enabledAddons) do
+									for name, _ in pairs(enabledAddons) do
 										frame:EnableAddOn(name)
 									end
 									frame:Update()
@@ -78,14 +155,48 @@ local function ProfilesDropDownCreate()
 
 	for _, pair in ipairs(setsList) do
 		local profileName, set = pair.key, pair.value
+		set.subSets = set.subSets or {}
+
+		local subSetsMenuList = {}
+		for _, subPair in ipairs(setsList) do
+			local subProfileName = subPair.key
+			if (profileName ~= subProfileName) then
+				table.insert(subSetsMenuList, {
+					text = subProfileName,
+					keepShownOnClick = true,
+					checked = function()
+						return set.subSets[subProfileName]
+					end,
+					func = function()
+						set.subSets[subProfileName] = not set.subSets[subProfileName]
+					end
+				})
+			end
+		end
+
 		local setMenu = {
 			text = profileName,
 			notCheckable = true,
 			hasArrow = true,
 			menuList = {
 				{ text = profileName, isTitle = true, notCheckable = true },
-				{ text = #set.addons .. " AddOns", notCheckable = true },
+				{ text = set.addonsCount .. " AddOns", notCheckable = true },
 				T.separatorInfo,
+				{
+					text = L["Save (*)"],
+					tooltipOnButton = true,
+					tooltipTitle = L["Ignore addons included in dependent profiles."],
+					tooltipText = "",
+					notCheckable = true,
+					func = function()
+						frame:ShowConfirmDialog(
+								L("Save current addons, ignoring addons included in dependent profiles, into profile '${profile}'?", { profile = profileName }),
+								function()
+									SaveCurrentAddonsToProfile(profileName, true)
+								end
+						)
+					end
+				},
 				{
 					text = L["Save"],
 					notCheckable = true,
@@ -93,11 +204,12 @@ local function ProfilesDropDownCreate()
 						frame:ShowConfirmDialog(
 								L("Save current addons in profile '${profile}'?", { profile = profileName }),
 								function()
-									SaveCurrentAddonsToSet(profileName)
+									SaveCurrentAddonsToProfile(profileName)
 								end
 						)
 					end
 				},
+				T.separatorInfo,
 				{
 					text = L["Load"],
 					notCheckable = true,
@@ -105,16 +217,18 @@ local function ProfilesDropDownCreate()
 						frame:ShowConfirmDialog(
 								L("Load the profile '${profile}'?", { profile = profileName }),
 								function()
-									local enabledAddons = db.sets[profileName].addons
-									frame:DisableAllAddOns()
-									for _, name in ipairs(enabledAddons) do
-										frame:EnableAddOn(name)
-									end
-									frame:Update()
+									LoadAddonsFromProfile(profileName)
 								end
 						)
 					end
 				},
+				{
+					text = L["Profile dependencies"],
+					notCheckable = true,
+					hasArrow = true,
+					menuList = subSetsMenuList,
+				},
+				T.separatorInfo,
 				{
 					text = L["Rename"],
 					notCheckable = true,
@@ -156,7 +270,7 @@ local function ProfilesDropDownCreate()
 			frame:ShowInputDialog(
 					L["Enter the name for the new profile"],
 					function(text)
-						SaveCurrentAddonsToSet(text)
+						SaveCurrentAddonsToProfile(text)
 					end
 			)
 		end,
@@ -166,6 +280,10 @@ local function ProfilesDropDownCreate()
 	table.insert(menu, T.closeMenuInfo)
 
 	return menu
+end
+
+function module:OnLoad()
+	MigrateProfileAddonsTable()
 end
 
 function module:PreInitialize()
@@ -190,15 +308,18 @@ function module:UpdatePlayerProfileAddons()
 	db.autoProfile = db.autoProfile or {}
 
 	local addons = {}
+	local addonsCount = 1
 	for addonIndex = 1, GetNumAddOns() do
 		local addonName = GetAddOnInfo(addonIndex)
 		if (GetAddOnEnableState(playerInfo.name, addonIndex) > 0) then
-			table.insert(addons, addonName)
+			addons[addonName] = true
+			addonsCount = addonsCount + 1
 		end
 	end
 
 	db.autoProfile[playerInfo.id] = {
 		addons = addons,
+		addonsCount = addonsCount,
 		playerId = playerInfo.id,
 		playerColor = playerInfo.color.colorStr
 	}

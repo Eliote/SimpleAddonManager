@@ -89,6 +89,10 @@ L["Characters"] = "Personagens"
 L["Load the AddOns from '${char}'?"] = "Carregar AddOns de '${char}'?"
 L["Collapse all"] = "Recolher todos"
 L["Expand all"] = "Expandir todos"
+L["Save current addons, ignoring addons included in dependent profiles, into profile '${profile}'?"] = "Salvar os addons atuais, ignorando addons inclusos nos profiles dependentes, no profile '${profile}'?"
+L["Save (*)"] = "Salvar (*)"
+L["Ignore addons included in dependent profiles."] = "Ignora addons inclusos nos profiles dependentes."
+L["Profile dependencies"] = "Dependências do perfil"
 
 L["development tools"] = "Ferramentas de Desenvolvimento"
 --@end-do-not-package@
