@@ -153,26 +153,36 @@ local function ProfilesDropDownCreate()
 
 	local setsList = frame:TableAsSortedPairList(db.sets)
 
+	local function createSubSetsMenuListFor(profileName, parent)
+		local subSetsMenuList = {
+			{ text = profileName, isTitle = true, notCheckable = true },
+		}
+		for _, subPair in ipairs(setsList) do
+			local subProfileName, subSet = subPair.key, subPair.value
+			if (profileName ~= subProfileName) then
+				table.insert(subSetsMenuList, function()
+					return {
+						text = subProfileName,
+						checked = function()
+							return parent.subSets[subProfileName]
+						end,
+						func = function()
+							parent.subSets[subProfileName] = not parent.subSets[subProfileName]
+						end,
+						hasArrow = parent.subSets[subProfileName],
+						menuList = createSubSetsMenuListFor(subProfileName, subSet)
+					}
+				end)
+			end
+		end
+		return subSetsMenuList
+	end
+
 	for _, pair in ipairs(setsList) do
 		local profileName, set = pair.key, pair.value
 		set.subSets = set.subSets or {}
 
-		local subSetsMenuList = {}
-		for _, subPair in ipairs(setsList) do
-			local subProfileName = subPair.key
-			if (profileName ~= subProfileName) then
-				table.insert(subSetsMenuList, {
-					text = subProfileName,
-					keepShownOnClick = true,
-					checked = function()
-						return set.subSets[subProfileName]
-					end,
-					func = function()
-						set.subSets[subProfileName] = not set.subSets[subProfileName]
-					end
-				})
-			end
-		end
+		local subSetsMenuList = createSubSetsMenuListFor(profileName, set)
 
 		local setMenu = {
 			text = profileName,
