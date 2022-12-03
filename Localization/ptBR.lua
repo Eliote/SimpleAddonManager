@@ -93,6 +93,13 @@ L["Save current addons, ignoring addons included in dependent profiles, into pro
 L["Save (*)"] = "Salvar (*)"
 L["Ignore addons included in dependent profiles."] = "Ignora addons inclusos nos profiles dependentes."
 L["Profile dependencies"] = "Dependências do perfil"
+L["Search in progress...\nStatus: enabled: ${enabled}, disabled: ${disabled}\nThe addon you are looking for has been disabled?"] = "Busca em progresso...\nStatus: habilitados: ${enabled}, desabilitados: ${disabled}\nO addon que você está procurando foi desativado?"
+L["Start binary search?\nMake sure to save your profile first, just in case."] = "Iniciar busca binária?\nCertifique-se de salvar seu perfil primeiro, só por precaução."
+L["Result: ${name}"] = "Resultado: ${name}"
+L["Not Found!"] = "Não Encontrado!"
+L["Your AddOns were restored, reload UI?"] = "Seus AddOns foram restaurados, recarregar UI?"
+L["AddOn binary search"] = "Busca binária de AddOn"
+L["Utilities"] = "Utilitários"
 
 L["development tools"] = "Ferramentas de Desenvolvimento"
 --@end-do-not-package@

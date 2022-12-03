@@ -48,3 +48,4 @@ Options.lua
 Profile.lua
 Search.lua
 SlashCommand.lua
+AddonFinder.lua

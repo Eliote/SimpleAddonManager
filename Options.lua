@@ -246,6 +246,16 @@ local function ConfigDropDownCreate()
 			},
 		},
 		T.separatorInfo,
+		{ text = L["Utilities"], isTitle = true, notCheckable = true },
+		{
+			text = L["AddOn binary search"] .. " (beta)",
+			notCheckable = true,
+			func = function()
+				frame:GetModule("AddonFinder"):StartSearch()
+			end,
+			disabled = db.addonFinder and db.addonFinder.isSearching,
+		},
+		T.separatorInfo,
 		T.closeMenuInfo
 	}
 end

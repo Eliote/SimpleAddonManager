@@ -103,11 +103,12 @@ function frame:CreateDefaultOptions(db, defaults)
 	end
 end
 
-function frame:ShowDialog(text, hasEditBox, funcAccept, funcCancel, button1, button2, funcOnShow)
+function frame:ShowDialog(text, hasEditBox, funcAccept, funcCancel, button1, button2, funcOnShow, funcAlt, button3)
 	local dialog = StaticPopupDialogs["SimpleAddonManager_Dialog"]
 	dialog.text = text
 	dialog.OnAccept = funcAccept
 	dialog.OnCancel = funcCancel
+	dialog.OnAlt = funcAlt
 	dialog.OnShow = function(self, ...)
 		self:SetFrameStrata("FULLSCREEN_DIALOG")
 		self:ClearAllPoints()
@@ -132,6 +133,7 @@ function frame:ShowDialog(text, hasEditBox, funcAccept, funcCancel, button1, but
 	else
 		dialog.button2 = button2 or CANCEL
 	end
+	dialog.button3 = button3
 	StaticPopup_Show("SimpleAddonManager_Dialog")
 end
 
@@ -155,6 +157,10 @@ end
 
 function frame:ShowYesNoDialog(text, funcYes, funcNo)
 	self:ShowDialog(text, false, funcYes, funcNo, YES, NO)
+end
+
+function frame:ShowYesNoCancelDialog(text, funcYes, funcNo, funcCancel)
+	self:ShowDialog(text, false, funcYes, funcNo, YES, NO, nil, funcCancel, CANCEL)
 end
 
 function frame:IsAddonSelected(nameOrIndex)
