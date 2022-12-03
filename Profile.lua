@@ -5,7 +5,7 @@ local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFr
 
 --- @type SimpleAddonManager
 local frame = T.AddonFrame
-local module = frame:RegisterModule("Profiles")
+local module = frame:RegisterModule("Profile")
 
 local function MigrateProfileAddonsTable()
 	local db = frame:GetDb()
@@ -89,7 +89,7 @@ local function SaveCurrentAddonsToProfile(profileName, depAware)
 	db.sets[profileName].subSets = subSets
 end
 
-local function LoadAddonsFromProfile(profileName)
+function module:LoadAddonsFromProfile(profileName)
 	local addons = AddonsInProfilesRec({ [profileName] = true })
 	frame:DisableAllAddOns()
 	for name, _ in pairs(addons) do
@@ -264,7 +264,7 @@ local function ProfilesDropDownCreate()
 						frame:ShowConfirmDialog(
 								L("Load the profile '${profile}'?", { profile = profileName }),
 								function()
-									LoadAddonsFromProfile(profileName)
+									module:LoadAddonsFromProfile(profileName)
 								end
 						)
 					end
