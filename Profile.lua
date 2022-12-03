@@ -10,21 +10,25 @@ local module = frame:RegisterModule("Profile")
 local function MigrateProfileAddonsTable()
 	local db = frame:GetDb()
 	if (not db.setsVersion) then
-		for _, profile in pairs(db.sets) do
-			local newTable = {}
-			for _, addon in ipairs(profile.addons) do
-				newTable[addon] = true
+		if (db.sets) then
+			for _, profile in pairs(db.sets) do
+				local newTable = {}
+				for _, addon in ipairs(profile.addons) do
+					newTable[addon] = true
+				end
+				profile.addonsCount = #profile.addons
+				profile.addons = newTable
 			end
-			profile.addonsCount = #profile.addons
-			profile.addons = newTable
 		end
-		for _, profile in pairs(db.autoProfile) do
-			local newTable = {}
-			for _, addon in ipairs(profile.addons) do
-				newTable[addon] = true
+		if (db.autoProfile) then
+			for _, profile in pairs(db.autoProfile) do
+				local newTable = {}
+				for _, addon in ipairs(profile.addons) do
+					newTable[addon] = true
+				end
+				profile.addonsCount = #profile.addons
+				profile.addons = newTable
 			end
-			profile.addonsCount = #profile.addons
-			profile.addons = newTable
 		end
 		db.setsVersion = 1
 	end
