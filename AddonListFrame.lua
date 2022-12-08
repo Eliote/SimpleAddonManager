@@ -54,7 +54,7 @@ local function EnableAllDeps(addonIndex)
 	local requiredDeps = { GetAddOnDependencies(addonIndex) }
 	for _, depName in ipairs(requiredDeps) do
 		if (frame:IsAddonInstalled(depName)) then
-			frame:EnableAddon(depName)
+			frame:EnableAddOn(depName)
 			EnableAllDeps(depName)
 		end
 	end
