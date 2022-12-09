@@ -181,9 +181,11 @@ function frame:SetCharacter(value)
 end
 
 function frame:Update()
-	self:UpdateCategoryFrame()
-	self:UpdateListFilters()
-	frame:UpdateOkButton()
+	if (frame.initialized) then
+		frame:UpdateCategoryFrame()
+		frame:UpdateListFilters()
+		frame:UpdateOkButton()
+	end
 end
 
 frame:SetScript("OnShow", function()
