@@ -45,7 +45,15 @@ StaticPopupDialogs["SimpleAddonManager_Dialog"] = {
 	button2 = CANCEL,
 	timeout = 0,
 	whileDead = true,
-	hideOnEscape = true,
+	EditBoxOnEnterPressed = function(self)
+		local parent = self:GetParent()
+		if (parent.button1:IsEnabled() and parent.enterClicksFirstButton) then
+			parent.button1:Click()
+		end
+	end,
+	EditBoxOnEscapePressed = function(self)
+		self:GetParent():Hide()
+	end,
 }
 
 T.separatorInfo = {
@@ -103,12 +111,12 @@ function frame:CreateDefaultOptions(db, defaults)
 	end
 end
 
-function frame:ShowDialog(text, hasEditBox, funcAccept, funcCancel, button1, button2, funcOnShow, funcAlt, button3)
+function frame:ShowDialog(dialogInfo)
 	local dialog = StaticPopupDialogs["SimpleAddonManager_Dialog"]
-	dialog.text = text
-	dialog.OnAccept = funcAccept
-	dialog.OnCancel = funcCancel
-	dialog.OnAlt = funcAlt
+	dialog.text = dialogInfo.text
+	dialog.OnAccept = dialogInfo.funcAccept
+	dialog.OnCancel = dialogInfo.funcCancel
+	dialog.OnAlt = dialogInfo.funcAlt
 	dialog.OnShow = function(self, ...)
 		self:SetFrameStrata("FULLSCREEN_DIALOG")
 		self:ClearAllPoints()
@@ -117,8 +125,8 @@ function frame:ShowDialog(text, hasEditBox, funcAccept, funcCancel, button1, but
 		if (self.editBox) then
 			self.editBox:SetText("")
 		end
-		if (funcOnShow) then
-			funcOnShow(self, ...)
+		if (dialogInfo.funcOnShow) then
+			dialogInfo.funcOnShow(self, ...)
 		end
 	end
 	dialog.OnHide = function(self)
@@ -126,41 +134,60 @@ function frame:ShowDialog(text, hasEditBox, funcAccept, funcCancel, button1, but
 		self:SetFrameStrata(self.OldStrata)
 		self.OldStrata = nil
 	end
-	dialog.hasEditBox = hasEditBox
-	dialog.button1 = button1 or OKAY
-	if (button2 == false) then
+	dialog.hasEditBox = dialogInfo.hasEditBox
+	dialog.button1 = dialogInfo.button1 or OKAY
+	if (dialogInfo.button2 == false) then
 		dialog.button2 = nil
 	else
-		dialog.button2 = button2 or CANCEL
+		dialog.button2 = dialogInfo.button2 or CANCEL
 	end
-	dialog.button3 = button3
+	dialog.button3 = dialogInfo.button3
+	dialog.enterClicksFirstButton = not dialogInfo.button3
+	dialog.hideOnEscape = dialogInfo.hideOnEscape
 	StaticPopup_Show("SimpleAddonManager_Dialog")
 end
 
 function frame:ShowInputDialog(text, func, funcOnShow)
-	self:ShowDialog(
-			text,
-			true,
-			function(self)
-				func(self.editBox:GetText())
-			end,
-			nil,
-			nil,
-			nil,
-			funcOnShow
-	)
+	self:ShowDialog({
+		text = text,
+		hasEditBox = true,
+		funcAccept = function(self)
+			func(self.editBox:GetText())
+		end,
+		funcOnShow = funcOnShow,
+		hideOnEscape = true,
+	})
 end
 
 function frame:ShowConfirmDialog(text, func)
-	self:ShowDialog(text, false, func)
+	self:ShowDialog({
+		text = text,
+		funcAccept = func,
+		hideOnEscape = true,
+	})
 end
 
 function frame:ShowYesNoDialog(text, funcYes, funcNo)
-	self:ShowDialog(text, false, funcYes, funcNo, YES, NO)
+	self:ShowDialog({
+		text = text,
+		funcAccept = funcYes,
+		funcCancel = funcNo,
+		button1 = YES,
+		button2 = NO,
+		hideOnEscape = not funcNo
+	})
 end
 
 function frame:ShowYesNoCancelDialog(text, funcYes, funcNo, funcCancel)
-	self:ShowDialog(text, false, funcYes, funcNo, YES, NO, nil, funcCancel, CANCEL)
+	self:ShowDialog({
+		text = text,
+		funcAccept = funcYes,
+		funcCancel = funcNo,
+		button1 = YES,
+		button2 = NO,
+		button3 = CANCEL,
+		funcAlt = funcCancel,
+	})
 end
 
 function frame:IsAddonSelected(nameOrIndex)
