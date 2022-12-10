@@ -100,6 +100,7 @@ L["Not Found!"] = "Não Encontrado!"
 L["Your AddOns were restored, reload UI?"] = "Seus AddOns foram restaurados, recarregar UI?"
 L["AddOn binary search"] = "Busca binária de AddOn"
 L["Utilities"] = "Utilitários"
+L["Be careful with this option, enabling/disabling Blizzard Addons might have unintended consequences!"] = "Tenha cuidado com esta opção, ativar/desativar os Addons da Blizzard pode ter consequências não esperadas!"
 
 L["development tools"] = "Ferramentas de Desenvolvimento"
 --@end-do-not-package@

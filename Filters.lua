@@ -109,7 +109,8 @@ local function GetOrCreateAddonTableWithFilter(
 
 	if (pool[key] == nil) then
 		local _, title, _, _, _, security = GetAddOnInfo(key)
-		local exposeAddon = (exposeBlizzardDep) or security ~= "SECURE"
+		local isSecure = security == "SECURE"
+		local exposeAddon = (exposeBlizzardDep) or not isSecure
 		if (exposeAddon and AddonMatchFilter(key, filterLower, inCategoriesFunc)) then
 			node = {
 				dep = {},
@@ -119,7 +120,8 @@ local function GetOrCreateAddonTableWithFilter(
 				key = strtrim(key),
 				name = key:lower(),
 				smartName = key:gsub(".-([%w].*)", "%1"):gsub("[_-]", " "):lower(),
-				title = (title or key):lower()
+				title = (title or key):lower(),
+				isSecure = isSecure,
 			}
 			pool[key] = node
 			if (createChildren and node.exists) then

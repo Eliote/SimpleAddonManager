@@ -104,8 +104,19 @@ local function ConfigDropDownCreate()
 				return db.config.showSecureAddons
 			end,
 			func = function()
-				db.config.showSecureAddons = not db.config.showSecureAddons
-				frame:Update()
+				local isEnabling = not db.config.showSecureAddons
+				if (isEnabling) then
+					frame:ShowWarningDialog(
+							L["Be careful with this option, enabling/disabling Blizzard Addons might have unintended consequences!"],
+							function()
+								db.config.showSecureAddons = true
+								frame:Update()
+							end
+					)
+				else
+					db.config.showSecureAddons = false
+					frame:Update()
+				end
 			end,
 		},
 		{
