@@ -110,7 +110,9 @@ function module:Initialize()
 	frame.EnableAllButton:SetText(ENABLE_ALL_ADDONS)
 	frame.EnableAllButton:SetScript("OnClick", function()
 		for _, addon in pairs(frame:GetAddonsList()) do
-			frame:EnableAddOn(addon.index)
+			if (not addon.isSecure) then
+				frame:EnableAddOn(addon.index)
+			end
 		end
 		frame:Update()
 	end)
@@ -129,7 +131,9 @@ function module:Initialize()
 		end
 		local function disableList()
 			for _, addon in pairs(addonsList) do
-				frame:DisableAddOn(addon.index)
+				if (not addon.isSecure) then
+					frame:DisableAddOn(addon.index)
+				end
 			end
 			frame:Update()
 		end

@@ -144,6 +144,7 @@ function frame:ShowDialog(dialogInfo)
 	dialog.button3 = dialogInfo.button3
 	dialog.enterClicksFirstButton = not dialogInfo.button3
 	dialog.hideOnEscape = dialogInfo.hideOnEscape
+	dialog.showAlert = dialogInfo.showAlert
 	StaticPopup_Show("SimpleAddonManager_Dialog")
 end
 
@@ -164,6 +165,16 @@ function frame:ShowConfirmDialog(text, func)
 		text = text,
 		funcAccept = func,
 		hideOnEscape = true,
+	})
+end
+
+function frame:ShowWarningDialog(text, func)
+	self:ShowDialog({
+		text = text,
+		funcAccept = func,
+		hideOnEscape = true,
+		showAlert = true,
+		button1 = CONTINUE,
 	})
 end
 
