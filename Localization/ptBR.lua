@@ -101,6 +101,9 @@ L["Your AddOns were restored, reload UI?"] = "Seus AddOns foram restaurados, rec
 L["AddOn binary search"] = "Busca binária de AddOn"
 L["Utilities"] = "Utilitários"
 L["Be careful with this option, enabling/disabling Blizzard Addons might have unintended consequences!"] = "Tenha cuidado com esta opção, ativar/desativar os Addons da Blizzard pode ter consequências não esperadas!"
+L["Right-click to show profile menu"] = "Clique-direito para exibir o menu de perfil"
+L["Load Profile"] = "Carrega Perfil"
+L["Load profile '${profile}' and reload UI?"] = "Carrega Perfil '${profile}' e recarregar UI?"
 
 L["development tools"] = "Ferramentas de Desenvolvimento"
 --@end-do-not-package@

@@ -102,6 +102,16 @@ function module:LoadAddonsFromProfile(profileName)
 	frame:Update()
 end
 
+function module:ShowLoadProfileAndReloadUIDialog(profile)
+	frame:ShowConfirmDialog(
+			L("Load profile '${profile}' and reload UI?", { profile = profile }),
+			function()
+				module:LoadAddonsFromProfile(profile)
+				ReloadUI()
+			end
+	)
+end
+
 local function ProfilesDropDownCreate()
 	local menu = {
 		{ text = L["Profiles"], isTitle = true, notCheckable = true },

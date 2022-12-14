@@ -1,12 +1,17 @@
 local ADDON_NAME, T = ...
 local L = T.L
+local EDDM = LibStub("ElioteDropDownMenu-1.0")
+local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFrame")
 
 --- @type SimpleAddonManager
 local frame = T.AddonFrame
 local module = frame:RegisterModule("Minimap")
 
 local title = GetAddOnMetadata(ADDON_NAME, "Title") or ADDON_NAME
-local leftClickButtonIcon = "|A:newplayertutorial-icon-mouse-leftbutton:0:0|a "
+
+local IS_MAINLINE = WOW_PROJECT_MAINLINE == WOW_PROJECT_ID
+local ICON_MOUSE_LEFT = IS_MAINLINE and "|A:newplayertutorial-icon-mouse-leftbutton:0:0|a " or ""
+local ICON_MOUSE_RIGHT = IS_MAINLINE and "|A:newplayertutorial-icon-mouse-rightbutton:0:0|a " or ""
 
 local broker = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject(ADDON_NAME, {
 	type = "launcher",
@@ -14,7 +19,8 @@ local broker = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject(ADDON_NAME,
 	label = title,
 	OnTooltipShow = function(ttp)
 		ttp:AddLine(title)
-		ttp:AddLine(leftClickButtonIcon .. L["Left-click to open"])
+		ttp:AddLine(ICON_MOUSE_LEFT .. L["Left-click to open"])
+		ttp:AddLine(ICON_MOUSE_RIGHT .. L["Right-click to show profile load menu"])
 
 		if (not frame:GetDb().config.showMemoryInBrokerTtp) then
 			return
@@ -52,8 +58,12 @@ local broker = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject(ADDON_NAME,
 			end
 		end
 	end,
-	OnClick = function()
-		frame:Show()
+	OnClick = function(_, button)
+		if (button == "LeftButton") then
+			frame:Show()
+		else
+			module:ShowMenuDropDown()
+		end
 	end
 })
 local ldbIcon = LibStub("LibDBIcon-1.0")
@@ -74,4 +84,30 @@ function module:ToggleMinimapButton()
 	else
 		ldbIcon:Show(ADDON_NAME)
 	end
+end
+
+function module:ShowMenuDropDown()
+	local menu = {
+		{ text = broker.label, isTitle = true, notCheckable = true },
+		{ text = L["Load Profile"], isTitle = true, notCheckable = true },
+	}
+
+	local db = frame:GetDb()
+	local setsList = frame:TableAsSortedPairList(db.sets)
+
+	for _, pair in ipairs(setsList) do
+		local profileName = pair.key
+		table.insert(menu, {
+			text = profileName,
+			notCheckable = true,
+			func = function()
+				frame:GetModule("Profile"):ShowLoadProfileAndReloadUIDialog(profileName)
+			end
+		})
+	end
+
+	table.insert(menu, T.separatorInfo)
+	table.insert(menu, T.closeMenuInfo)
+
+	EDDM.ToggleEasyMenu(menu, dropdownFrame, "cursor", 0, 0, "MENU")
 end

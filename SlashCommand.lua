@@ -31,13 +31,7 @@ local Commands = {
 			else
 				reloadType = reloadType or "ask"
 				if (reloadType == "ask") then
-					frame:ShowConfirmDialog(
-							L("Load profile '${profile}' and reload UI?", { profile = profile }),
-							function()
-								frame:GetModule("Profile"):LoadAddonsFromProfile(profile)
-								ReloadUI()
-							end
-					)
+					frame:GetModule("Profile"):ShowLoadProfileAndReloadUIDialog(profile)
 				else
 					frame:GetModule("Profile"):LoadAddonsFromProfile(profile)
 					if (reloadType == "reload") then
