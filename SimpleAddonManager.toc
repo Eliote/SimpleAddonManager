@@ -1,7 +1,7 @@
-## Interface: 100002
+## Interface: 100005
 ## Interface-Classic: 11403
 ## Interface-BCC: 20504
-## Interface-Wrath: 30400
+## Interface-Wrath: 30401
 ## Title: Simple Addon Manager
 ## Notes: A simple to use Addon Manager with profile, search, category filter, and more.
 ## Author: Eliote
