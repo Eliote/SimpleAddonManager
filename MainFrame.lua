@@ -65,7 +65,7 @@ function module:PreInitialize()
 end
 
 function module:Initialize()
-	local addonName = GetAddOnMetadata(ADDON_NAME, "Title")
+	local addonName = frame:GetAddOnMetadata(ADDON_NAME, "Title")
 	if (frame.TitleText) then
 		frame.TitleText:SetText(addonName)
 	elseif (frame.TitleContainer and frame.TitleContainer.TitleText) then

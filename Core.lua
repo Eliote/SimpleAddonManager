@@ -346,6 +346,11 @@ function frame:DisableAllAddOns()
 	DisableAllAddOns(c)
 end
 
+local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
+function frame:GetAddOnMetadata(addon, field)
+	return GetAddOnMetadata(addon, field)
+end
+
 -- When entering/leaving lfg, realm returns nil. Cache to avoid errors.
 local nameCache, realmCache, classColor
 function frame:GetPlayerInfo()

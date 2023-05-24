@@ -7,7 +7,7 @@ local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFr
 local frame = T.AddonFrame
 local module = frame:RegisterModule("Minimap")
 
-local title = GetAddOnMetadata(ADDON_NAME, "Title") or ADDON_NAME
+local title = frame:GetAddOnMetadata(ADDON_NAME, "Title") or ADDON_NAME
 
 local IS_MAINLINE = WOW_PROJECT_MAINLINE == WOW_PROJECT_ID
 local ICON_MOUSE_LEFT = IS_MAINLINE and "|A:newplayertutorial-icon-mouse-leftbutton:0:0|a " or ""

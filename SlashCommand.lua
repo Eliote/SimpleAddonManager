@@ -47,7 +47,7 @@ LibStub("AceConsole-3.0"):Embed(CommandsModule)
 
 setmetatable(CommandsModule, {
 	__tostring = function()
-		return (GetAddOnMetadata(ADDON_NAME, "Title"))
+		return (frame:GetAddOnMetadata(ADDON_NAME, "Title"))
 	end
 })
 

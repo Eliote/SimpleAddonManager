@@ -228,11 +228,11 @@ local function UpdateTooltip(self)
 			GameTooltip:AddLine(C.red:WrapText(L["This addons is not installed!"]), nil, nil, nil, true);
 			return
 		end
-		local version = GetAddOnMetadata(addonIndex, "Version")
+		local version = frame:GetAddOnMetadata(addonIndex, "Version")
 		if (version) then
 			GameTooltip:AddLine(L["Version: "] .. C.white:WrapText(version));
 		end
-		local author = GetAddOnMetadata(addonIndex, "Author")
+		local author = frame:GetAddOnMetadata(addonIndex, "Author")
 		if (author) then
 			GameTooltip:AddLine(L["Author: "] .. C.white:WrapText(strtrim(author)));
 		end
@@ -317,8 +317,8 @@ local function UpdateList()
 			local enabled = frame:IsAddonSelected(addonIndex)
 			local version = ""
 
-			if (frame:GetDb().config.showVersions) then
-				version = GetAddOnMetadata(addonIndex, "Version")
+			if (frame:GetDb().config.showVersions and addon.exists) then
+				version = frame:GetAddOnMetadata(addonIndex, "Version")
 				version = (version and C.grey:WrapText(" (" .. version .. ")")) or ""
 			end
 

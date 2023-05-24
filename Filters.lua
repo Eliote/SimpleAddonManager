@@ -67,7 +67,7 @@ local function SortAddons(list)
 end
 
 local function AddonMatchFilter(addonIndex, filterLower, inCategoriesFunc)
-	local name, title = GetAddOnInfo(addonIndex)
+	local name, title, _, _, reason = GetAddOnInfo(addonIndex)
 	if (not inCategoriesFunc(name)) then
 		return false
 	end
@@ -80,9 +80,11 @@ local function AddonMatchFilter(addonIndex, filterLower, inCategoriesFunc)
 		return true
 	end
 	if (searchBy.author) then
-		local author = GetAddOnMetadata(addonIndex, "Author")
-		if (author and author:lower():find(filterLower, 0, true)) then
-			return true
+		if (reason ~= "MISSING") then
+			local author = frame:GetAddOnMetadata(addonIndex, "Author")
+			if (author and author:lower():find(filterLower, 0, true)) then
+				return true
+			end
 		end
 	end
 end

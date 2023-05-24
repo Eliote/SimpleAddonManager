@@ -268,7 +268,7 @@ local function BuildCategoryTableFromToc()
 	local table = {}
 	local count = GetNumAddOns()
 	for addonIndex = 1, count do
-		local value = GetAddOnMetadata(addonIndex, "X-Category")
+		local value = frame:GetAddOnMetadata(addonIndex, "X-Category")
 		if value then
 			value = strtrim(value)
 			table[value] = table[value] or { addons = {} }
@@ -379,7 +379,6 @@ function frame:UpdateCategoryFrame()
 	self.CategoryFrame.ScrollFrame.updateDb()
 	self.CategoryFrame.ScrollFrame.update()
 end
-
 
 function frame:SetCategoryVisibility(show, resize)
 	local fw = frame:GetWidth()
