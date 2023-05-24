@@ -93,9 +93,11 @@ local function SaveCurrentAddonsToProfile(profileName, depAware)
 	db.sets[profileName].subSets = subSets
 end
 
-function module:LoadAddonsFromProfile(profileName)
+function module:LoadAddonsFromProfile(profileName, keepEnabledAddons)
 	local addons = AddonsInProfilesRec({ [profileName] = true })
-	frame:DisableAllAddOns()
+	if (not keepEnabledAddons) then
+		frame:DisableAllAddOns()
+	end
 	for name, _ in pairs(addons) do
 		frame:EnableAddOn(name)
 	end
@@ -279,6 +281,18 @@ local function ProfilesDropDownCreate()
 								L("Load the profile '${profile}'?", { profile = profileName }),
 								function()
 									module:LoadAddonsFromProfile(profileName)
+								end
+						)
+					end
+				},
+				{
+					text = L["Enable Addons"],
+					notCheckable = true,
+					func = function()
+						frame:ShowConfirmDialog(
+								L("Enable addons from the profile '${profile}'?", { profile = profileName }),
+								function()
+									module:LoadAddonsFromProfile(profileName, true)
 								end
 						)
 					end

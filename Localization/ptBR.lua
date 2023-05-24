@@ -104,6 +104,8 @@ L["Be careful with this option, enabling/disabling Blizzard Addons might have un
 L["Right-click to show profile menu"] = "Clique-direito para exibir o menu de perfil"
 L["Load Profile"] = "Carrega Perfil"
 L["Load profile '${profile}' and reload UI?"] = "Carrega Perfil '${profile}' e recarregar UI?"
+L["Enable Addons"] = "Habilitar Addons"
+L["Enable addons from the profile '${profile}'?"] = "Habilitar addons do profile '${profile}'?"
 
 L["development tools"] = "Ferramentas de Desenvolvimento"
 --@end-do-not-package@
