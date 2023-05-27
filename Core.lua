@@ -443,3 +443,11 @@ function frame:HookMenuButton()
 
 	frame.isMenuHooked = true
 end
+
+function frame.HybridScrollFrame_ShiftAwareOnScrollWheel(self, delta, step)
+	step = step or self.stepSize or self.buttonHeight
+	if (IsShiftKeyDown()) then
+		step = step * 10;
+	end
+	HybridScrollFrame_OnMouseWheel(self, delta, step)
+end

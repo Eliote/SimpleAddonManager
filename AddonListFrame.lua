@@ -413,6 +413,7 @@ end
 
 function module:PreInitialize()
 	frame.ScrollFrame = CreateFrame("ScrollFrame", nil, frame, "HybridScrollFrameTemplate")
+	frame.ScrollFrame:SetScript("OnMouseWheel", frame.HybridScrollFrame_ShiftAwareOnScrollWheel)
 	frame.ScrollFrame.ScrollBar = CreateFrame("Slider", nil, frame.ScrollFrame, "HybridScrollBarTemplate")
 end
 

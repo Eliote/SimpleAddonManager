@@ -422,6 +422,7 @@ function module:PreInitialize()
 	frame.CategoryFrame.SelectAllButton = CreateFrame("Button", nil, frame.CategoryFrame, "UIPanelButtonTemplate")
 	frame.CategoryFrame.ClearSelectionButton = CreateFrame("Button", nil, frame.CategoryFrame, "UIPanelButtonTemplate")
 	frame.CategoryFrame.ScrollFrame = CreateFrame("ScrollFrame", nil, frame.CategoryFrame, "HybridScrollFrameTemplate")
+	frame.CategoryFrame.ScrollFrame:SetScript("OnMouseWheel", frame.HybridScrollFrame_ShiftAwareOnScrollWheel)
 	frame.CategoryFrame.ScrollFrame.ScrollBar = CreateFrame("Slider", nil, frame.CategoryFrame.ScrollFrame, "HybridScrollBarTemplate")
 	frame.CategoryButton = CreateFrame("Button", nil, frame, "UIPanelSquareButton")
 end
