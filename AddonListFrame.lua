@@ -291,6 +291,27 @@ local function DeptMargin(dept)
 	return 13 * (dept or 0)
 end
 
+local function GetTitleWithIcon(addonIndex)
+	local name, title = frame.compat.GetAddOnInfo(addonIndex)
+	local titleText = title or name
+	local version = ""
+
+	if (frame:GetDb().config.showVersions and addon.exists) then
+		version = frame:GetAddOnMetadata(addonIndex, "Version")
+		version = (version and C.grey:WrapText(" (" .. version .. ")")) or ""
+	end
+
+	local iconTexture = frame:GetAddOnMetadata(addonIndex, "IconTexture");
+	local iconAtlas = frame:GetAddOnMetadata(addonIndex, "IconAtlas");
+
+	if iconTexture then
+		return CreateSimpleTextureMarkup(iconTexture, 20, 20) .. " " .. titleText;
+	elseif iconAtlas then
+		return CreateAtlasMarkup(iconAtlas, 20, 20) .. " " .. titleText;
+	end
+	return titleText
+end
+
 local wowExpMargin = LE_EXPANSION_LEVEL_CURRENT >= 9 and 4 or 0
 
 local function UpdateList()
@@ -312,15 +333,10 @@ local function UpdateList()
 		if relativeButtonIndex <= count then
 			local addon = addons[relativeButtonIndex]
 			local addonIndex = addon.index
-			local name, title, _, loadable, reason, security = frame.compat.GetAddOnInfo(addonIndex)
+			local _, _, _, loadable, reason, security = frame.compat.GetAddOnInfo(addonIndex)
 			local loaded = frame.compat.IsAddOnLoaded(addonIndex)
 			local enabled = frame:IsAddonSelected(addonIndex)
-			local version = ""
 
-			if (frame:GetDb().config.showVersions and addon.exists) then
-				version = frame:GetAddOnMetadata(addonIndex, "Version")
-				version = (version and C.grey:WrapText(" (" .. version .. ")")) or ""
-			end
 
 			button.ExpandOrCollapseButton:SetScript("OnClick", ExpandOrCollapseButtonOnClick)
 			local showExpandOrCollapseButton = isInTreeMode and addon.children and next(addon.children)
@@ -341,7 +357,7 @@ local function UpdateList()
 			button.Name:SetPoint("TOPLEFT", 30 + margin, 0)
 			button.EnabledButton:SetPoint("LEFT", 4 + margin, 0)
 
-			button.Name:SetText((title or name) .. version)
+			button.Name:SetText(GetTitleWithIcon(addonIndex))
 
 			if (loadable or (enabled and (reason == "DEP_DEMAND_LOADED" or reason == "DEMAND_LOADED"))) then
 				button.Name:SetTextColor(C.yellow:GetRGB());

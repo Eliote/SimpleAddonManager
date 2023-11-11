@@ -8,6 +8,7 @@
 ## SavedVariables: SimpleAddonManagerDB
 ## X-Category: Addon Manager
 ## X-Category-ptBR: Gerenciador de Addon
+## IconTexture: 133742
 
 ## X-Curse-Project-ID: 689213
 ## X-Wago-ID: Rn6Vzq6d
