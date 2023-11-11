@@ -291,7 +291,8 @@ local function DeptMargin(dept)
 	return 13 * (dept or 0)
 end
 
-local function GetTitleWithIcon(addonIndex)
+local function GetTitleWithIcon(addon)
+	local addonIndex = addon.index
 	local name, title = frame.compat.GetAddOnInfo(addonIndex)
 	local titleText = title or name
 	local version = ""
@@ -309,7 +310,7 @@ local function GetTitleWithIcon(addonIndex)
 	elseif iconAtlas then
 		return CreateAtlasMarkup(iconAtlas, 20, 20) .. " " .. titleText;
 	end
-	return titleText
+	return titleText .. version
 end
 
 local wowExpMargin = LE_EXPANSION_LEVEL_CURRENT >= 9 and 4 or 0
@@ -337,7 +338,6 @@ local function UpdateList()
 			local loaded = frame.compat.IsAddOnLoaded(addonIndex)
 			local enabled = frame:IsAddonSelected(addonIndex)
 
-
 			button.ExpandOrCollapseButton:SetScript("OnClick", ExpandOrCollapseButtonOnClick)
 			local showExpandOrCollapseButton = isInTreeMode and addon.children and next(addon.children)
 			local isCollapsed = frame:IsAddonCollapsed(addon.key, addon.parentKey)
@@ -357,7 +357,7 @@ local function UpdateList()
 			button.Name:SetPoint("TOPLEFT", 30 + margin, 0)
 			button.EnabledButton:SetPoint("LEFT", 4 + margin, 0)
 
-			button.Name:SetText(GetTitleWithIcon(addonIndex))
+			button.Name:SetText(GetTitleWithIcon(addon))
 
 			if (loadable or (enabled and (reason == "DEP_DEMAND_LOADED" or reason == "DEMAND_LOADED"))) then
 				button.Name:SetTextColor(C.yellow:GetRGB());
