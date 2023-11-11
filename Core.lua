@@ -203,14 +203,14 @@ end
 
 function frame:IsAddonSelected(nameOrIndex)
 	local character = self:GetCharacter()
-	if (character == true) then
-		character = nil;
-	end
-	return GetAddOnEnableState(character, nameOrIndex) > 0
+	return frame.compat.GetAddOnEnableState(nameOrIndex, character) > 0
 end
 
 local character = true -- name of the character, or [nil] for current character, or [true] for all characters on the realm
 function frame:GetCharacter()
+	if (character == true) then
+		return nil
+	end
 	return character
 end
 
@@ -322,28 +322,28 @@ function frame:GetAddonsInitialState()
 end
 
 function frame:IsAddonInstalled(indexOrName)
-	local _, _, _, _, reason = GetAddOnInfo(indexOrName)
+	local _, _, _, _, reason = frame.compat.GetAddOnInfo(indexOrName)
 	return reason ~= "MISSING"
 end
 
 function frame:EnableAddOn(indexOrName)
 	local c = frame:GetCharacter()
-	EnableAddOn(indexOrName, c)
+	frame.compat.EnableAddOn(indexOrName, c)
 end
 
 function frame:DisableAddOn(indexOrName)
 	local c = frame:GetCharacter()
-	DisableAddOn(indexOrName, c)
+	frame.compat.DisableAddOn(indexOrName, c)
 end
 
 function frame:EnableAllAddOns()
 	local c = frame:GetCharacter()
-	EnableAllAddOns(c)
+	frame.compat.EnableAllAddOns(c)
 end
 
 function frame:DisableAllAddOns()
 	local c = frame:GetCharacter()
-	DisableAllAddOns(c)
+	frame.compat.DisableAllAddOns(c)
 end
 
 local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
@@ -395,8 +395,8 @@ function frame:ADDON_LOADED(name)
 
 	frame:HookMenuButton()
 
-	for addonIndex = 1, GetNumAddOns() do
-		local addonName = GetAddOnInfo(addonIndex)
+	for addonIndex = 1, frame.compat.GetNumAddOns() do
+		local addonName = frame.compat.GetAddOnInfo(addonIndex)
 		addonsInitialState[addonName] = frame:IsAddonSelected(addonIndex)
 	end
 

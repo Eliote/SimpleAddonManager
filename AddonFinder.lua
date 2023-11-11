@@ -46,8 +46,8 @@ function module:StartSearch()
 				function()
 					local addons = {}
 					local activeAddons = {}
-					for i = 1, GetNumAddOns() do
-						local name, _, _, loadable, reason = GetAddOnInfo(i)
+					for i = 1, frame.compat.GetNumAddOns() do
+						local name, _, _, loadable, reason = frame.compat.GetAddOnInfo(i)
 						local selected = frame:IsAddonSelected(name)
 						addons[name] = {
 							selected = selected,

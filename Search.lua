@@ -19,7 +19,7 @@ local function SearchResultDropDownCreate()
 				notCheckable = true,
 				func = function()
 					for _, addon in ipairs(addons) do
-						local name = GetAddOnInfo(addon.index)
+						local name = frame.compat.GetAddOnInfo(addon.index)
 						if (not add and (not userCategories[categoryName] or not userCategories[categoryName].addons)) then
 							-- there is nothing to remove, avoid creating custom category
 							return

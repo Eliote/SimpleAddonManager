@@ -30,7 +30,7 @@ end
 function frame:DidAddonStateChanged(addonNameOrIndex)
 	local initiallyEnabledAddons = frame:GetAddonsInitialState()
 	local state = frame:IsAddonSelected(addonNameOrIndex)
-	local name = GetAddOnInfo(addonNameOrIndex)
+	local name = frame.compat.GetAddOnInfo(addonNameOrIndex)
 	local initialState = initiallyEnabledAddons[name]
 	if (state ~= initialState) then
 		return true
@@ -38,7 +38,7 @@ function frame:DidAddonStateChanged(addonNameOrIndex)
 end
 
 function frame:DidAnyAddonStateChanged()
-	for addonIndex = 1, GetNumAddOns() do
+	for addonIndex = 1, frame.compat.GetNumAddOns() do
 		if (frame:DidAddonStateChanged(addonIndex)) then
 			return true
 		end
@@ -88,7 +88,7 @@ function module:Initialize()
 	frame.CancelButton:SetSize(100, 22)
 	frame.CancelButton:SetText(CANCEL)
 	frame.CancelButton:SetScript("OnClick", function()
-		ResetAddOns()
+		frame.compat.ResetAddOns()
 		frame.ScrollFrame.update()
 		frame:Hide()
 	end)
@@ -97,7 +97,7 @@ function module:Initialize()
 	frame.OkButton:SetSize(100, 22)
 	frame.OkButton:SetText(OKAY)
 	frame.OkButton:SetScript("OnClick", function()
-		SaveAddOns()
+		frame.compat.SaveAddOns()
 		frame.ScrollFrame.update()
 		frame:Hide()
 		if (frame.edited) then

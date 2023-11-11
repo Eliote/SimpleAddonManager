@@ -12,7 +12,7 @@ local module = frame:RegisterModule("AddonList")
 local BANNED_ADDON = "BANNED"
 
 local function AddonTooltipBuildDepsString(addonIndex)
-	local deps = { GetAddOnDependencies(addonIndex) }
+	local deps = { frame.compat.GetAddOnDependencies(addonIndex) }
 	local depsString = "";
 	for i, name in ipairs(deps) do
 		local color = C.white
@@ -51,7 +51,7 @@ local function AddonTooltipBuildChildrenString(children)
 end
 
 local function EnableAllDeps(addonIndex)
-	local requiredDeps = { GetAddOnDependencies(addonIndex) }
+	local requiredDeps = { frame.compat.GetAddOnDependencies(addonIndex) }
 	for _, depName in ipairs(requiredDeps) do
 		if (frame:IsAddonInstalled(depName)) then
 			frame:EnableAddOn(depName)
@@ -62,9 +62,9 @@ end
 
 local function CreateAddonChildrenList(name)
 	local list = {}
-	for i = 1, GetNumAddOns() do
-		local addon = GetAddOnInfo(i)
-		local requiredDeps = { GetAddOnDependencies(i) }
+	for i = 1, frame.compat.GetNumAddOns() do
+		local addon = frame.compat.GetAddOnInfo(i)
+		local requiredDeps = { frame.compat.GetAddOnDependencies(i) }
 		for _, depName in ipairs(requiredDeps) do
 			if (depName == name) then
 				list[addon] = true
@@ -92,12 +92,12 @@ local function AddonRightClickMenu(addon)
 		return
 	end
 	local addonIndex = addon.index
-	local name, title, _, _, reason = GetAddOnInfo(addonIndex)
+	local name, title, _, _, reason = frame.compat.GetAddOnInfo(addonIndex)
 	local menu = {
 		{ text = title, isTitle = true, notCheckable = true },
 	}
 
-	if (not IsAddOnLoaded(addonIndex) and IsAddOnLoadOnDemand(addonIndex) and reason == "DEMAND_LOADED") then
+	if (not frame.compat.IsAddOnLoaded(addonIndex) and frame.compat.IsAddOnLoadOnDemand(addonIndex) and reason == "DEMAND_LOADED") then
 		table.insert(menu, {
 			text = L["Load AddOn"],
 			func = function()
@@ -107,7 +107,7 @@ local function AddonRightClickMenu(addon)
 		})
 	end
 
-	if (GetAddOnDependencies(addonIndex)) then
+	if (frame.compat.GetAddOnDependencies(addonIndex)) then
 		table.insert(menu, {
 			text = L["Enable this Addon and its dependencies"],
 			func = function()
@@ -180,7 +180,7 @@ end
 
 local function ToggleAddon(self)
 	local addonIndex = self:GetParent().addon.index
-	local _, _, _, _, _, security = GetAddOnInfo(addonIndex)
+	local _, _, _, _, _, security = frame.compat.GetAddOnInfo(addonIndex)
 	if (security == BANNED_ADDON) then
 		return
 	end
@@ -207,7 +207,7 @@ end
 
 local function UpdateTooltip(self)
 	local addonIndex = self.addon.index
-	local name, title, notes, _, reason, security = GetAddOnInfo(addonIndex)
+	local name, title, notes, _, reason, security = frame.compat.GetAddOnInfo(addonIndex)
 
 	GameTooltip:ClearLines();
 	GameTooltip:SetOwner(self, "ANCHOR_NONE")
@@ -236,7 +236,7 @@ local function UpdateTooltip(self)
 		if (author) then
 			GameTooltip:AddLine(L["Author: "] .. C.white:WrapText(strtrim(author)));
 		end
-		if (IsAddOnLoaded(addonIndex)) then
+		if (frame.compat.IsAddOnLoaded(addonIndex)) then
 			local mem = GetAddOnMemoryUsage(addonIndex)
 			GameTooltip:AddLine(L["Memory: "] .. C.white:WrapText(frame:FormatMemory(mem)));
 		end
@@ -312,8 +312,8 @@ local function UpdateList()
 		if relativeButtonIndex <= count then
 			local addon = addons[relativeButtonIndex]
 			local addonIndex = addon.index
-			local name, title, _, loadable, reason, security = GetAddOnInfo(addonIndex)
-			local loaded = IsAddOnLoaded(addonIndex)
+			local name, title, _, loadable, reason, security = frame.compat.GetAddOnInfo(addonIndex)
+			local loaded = frame.compat.IsAddOnLoaded(addonIndex)
 			local enabled = frame:IsAddonSelected(addonIndex)
 			local version = ""
 

@@ -64,7 +64,7 @@ end
 
 local function CommonCountFunction(self)
 	local count = 0
-	for addonIndex = 1, GetNumAddOns() do
+	for addonIndex = 1, frame.compat.GetNumAddOns() do
 		if (self:addons(addonIndex)) then
 			count = count + 1
 		end
@@ -96,7 +96,7 @@ local fixedCategories = {
 		name = C.green:WrapText(L["Active Addons"]),
 		description = L["Addons enabled and loaded, or ready to be loaded on demand."],
 		addons = function(_, key)
-			local _, _, _, loadable, reason = GetAddOnInfo(key)
+			local _, _, _, loadable, reason = frame.compat.GetAddOnInfo(key)
 			return loadable or reason == "DEMAND_LOADED"
 		end,
 		count = CommonCountFunction
@@ -117,7 +117,7 @@ local fixedCategories = {
 			self.cache = cache
 		end,
 		addons = function(self, key)
-			local name = GetAddOnInfo(key)
+			local name = frame.compat.GetAddOnInfo(key)
 			return not self.cache[name]
 		end,
 		count = function(self)
@@ -266,13 +266,13 @@ end
 
 local function BuildCategoryTableFromToc()
 	local table = {}
-	local count = GetNumAddOns()
+	local count = frame.compat.GetNumAddOns()
 	for addonIndex = 1, count do
 		local value = frame:GetAddOnMetadata(addonIndex, "X-Category")
 		if value then
 			value = strtrim(value)
 			table[value] = table[value] or { addons = {} }
-			local name = GetAddOnInfo(addonIndex)
+			local name = frame.compat.GetAddOnInfo(addonIndex)
 			table[value].addons[name] = true
 			table[value].name = value
 		end

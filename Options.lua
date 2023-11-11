@@ -33,10 +33,10 @@ local function ConfigDropDownCreate()
 		{
 			text = ADDON_FORCE_LOAD,
 			checked = function()
-				return not IsAddonVersionCheckEnabled()
+				return not frame.compat.IsAddonVersionCheckEnabled()
 			end,
 			func = function(_, _, _, checked)
-				SetAddonVersionCheck(checked)
+				frame.compat.SetAddonVersionCheck(checked)
 				frame:Update()
 			end,
 		},

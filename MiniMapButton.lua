@@ -32,14 +32,14 @@ local broker = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject(ADDON_NAME,
 		UpdateAddOnMemoryUsage()
 
 		local totalMem = 0
-		for addonIndex = 1, GetNumAddOns() do
+		for addonIndex = 1, frame.compat.GetNumAddOns() do
 			local mem = GetAddOnMemoryUsage(addonIndex)
 			totalMem = totalMem + mem
 			for i = 1, maxAddons do
 				if (topAddOns[i] == nil or topAddOns[i].value < mem) then
 					table.insert(topAddOns, i, {
 						value = mem,
-						name = GetAddOnInfo(addonIndex)
+						name = frame.compat.GetAddOnInfo(addonIndex)
 					})
 					break
 				end

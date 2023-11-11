@@ -67,7 +67,7 @@ local function SortAddons(list)
 end
 
 local function AddonMatchFilter(addonIndex, filterLower, inCategoriesFunc)
-	local name, title, _, _, reason = GetAddOnInfo(addonIndex)
+	local name, title, _, _, reason = frame.compat.GetAddOnInfo(addonIndex)
 	if (not inCategoriesFunc(name)) then
 		return false
 	end
@@ -110,7 +110,7 @@ local function GetOrCreateAddonTableWithFilter(
 	end
 
 	if (pool[key] == nil) then
-		local _, title, _, _, _, security = GetAddOnInfo(key)
+		local _, title, _, _, _, security = frame.compat.GetAddOnInfo(key)
 		local isSecure = security == "SECURE"
 		local exposeAddon = (exposeBlizzardDep) or not isSecure
 		if (exposeAddon and AddonMatchFilter(key, filterLower, inCategoriesFunc)) then
@@ -127,7 +127,7 @@ local function GetOrCreateAddonTableWithFilter(
 			}
 			pool[key] = node
 			if (createChildren and node.exists) then
-				local deps = { GetAddOnDependencies(key) }
+				local deps = { frame.compat.GetAddOnDependencies(key) }
 				for _, depName in ipairs(deps) do
 					depName = strtrim(depName)
 					if (addUnknownDep or frame:IsAddonInstalled(depName)) then
@@ -197,9 +197,9 @@ local function CreateAddonListAsTable(filterLower, inCategoriesFunc)
 	local showSecureAddons = frame:GetDb().config.showSecureAddons
 	local nodesPool = {}
 	local filteredCache = {}
-	local count = GetNumAddOns()
+	local count = frame.compat.GetNumAddOns()
 	for addonIndex = 1, count do
-		local name = GetAddOnInfo(addonIndex)
+		local name = frame.compat.GetAddOnInfo(addonIndex)
 		GetOrCreateAddonTableWithFilter(
 				nodesPool,
 				name,
@@ -263,9 +263,9 @@ local function CreateAddonListAsList(filterLower, inCategoriesFunc)
 	local showSecureAddons = frame:GetDb().config.showSecureAddons
 	local nodesPool = {}
 	local filteredCache = {}
-	local count = GetNumAddOns()
+	local count = frame.compat.GetNumAddOns()
 	for addonIndex = 1, count do
-		local name = GetAddOnInfo(addonIndex)
+		local name = frame.compat.GetAddOnInfo(addonIndex)
 		local addon = GetOrCreateAddonTableWithFilter(
 				nodesPool,
 				name,

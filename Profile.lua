@@ -76,13 +76,13 @@ end
 local function SaveCurrentAddonsToProfile(profileName, depAware)
 	local db = frame:GetDb()
 	local enabledAddons = {}
-	local count = GetNumAddOns()
+	local count = frame.compat.GetNumAddOns()
 	db.sets[profileName] = db.sets[profileName] or {}
 	local subSets = db.sets[profileName].subSets or {}
 	local addonsCount = 0
 	local subSetsAddons = depAware and AddonsInProfilesRec(subSets) or {}
 	for i = 1, count do
-		local name = GetAddOnInfo(i)
+		local name = frame.compat.GetAddOnInfo(i)
 		if not subSetsAddons[name] and frame:IsAddonSelected(i) then
 			enabledAddons[name] = true
 			addonsCount = addonsCount + 1
@@ -384,9 +384,9 @@ function module:UpdatePlayerProfileAddons()
 
 	local addons = {}
 	local addonsCount = 1
-	for addonIndex = 1, GetNumAddOns() do
-		local addonName = GetAddOnInfo(addonIndex)
-		if (GetAddOnEnableState(playerInfo.name, addonIndex) > 0) then
+	for addonIndex = 1, frame.compat.GetNumAddOns() do
+		local addonName = frame.compat.GetAddOnInfo(addonIndex)
+		if (frame.compat.GetAddOnEnableState(addonIndex, playerInfo.name) > 0) then
 			addons[addonName] = true
 			addonsCount = addonsCount + 1
 		end
