@@ -305,10 +305,10 @@ local function GetTitleWithIcon(addon)
 	local iconTexture = frame:GetAddOnMetadata(addonIndex, "IconTexture");
 	local iconAtlas = frame:GetAddOnMetadata(addonIndex, "IconAtlas");
 
-	if iconTexture then
-		return CreateSimpleTextureMarkup(iconTexture, 20, 20) .. " " .. titleText;
-	elseif iconAtlas then
-		return CreateAtlasMarkup(iconAtlas, 20, 20) .. " " .. titleText;
+	if iconTexture and CreateSimpleTextureMarkup then
+		titleText = CreateSimpleTextureMarkup(iconTexture, 20, 20) .. " " .. titleText;
+	elseif iconAtlas and CreateAtlasMarkup then
+		titleText = CreateAtlasMarkup(iconAtlas, 20, 20) .. " " .. titleText;
 	end
 	return titleText .. version
 end
