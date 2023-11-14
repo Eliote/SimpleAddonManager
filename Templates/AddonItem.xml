@@ -40,7 +40,7 @@
                 <NormalTexture file="Interface\Buttons\UI-CheckBox-Up"/>
                 <PushedTexture file="Interface\Buttons\UI-CheckBox-Down"/>
                 <HighlightTexture file="Interface\Buttons\UI-CheckBox-Highlight" alphaMode="ADD"/>
-                <CheckedTexture name="$parentCheckedTexture" file="Interface\Buttons\UI-CheckBox-Check"/>
+                <CheckedTexture parentKey="CheckedTexture" file="Interface\Buttons\UI-CheckBox-Check"/>
                 <DisabledCheckedTexture file="Interface\Buttons\UI-CheckBox-Check-Disabled"/>
             </CheckButton>
             <Button parentKey="ExpandOrCollapseButton">

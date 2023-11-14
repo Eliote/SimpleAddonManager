@@ -201,21 +201,30 @@ function frame:ShowYesNoCancelDialog(text, funcYes, funcNo, funcCancel)
 	})
 end
 
-function frame:IsAddonSelected(nameOrIndex)
-	local character = self:GetCharacter()
-	return frame.compat.GetAddOnEnableState(nameOrIndex, character) > 0
+function frame:IsAddonSelected(nameOrIndex, forSome)
+	if (forSome) then
+		local state = frame.compat.GetAddOnEnableState(nameOrIndex, nil)
+		return state == 1
+	end
+	local character = frame:GetCharacterForApi()
+	local state = frame.compat.GetAddOnEnableState(nameOrIndex, character)
+	return state == 2
 end
 
-local character = true -- name of the character, or [nil] for current character, or [true] for all characters on the realm
+local character -- [0] for all characters, [1] for player name
+local playerName
 function frame:GetCharacter()
-	if (character == true) then
-		return nil
-	end
-	return character
+	return character or 0
+end
+
+function frame:GetCharacterForApi()
+	if (character == 1) then return playerName end
+	return nil
 end
 
 function frame:SetCharacter(value)
 	character = value
+	frame:GetDb().config.selectedCharacter = value
 end
 
 function frame:Update()
@@ -327,22 +336,22 @@ function frame:IsAddonInstalled(indexOrName)
 end
 
 function frame:EnableAddOn(indexOrName)
-	local c = frame:GetCharacter()
+	local c = frame:GetCharacterForApi()
 	frame.compat.EnableAddOn(indexOrName, c)
 end
 
 function frame:DisableAddOn(indexOrName)
-	local c = frame:GetCharacter()
+	local c = frame:GetCharacterForApi()
 	frame.compat.DisableAddOn(indexOrName, c)
 end
 
 function frame:EnableAllAddOns()
-	local c = frame:GetCharacter()
+	local c = frame:GetCharacterForApi()
 	frame.compat.EnableAllAddOns(c)
 end
 
 function frame:DisableAllAddOns()
-	local c = frame:GetCharacter()
+	local c = frame:GetCharacterForApi()
 	frame.compat.DisableAllAddOns(c)
 end
 
@@ -393,6 +402,8 @@ function frame:ADDON_LOADED(name)
 		hookMenuButton = true,
 	})
 
+	character = SimpleAddonManagerDB.config.selectedCharacter
+
 	frame:HookMenuButton()
 
 	for addonIndex = 1, frame.compat.GetNumAddOns() do
@@ -408,6 +419,8 @@ function frame:ADDON_LOADED(name)
 end
 
 function frame:PLAYER_ENTERING_WORLD(...)
+	playerName = UnitName("player")
+
 	for _, v in pairs(modules) do
 		if (v.OnPlayerEnteringWorld) then
 			v:OnPlayerEnteringWorld(...)

@@ -178,6 +178,30 @@ local function AddonRightClickMenu(addon)
 	return menu
 end
 
+local function Checkbox_SetAddonState(self, enabled, addonIndex)
+	local checkedTexture = self.CheckedTexture
+	checkedTexture:SetVertexColor(1, 1, 1)
+	checkedTexture:SetDesaturated(false)
+
+	if (enabled) then
+		self:SetChecked(true)
+	else
+		local togglingMe = frame:GetCharacter() == 1
+		local enabledSome = (not togglingMe) and frame:IsAddonSelected(addonIndex, true)
+		if (enabledSome) then
+			self:SetChecked(true)
+			local isEnabledByMe = frame.compat.GetAddOnEnableState(addonIndex, UnitName("player")) == 2
+			if (isEnabledByMe) then
+				checkedTexture:SetVertexColor(0.4, 1.0, 0.4)
+			else
+				checkedTexture:SetDesaturated(true)
+			end
+		else
+			self:SetChecked(false)
+		end
+	end
+end
+
 local function ToggleAddon(self)
 	local addonIndex = self:GetParent().addon.index
 	local _, _, _, _, _, security = frame.compat.GetAddOnInfo(addonIndex)
@@ -186,7 +210,7 @@ local function ToggleAddon(self)
 	end
 
 	local newValue = not frame:IsAddonSelected(addonIndex)
-	self:SetChecked(newValue)
+	Checkbox_SetAddonState(self, newValue, addonIndex)
 	if (newValue) then
 		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
 		frame:EnableAddOn(addonIndex)
@@ -379,7 +403,7 @@ local function UpdateList()
 				end
 			end
 
-			button.EnabledButton:SetChecked(enabled)
+			Checkbox_SetAddonState(button.EnabledButton, enabled, addonIndex)
 			button.EnabledButton:SetScript("OnClick", ToggleAddon)
 			button.EnabledButton:SetEnabled(security ~= BANNED_ADDON and addon.exists)
 

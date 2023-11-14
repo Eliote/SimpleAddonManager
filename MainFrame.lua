@@ -7,24 +7,30 @@ local frame = T.AddonFrame
 local module = frame:RegisterModule("Main")
 
 local function CharacterDropDown_Initialize()
-	local selectedValue = frame:GetCharacter() == true
-	local info = {
+	local isAll = frame:GetCharacter() == 0
+	EDDM.UIDropDownMenu_AddButton({
 		text = ALL,
-		value = true,
+		value = 0,
 		func = function(self)
 			local value = self.value
 			frame:SetCharacter(value)
 			EDDM.UIDropDownMenu_SetSelectedValue(frame.CharacterDropDown, value)
 			frame.ScrollFrame.update()
 		end,
-		checked = selectedValue
-	};
-	EDDM.UIDropDownMenu_AddButton(info);
+		checked = isAll,
+	})
 
-	info.text = UnitName("player")
-	info.value = UnitName("player")
-	info.checked = not selectedValue
-	EDDM.UIDropDownMenu_AddButton(info);
+	EDDM.UIDropDownMenu_AddButton({
+		text = UnitName("player"),
+		value = 1,
+		func = function(self)
+			local value = self.value
+			frame:SetCharacter(value)
+			EDDM.UIDropDownMenu_SetSelectedValue(frame.CharacterDropDown, value)
+			frame.ScrollFrame.update()
+		end,
+		checked = not isAll,
+	})
 end
 
 function frame:DidAddonStateChanged(addonNameOrIndex)
@@ -82,7 +88,7 @@ function module:Initialize()
 
 	frame.CharacterDropDown:SetPoint("TOPLEFT", 0, -30)
 	EDDM.UIDropDownMenu_Initialize(frame.CharacterDropDown, CharacterDropDown_Initialize)
-	EDDM.UIDropDownMenu_SetSelectedValue(frame.CharacterDropDown, true)
+	EDDM.UIDropDownMenu_SetSelectedValue(frame.CharacterDropDown, frame:GetCharacter())
 
 	frame.CancelButton:SetPoint("BOTTOMRIGHT", -22, 4)
 	frame.CancelButton:SetSize(100, 22)
