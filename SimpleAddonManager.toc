@@ -1,5 +1,5 @@
-## Interface: 100200
-## Interface-Classic: 11404
+## Interface: 100205
+## Interface-Classic: 11500
 ## Interface-Wrath: 30403
 ## Title: Simple Addon Manager
 ## Notes: A simple to use Addon Manager with profile, search, category filter, and more.
