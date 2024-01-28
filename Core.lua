@@ -406,11 +406,6 @@ function frame:ADDON_LOADED(name)
 
 	frame:HookMenuButton()
 
-	for addonIndex = 1, frame.compat.GetNumAddOns() do
-		local addonName = frame.compat.GetAddOnInfo(addonIndex)
-		addonsInitialState[addonName] = frame:IsAddonSelected(addonIndex)
-	end
-
 	for _, v in pairs(modules) do
 		if (v.OnLoad) then
 			v:OnLoad()
@@ -420,6 +415,11 @@ end
 
 function frame:PLAYER_ENTERING_WORLD(...)
 	playerName = UnitName("player")
+
+	for addonIndex = 1, frame.compat.GetNumAddOns() do
+		local addonName = frame.compat.GetAddOnInfo(addonIndex)
+		addonsInitialState[addonName] = frame:IsAddonSelected(addonIndex)
+	end
 
 	for _, v in pairs(modules) do
 		if (v.OnPlayerEnteringWorld) then
