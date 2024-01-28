@@ -416,9 +416,12 @@ end
 function frame:PLAYER_ENTERING_WORLD(...)
 	playerName = UnitName("player")
 
-	for addonIndex = 1, frame.compat.GetNumAddOns() do
-		local addonName = frame.compat.GetAddOnInfo(addonIndex)
-		addonsInitialState[addonName] = frame:IsAddonSelected(addonIndex)
+	local isInitialLogin, isReloadingUi = ...
+	if (isInitialLogin or isReloadingUi) then
+		for addonIndex = 1, frame.compat.GetNumAddOns() do
+			local addonName = frame.compat.GetAddOnInfo(addonIndex)
+			addonsInitialState[addonName] = frame:IsAddonSelected(addonIndex)
+		end
 	end
 
 	for _, v in pairs(modules) do
