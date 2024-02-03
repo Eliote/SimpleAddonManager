@@ -229,9 +229,30 @@ local function AddonButtonOnClick(self, mouseButton)
 	end
 end
 
+local function ProfilesInAddon(name)
+	local db = frame:GetDb()
+	local setsList = frame:TableAsSortedPairList(db.sets)
+	local ProfilesForAddon = ""
+	for _, subPair in ipairs(setsList) do
+		subProfileName, subSet = subPair.key, subPair.value
+		local list = frame:TableAsSortedPairList(subSet.addons)
+		for i, _ in ipairs(list) do
+			if list[i] then
+				if name == tostring(list[i].key) then
+					ProfilesForAddon = ProfilesForAddon .. subProfileName .. ", "
+				end
+			end
+		end
+	end
+	-- Remove Last 2 Characters cause whitespace and ','
+	ProfilesForAddon = string.sub(ProfilesForAddon, 0, strlen(ProfilesForAddon) - 2)
+	return ProfilesForAddon
+end
+
 local function UpdateTooltip(self)
 	local addonIndex = self.addon.index
 	local name, title, notes, _, reason, security = frame.compat.GetAddOnInfo(addonIndex)
+	local ProfilesForAddon = ProfilesInAddon(name)
 
 	GameTooltip:ClearLines();
 	GameTooltip:SetOwner(self, "ANCHOR_NONE")
@@ -268,6 +289,9 @@ local function UpdateTooltip(self)
 		if (self.addon.warning) then
 			GameTooltip:AddLine(self.addon.warning, nil, nil, nil, true);
 		end
+		if ProfilesForAddon ~= "" then
+			GameTooltip:AddLine(L["Profiles: "] .. C.white:WrapText(ProfilesForAddon));
+		end
 		GameTooltip:AddLine(" ");
 		GameTooltip:AddLine(notes, 1.0, 1.0, 1.0, true);
 		GameTooltip:AddLine(" ");
@@ -294,7 +318,7 @@ local function ShouldColorStatus(enabled, loaded, reason)
 		return false
 	end
 	return (enabled and not loaded) or
-			(enabled and loaded and reason == "INTERFACE_VERSION")
+		(enabled and loaded and reason == "INTERFACE_VERSION")
 end
 
 local function UpdateExpandOrCollapseButtonState(button, isCollapsed)
@@ -368,8 +392,8 @@ local function UpdateList()
 			if showExpandOrCollapseButton then
 				button.ExpandOrCollapseButton:Show()
 				UpdateExpandOrCollapseButtonState(
-						button.ExpandOrCollapseButton,
-						isCollapsed
+					button.ExpandOrCollapseButton,
+					isCollapsed
 				)
 			else
 				button.ExpandOrCollapseButton:Hide()
