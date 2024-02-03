@@ -232,21 +232,21 @@ end
 local function ProfilesInAddon(name)
 	local db = frame:GetDb()
 	local setsList = frame:TableAsSortedPairList(db.sets)
-	local ProfilesForAddon = ""
+	local profilesForAddon = ""
 	for _, subPair in ipairs(setsList) do
 		subProfileName, subSet = subPair.key, subPair.value
 		local list = frame:TableAsSortedPairList(subSet.addons)
 		for i, _ in ipairs(list) do
 			if list[i] then
 				if name == tostring(list[i].key) then
-					ProfilesForAddon = ProfilesForAddon .. subProfileName .. ", "
+					profilesForAddon = profilesForAddon .. subProfileName .. ", "
 				end
 			end
 		end
 	end
 	-- Remove Last 2 Characters cause whitespace and ','
-	ProfilesForAddon = string.sub(ProfilesForAddon, 0, strlen(ProfilesForAddon) - 2)
-	return ProfilesForAddon
+	profilesForAddon = string.sub(profilesForAddon, 0, strlen(profilesForAddon) - 2)
+	return profilesForAddon
 end
 
 local function UpdateTooltip(self)
