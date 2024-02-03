@@ -234,7 +234,7 @@ local function ProfilesInAddon(name)
 	local setsList = frame:TableAsSortedPairList(db.sets)
 	local profilesForAddon = ""
 	for _, subPair in ipairs(setsList) do
-		subProfileName, subSet = subPair.key, subPair.value
+		local subProfileName, subSet = subPair.key, subPair.value
 		local list = frame:TableAsSortedPairList(subSet.addons)
 		for i, _ in ipairs(list) do
 			if list[i] then
