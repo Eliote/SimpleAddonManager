@@ -231,18 +231,22 @@ end
 
 local function ProfilesInAddon(name)
 	local db = frame:GetDb()
-	local setsList = frame:TableAsSortedPairList(db.sets)
+	local setsList = db.sets
 	local profilesForAddon = ""
-	for _, subPair in ipairs(setsList) do
-		local subProfileName, subSet = subPair.key, subPair.value
-		local list = frame:TableAsSortedPairList(subSet.addons)
-		for i, _ in ipairs(list) do
-			if list[i] then
-				if name == tostring(list[i].key) then
-					profilesForAddon = profilesForAddon .. subProfileName .. ", "
-				end
+	local profilesTable = {}
+	for profileNameTable, subPair in pairs(setsList) do
+		local subProfileName, subSet = profileNameTable, subPair
+		local list = subSet.addons
+		for i, _ in pairs(list) do
+			if name == i then
+				table.insert(profilesTable, subProfileName)
 			end
 		end
+	end
+
+	table.sort(profilesTable)
+	for _, profileName in ipairs(profilesTable) do
+		profilesForAddon = profilesForAddon .. profileName .. ", "
 	end
 	-- Remove Last 2 Characters cause whitespace and ','
 	profilesForAddon = string.sub(profilesForAddon, 0, strlen(profilesForAddon) - 2)
