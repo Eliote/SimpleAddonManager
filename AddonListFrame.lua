@@ -318,7 +318,7 @@ local function ShouldColorStatus(enabled, loaded, reason)
 		return false
 	end
 	return (enabled and not loaded) or
-		(enabled and loaded and reason == "INTERFACE_VERSION")
+			(enabled and loaded and reason == "INTERFACE_VERSION")
 end
 
 local function UpdateExpandOrCollapseButtonState(button, isCollapsed)
@@ -392,8 +392,8 @@ local function UpdateList()
 			if showExpandOrCollapseButton then
 				button.ExpandOrCollapseButton:Show()
 				UpdateExpandOrCollapseButtonState(
-					button.ExpandOrCollapseButton,
-					isCollapsed
+						button.ExpandOrCollapseButton,
+						isCollapsed
 				)
 			else
 				button.ExpandOrCollapseButton:Hide()
