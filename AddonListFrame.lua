@@ -256,7 +256,7 @@ end
 local function UpdateTooltip(self)
 	local addonIndex = self.addon.index
 	local name, title, notes, _, reason, security = frame.compat.GetAddOnInfo(addonIndex)
-	local ProfilesForAddon = ProfilesInAddon(name)
+	local profilesForAddon = ProfilesInAddon(name)
 
 	GameTooltip:ClearLines();
 	GameTooltip:SetOwner(self, "ANCHOR_NONE")
@@ -293,8 +293,8 @@ local function UpdateTooltip(self)
 		if (self.addon.warning) then
 			GameTooltip:AddLine(self.addon.warning, nil, nil, nil, true);
 		end
-		if ProfilesForAddon ~= "" then
-			GameTooltip:AddLine(L["Profiles: "] .. C.white:WrapText(ProfilesForAddon));
+		if profilesForAddon ~= "" then
+			GameTooltip:AddLine(L["Profiles: "] .. C.white:WrapText(profilesForAddon));
 		end
 		GameTooltip:AddLine(" ");
 		GameTooltip:AddLine(notes, 1.0, 1.0, 1.0, true);
