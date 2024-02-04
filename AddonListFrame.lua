@@ -229,6 +229,29 @@ local function AddonButtonOnClick(self, mouseButton)
 	end
 end
 
+local function ProfilesInAddon(name)
+	local db = frame:GetDb()
+	local setsList = db.sets
+	local profilesForAddon = ""
+	local profilesTable = {}
+	for profileNameTable, subPair in pairs(setsList) do
+		local list = subPair.addons
+		for i, _ in pairs(list) do
+			if name == i then
+				table.insert(profilesTable, profileNameTable)
+			end
+		end
+	end
+
+	table.sort(profilesTable)
+	for _, profileName in ipairs(profilesTable) do
+		profilesForAddon = profilesForAddon .. profileName .. ", "
+	end
+	-- Remove Last 2 Characters cause whitespace and ','
+	profilesForAddon = string.sub(profilesForAddon, 0, strlen(profilesForAddon) - 2)
+	return profilesForAddon
+end
+
 local function UpdateTooltip(self)
 	local addonIndex = self.addon.index
 	local name, title, notes, _, reason, security = frame.compat.GetAddOnInfo(addonIndex)
@@ -268,6 +291,10 @@ local function UpdateTooltip(self)
 		if (self.addon.warning) then
 			GameTooltip:AddLine(self.addon.warning, nil, nil, nil, true);
 		end
+		local profilesForAddon = ProfilesInAddon(name)
+		if profilesForAddon ~= "" then
+			GameTooltip:AddLine(L["Profiles: "] .. C.white:WrapText(profilesForAddon), nil, nil, nil, true);
+		end
 		GameTooltip:AddLine(" ");
 		GameTooltip:AddLine(notes, 1.0, 1.0, 1.0, true);
 		GameTooltip:AddLine(" ");
@@ -294,7 +321,7 @@ local function ShouldColorStatus(enabled, loaded, reason)
 		return false
 	end
 	return (enabled and not loaded) or
-			(enabled and loaded and reason == "INTERFACE_VERSION")
+		(enabled and loaded and reason == "INTERFACE_VERSION")
 end
 
 local function UpdateExpandOrCollapseButtonState(button, isCollapsed)
@@ -368,8 +395,8 @@ local function UpdateList()
 			if showExpandOrCollapseButton then
 				button.ExpandOrCollapseButton:Show()
 				UpdateExpandOrCollapseButtonState(
-						button.ExpandOrCollapseButton,
-						isCollapsed
+					button.ExpandOrCollapseButton,
+					isCollapsed
 				)
 			else
 				button.ExpandOrCollapseButton:Hide()
