@@ -235,11 +235,10 @@ local function ProfilesInAddon(name)
 	local profilesForAddon = ""
 	local profilesTable = {}
 	for profileNameTable, subPair in pairs(setsList) do
-		local subProfileName, subSet = profileNameTable, subPair
-		local list = subSet.addons
+		local list = subPair.addons
 		for i, _ in pairs(list) do
 			if name == i then
-				table.insert(profilesTable, subProfileName)
+				table.insert(profilesTable, profileNameTable)
 			end
 		end
 	end
