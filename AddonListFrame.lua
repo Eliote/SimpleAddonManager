@@ -293,7 +293,7 @@ local function UpdateTooltip(self)
 		end
 		local profilesForAddon = ProfilesInAddon(name)
 		if profilesForAddon ~= "" then
-			GameTooltip:AddLine(L["Profiles: "] .. C.white:WrapText(profilesForAddon));
+			GameTooltip:AddLine(L["Profiles: "] .. C.white:WrapText(profilesForAddon), nil, nil, nil, true);
 		end
 		GameTooltip:AddLine(" ");
 		GameTooltip:AddLine(notes, 1.0, 1.0, 1.0, true);
