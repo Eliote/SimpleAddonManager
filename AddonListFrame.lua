@@ -10,6 +10,8 @@ local frame = T.AddonFrame
 local module = frame:RegisterModule("AddonList")
 
 local BANNED_ADDON = "BANNED"
+local SECURE_PROTECTED_ADDON = "SECURE_PROTECTED"
+local SECURE_ADDON = "SECURE"
 
 local function AddonTooltipBuildDepsString(addonIndex)
 	local deps = { frame.compat.GetAddOnDependencies(addonIndex) }
@@ -283,7 +285,7 @@ local function UpdateTooltip(self)
 		if (author) then
 			GameTooltip:AddLine(L["Author: "] .. C.white:WrapText(strtrim(author)));
 		end
-		if (frame.compat.IsAddOnLoaded(addonIndex)) then
+		if (frame.compat.IsAddOnLoaded(addonIndex) and security ~= SECURE_PROTECTED_ADDON and security ~= SECURE_ADDON) then
 			local mem = GetAddOnMemoryUsage(addonIndex)
 			GameTooltip:AddLine(L["Memory: "] .. C.white:WrapText(frame:FormatMemory(mem)));
 		end
