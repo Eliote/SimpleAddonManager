@@ -355,13 +355,14 @@ local function GetTitleWithIcon(addon)
 		version = (version and C.grey:WrapText(" (" .. version .. ")")) or ""
 	end
 
-	local iconTexture = frame:GetAddOnMetadata(addonIndex, "IconTexture");
-	local iconAtlas = frame:GetAddOnMetadata(addonIndex, "IconAtlas");
-
-	if iconTexture and CreateSimpleTextureMarkup then
-		titleText = CreateSimpleTextureMarkup(iconTexture, 20, 20) .. " " .. titleText;
-	elseif iconAtlas and CreateAtlasMarkup then
-		titleText = CreateAtlasMarkup(iconAtlas, 20, 20) .. " " .. titleText;
+	if (not frame:GetDb().config.hideIcons) then
+		local iconTexture = frame:GetAddOnMetadata(addonIndex, "IconTexture");
+		local iconAtlas = frame:GetAddOnMetadata(addonIndex, "IconAtlas");
+		if iconTexture and CreateSimpleTextureMarkup then
+			titleText = CreateSimpleTextureMarkup(iconTexture, 20, 20) .. " " .. titleText;
+		elseif iconAtlas and CreateAtlasMarkup then
+			titleText = CreateAtlasMarkup(iconAtlas, 20, 20) .. " " .. titleText;
+		end
 	end
 	return titleText .. version
 end
@@ -506,6 +507,7 @@ end
 function module:OnLoad()
 	local db = frame:GetDb()
 	frame:CreateDefaultOptions(db.config, {
-		memoryUpdate = 0
+		memoryUpdate = 0,
+		hideIcons = false,
 	})
 end

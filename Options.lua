@@ -120,6 +120,16 @@ local function ConfigDropDownCreate()
 			end,
 		},
 		{
+			text = L["Hide icons"],
+			checked = function()
+				return db.config.hideIcons
+			end,
+			func = function()
+				db.config.hideIcons = not db.config.hideIcons
+				frame:Update()
+			end,
+		},
+		{
 			text = L["Collapse all"],
 			notCheckable = true,
 			func = function()
