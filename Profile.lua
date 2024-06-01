@@ -147,6 +147,7 @@ local function ProfilesDropDownCreate()
 					text = L["Load"],
 					notCheckable = true,
 					func = function()
+						EDDM.CloseDropDownMenus();
 						frame:ShowConfirmDialog(
 								L("Load the AddOns from '${char}'?", { char = title }),
 								function()
@@ -252,6 +253,7 @@ local function ProfilesDropDownCreate()
 					tooltipText = "",
 					notCheckable = true,
 					func = function()
+						EDDM.CloseDropDownMenus();
 						frame:ShowConfirmDialog(
 								L("Save current addons, ignoring addons included in dependent profiles, into profile '${profile}'?", { profile = profileName }),
 								function()
@@ -264,6 +266,7 @@ local function ProfilesDropDownCreate()
 					text = L["Save"],
 					notCheckable = true,
 					func = function()
+						EDDM.CloseDropDownMenus();
 						frame:ShowConfirmDialog(
 								L("Save current addons in profile '${profile}'?", { profile = profileName }),
 								function()
@@ -277,6 +280,7 @@ local function ProfilesDropDownCreate()
 					text = L["Load"],
 					notCheckable = true,
 					func = function()
+						EDDM.CloseDropDownMenus();
 						frame:ShowConfirmDialog(
 								L("Load the profile '${profile}'?", { profile = profileName }),
 								function()
@@ -289,6 +293,7 @@ local function ProfilesDropDownCreate()
 					text = L["Enable Addons"],
 					notCheckable = true,
 					func = function()
+						EDDM.CloseDropDownMenus();
 						frame:ShowConfirmDialog(
 								L("Enable addons from the profile '${profile}'?", { profile = profileName }),
 								function()
@@ -308,6 +313,7 @@ local function ProfilesDropDownCreate()
 					text = L["Rename"],
 					notCheckable = true,
 					func = function()
+						EDDM.CloseDropDownMenus();
 						frame:ShowInputDialog(
 								L("Enter the new name for the profile '${profile}'", { profile = profileName }),
 								function(text)
@@ -325,6 +331,7 @@ local function ProfilesDropDownCreate()
 					text = L["Delete"],
 					notCheckable = true,
 					func = function()
+						EDDM.CloseDropDownMenus();
 						frame:ShowConfirmDialog(
 								L("Delete the profile '${profile}'?", { profile = profileName }),
 								function()
