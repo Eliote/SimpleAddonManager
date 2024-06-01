@@ -108,4 +108,6 @@ L["Enable Addons"] = "Habilitar Addons"
 L["Enable addons from the profile '${profile}'?"] = "Habilitar addons do profile '${profile}'?"
 L["development tools"] = "Ferramentas de Desenvolvimento"
 L["Hide icons"] = "Esconder ícones"
+L["Clear list"] = "Limpar lista"
+L["Are you sure you want to remove all automatic character profiles?"] = "Deseja mesmo remover todos os perfis automáticos de personagem?"
 --@end-do-not-package@

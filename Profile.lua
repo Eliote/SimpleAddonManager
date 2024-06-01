@@ -166,6 +166,20 @@ local function ProfilesDropDownCreate()
 		table.insert(charsMenuList, charMenu)
 	end
 
+	table.insert(charsMenuList, {
+		text = L["Clear list"],
+		notCheckable = true,
+		hasArrow = false,
+		func = function()
+			frame:ShowConfirmDialog(
+					L["Are you sure you want to remove all automatic character profiles?"],
+					function()
+						db.autoProfile = {}
+					end
+			)
+		end
+	})
+
 	table.insert(menu, T.separatorInfo)
 
 	local setsList = frame:TableAsSortedPairList(db.sets)
