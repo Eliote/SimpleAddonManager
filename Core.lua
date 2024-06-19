@@ -445,16 +445,31 @@ function frame:HookMenuButton()
 	end
 
 	GameMenuFrame:HookScript("OnShow", function()
-		local original = GameMenuButtonAddons:GetScript("OnClick")
-		GameMenuButtonAddons:SetScript("OnClick", function()
-			if (frame:GetDb().config.hookMenuButton) then
-				PlaySound(SOUNDKIT.IG_MAINMENU_OPTION)
-				HideUIPanel(GameMenuFrame)
-				ShowUIPanel(frame)
-			else
-				original()
+		local function overrideSetScript(widget)
+			local original = widget:GetScript("OnClick")
+			widget:SetScript("OnClick", function()
+				if (frame:GetDb().config.hookMenuButton) then
+					PlaySound(SOUNDKIT.IG_MAINMENU_OPTION)
+					HideUIPanel(GameMenuFrame)
+					ShowUIPanel(frame)
+				else
+					original()
+				end
+			end)
+		end
+
+		if GameMenuButtonAddons then
+			-- Old way
+			overrideSetScript(GameMenuButtonAddons)
+		else
+			-- TWW
+			for widget in GameMenuFrame.buttonPool:EnumerateActive() do
+				if widget:GetText() == ADDONS then
+					overrideSetScript(widget)
+					break
+				end
 			end
-		end)
+		end
 	end)
 
 	frame.isMenuHooked = true
