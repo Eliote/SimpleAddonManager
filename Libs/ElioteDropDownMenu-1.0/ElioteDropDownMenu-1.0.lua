@@ -1,4 +1,4 @@
-local libName, libVersion = "ElioteDropDownMenu-1.0", 11
+local libName, libVersion = "ElioteDropDownMenu-1.0", 12
 
 --- @class ElioteDropDownMenu
 local lib = LibStub:NewLibrary(libName, libVersion)
@@ -1833,7 +1833,7 @@ end
 
 UIDropDownMenuDelegate:RegisterEvent("GLOBAL_MOUSE_DOWN")
 UIDropDownMenuDelegate:SetScript("OnEvent", function(self, event, buttonID)
-	local mouseFocus = GetMouseFocus();
+	local mouseFocus = (GetMouseFocus and GetMouseFocus()) or (GetMouseFoci and GetMouseFoci()[1])
 	if not HandlesGlobalMouseEvent(mouseFocus, buttonID, event) then
 		lib.UIDropDownMenu_HandleGlobalMouseEvent(buttonID, event);
 	end
