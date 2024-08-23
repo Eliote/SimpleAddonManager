@@ -19,12 +19,13 @@ end
 function module:StartSearch()
 	local db = frame:GetDb()
 	if (db.addonFinder and db.addonFinder.isSearching) then
+		local searching = db.addonFinder.searchingAddons
 		frame:ShowYesNoCancelDialog(
 				L(
 						"Search in progress...\nStatus: enabled: ${enabled}, disabled: ${disabled}\nThe addon you are looking for has been disabled?",
 						{
-							enabled = #db.addonFinder.searchingAddons.enabled,
-							disabled = #db.addonFinder.searchingAddons.disabled,
+							enabled = (searching.enabled and #searching.enabled) or 0,
+							disabled = (searching.disabled and #searching.disabled) or 0,
 						}
 				),
 				function()
@@ -60,7 +61,10 @@ function module:StartSearch()
 					db.addonFinder = {
 						isSearching = true,
 						initialAddons = addons,
-						searchingAddons = {}
+						searchingAddons = {
+							enabled = {},
+							disabled = {},
+						}
 					}
 					module:BinarySearch(activeAddons)
 				end
@@ -97,9 +101,9 @@ function module:ContinueSearch(answer)
 	local db = frame:GetDb()
 	local addons
 	if (answer) then
-		addons = db.addonFinder.searchingAddons.disabled
+		addons = db.addonFinder.searchingAddons.disabled or {}
 	else
-		addons = db.addonFinder.searchingAddons.enabled
+		addons = db.addonFinder.searchingAddons.enabled or {}
 	end
 	if (#addons <= 1) then
 		module:StopSearch()
