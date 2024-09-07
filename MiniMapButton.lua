@@ -20,7 +20,7 @@ local broker = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject(ADDON_NAME,
 	OnTooltipShow = function(ttp)
 		ttp:AddLine(title)
 		ttp:AddLine(ICON_MOUSE_LEFT .. L["Left-click to open"])
-		ttp:AddLine(ICON_MOUSE_RIGHT .. L["Right-click to show profile load menu"])
+		ttp:AddLine(ICON_MOUSE_RIGHT .. L["Right-click to show profile menu"])
 
 		if (not frame:GetDb().config.showMemoryInBrokerTtp) then
 			return
