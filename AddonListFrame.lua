@@ -255,6 +255,36 @@ local function ProfilesInAddon(name)
 	return profilesForAddon
 end
 
+local function CategoriesForAddon(name)
+	local userTable, tocTable, fixedTable = frame:GetCategoryTables()
+
+	local resultText = ""
+	local sep = ""
+	for _, categoryTable in pairs(userTable) do
+		if (categoryTable.addons[name]) then
+			resultText = resultText .. sep .. frame:LocalizeCategoryName(categoryTable.name, userTable)
+			sep = ", "
+		end
+	end
+
+	for _, categoryTable in pairs(tocTable) do
+		if (categoryTable.addons[name]) then
+			resultText = resultText .. sep .. frame:LocalizeCategoryName(categoryTable.name, tocTable)
+			sep = ", "
+		end
+	end
+
+	for _, categoryTable in pairs(fixedTable) do
+		if (categoryTable.prepare) then categoryTable:prepare() end
+		if (categoryTable:addons(name)) then
+			resultText = resultText .. sep .. categoryTable.name
+			sep = ", "
+		end
+	end
+
+	return resultText
+end
+
 local function UpdateTooltip(self)
 	local addonIndex = self.addon.index
 	local name, title, notes, _, reason, security = frame.compat.GetAddOnInfo(addonIndex)
@@ -298,6 +328,11 @@ local function UpdateTooltip(self)
 		if profilesForAddon ~= "" then
 			GameTooltip:AddLine(L["Profiles: "] .. C.white:WrapText(profilesForAddon), nil, nil, nil, true);
 		end
+		local categoriesForAddon = CategoriesForAddon(name)
+		if categoriesForAddon ~= "" then
+			GameTooltip:AddLine(L["Categories: "] .. C.white:WrapText(categoriesForAddon), nil, nil, nil, true);
+		end
+
 		GameTooltip:AddLine(" ");
 		GameTooltip:AddLine(notes, 1.0, 1.0, 1.0, true);
 		GameTooltip:AddLine(" ");
