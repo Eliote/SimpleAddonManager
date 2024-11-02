@@ -89,6 +89,18 @@ local function SetAllChildren(children, state)
 	end
 end
 
+local function SetCategory(addonName, state, categoryTable, categoryName)
+	categoryTable[categoryName] = categoryTable[categoryName] or { name = categoryName }
+	categoryTable[categoryName].addons = categoryTable[categoryName].addons or {}
+	categoryTable[categoryName].addons[addonName] = state or nil
+end
+
+local function SetCategoryForAllChildren(children, state, categoryTable, categoryName)
+	for name, _ in pairs(children) do
+		SetCategory(name, state, categoryTable, categoryName)
+	end
+end
+
 local function AddonRightClickMenu(addon)
 	if (not frame:IsAddonInstalled(addon.index)) then
 		return
@@ -163,14 +175,20 @@ local function AddonRightClickMenu(addon)
 		local isInToc = tocCategory and tocCategory.addons and tocCategory.addons[name]
 		table.insert(menu, {
 			text = frame:LocalizeCategoryName(categoryName, not isInToc) .. (isInToc and (" " .. C.yellow:WrapText(L["(Automatically in category)"])) or ""),
+			tooltipOnButton = true,
+			tooltipTitle = categoryName,
+			tooltipText = L["Hold shift to add/remove AddOns that depends on it as well"],
 			checked = function()
 				return categoryDb and categoryDb.addons and categoryDb.addons[name]
 			end,
 			keepShownOnClick = true,
 			func = function(_, _, _, checked)
-				userCategories[categoryName] = userCategories[categoryName] or { name = categoryName }
-				userCategories[categoryName].addons = userCategories[categoryName].addons or {}
-				userCategories[categoryName].addons[name] = checked or nil
+				SetCategory(name, checked, userCategories, categoryName)
+
+				if (IsShiftKeyDown()) then
+					SetCategoryForAllChildren(children, checked, userCategories, categoryName)
+				end
+
 				frame:Update()
 			end,
 		})
@@ -359,7 +377,7 @@ local function ShouldColorStatus(enabled, loaded, reason)
 		return false
 	end
 	return (enabled and not loaded) or
-		(enabled and loaded and reason == "INTERFACE_VERSION")
+			(enabled and loaded and reason == "INTERFACE_VERSION")
 end
 
 local function UpdateExpandOrCollapseButtonState(button, isCollapsed)
@@ -434,8 +452,8 @@ local function UpdateList()
 			if showExpandOrCollapseButton then
 				button.ExpandOrCollapseButton:Show()
 				UpdateExpandOrCollapseButtonState(
-					button.ExpandOrCollapseButton,
-					isCollapsed
+						button.ExpandOrCollapseButton,
+						isCollapsed
 				)
 			else
 				button.ExpandOrCollapseButton:Hide()
