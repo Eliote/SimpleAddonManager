@@ -104,6 +104,14 @@ function module:LoadAddonsFromProfile(profileName, keepEnabledAddons)
 	frame:Update()
 end
 
+function module:UnloadAddonsFromProfile(profileName)
+	local addons = AddonsInProfilesRec({ [profileName] = true })
+	for name, _ in pairs(addons) do
+		frame:DisableAddOn(name)
+	end
+	frame:Update()
+end
+
 function module:ShowLoadProfileAndReloadUIDialog(profile)
 	frame:ShowConfirmDialog(
 			L("Load profile '${profile}' and reload UI?", { profile = profile }),
@@ -312,6 +320,19 @@ local function ProfilesDropDownCreate()
 								L("Enable addons from the profile '${profile}'?", { profile = profileName }),
 								function()
 									module:LoadAddonsFromProfile(profileName, true)
+								end
+						)
+					end
+				},
+				{
+					text = L["Disable Addons"],
+					notCheckable = true,
+					func = function()
+						EDDM.CloseDropDownMenus();
+						frame:ShowConfirmDialog(
+								L("Disable addons from the profile '${profile}'?", { profile = profileName }),
+								function()
+									module:UnloadAddonsFromProfile(profileName, true)
 								end
 						)
 					end

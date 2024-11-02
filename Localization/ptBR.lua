@@ -107,6 +107,7 @@ L["Load profile '${profile}' and reload UI?"] = "Carrega Perfil '${profile}' e r
 L["Enable Addons"] = "Habilitar Addons"
 L["Disable Addons"] = "Desabilitar Addons"
 L["Enable addons from the profile '${profile}'?"] = "Habilitar addons do profile '${profile}'?"
+L["Disable addons from the profile '${profile}'?"] = "Desabilitar addons do profile '${profile}'?"
 L["development tools"] = "Ferramentas de Desenvolvimento"
 L["Hide icons"] = "Esconder ícones"
 L["Clear list"] = "Limpar lista"
