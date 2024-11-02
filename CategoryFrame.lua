@@ -56,6 +56,29 @@ local function CategoryMenu(categoryKey, categoryName)
 			end
 		},
 		T.separatorInfo,
+		{
+			text = L["Enable Addons"],
+			notCheckable = true,
+			disabled = db.categories[categoryKey] == nil,
+			func = function()
+				for name, _ in pairs(db.categories[categoryKey].addons) do
+					frame:EnableAddOn(name)
+				end
+				frame:Update()
+			end
+		},
+		{
+			text = L["Disable Addons"],
+			notCheckable = true,
+			disabled = db.categories[categoryKey] == nil,
+			func = function()
+				for name, _ in pairs(db.categories[categoryKey].addons) do
+					frame:DisableAddOn(name)
+				end
+				frame:Update()
+			end
+		},
+		T.separatorInfo,
 		T.closeMenuInfo,
 	}
 
