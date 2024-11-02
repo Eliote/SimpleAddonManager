@@ -2,6 +2,10 @@ local ADDON_NAME, T = ...
 
 local C = T.Color
 
+local orderedCharList
+local selectedCharIndex -- [0] for all characters, [1] for player name
+local playerName
+
 --- @class SimpleAddonManager
 local frame = CreateFrame("Frame", ADDON_NAME, UIParent, "ButtonFrameTemplate")
 ButtonFrameTemplate_HidePortrait(frame)
@@ -201,30 +205,35 @@ function frame:ShowYesNoCancelDialog(text, funcYes, funcNo, funcCancel)
 	})
 end
 
-function frame:IsAddonSelected(nameOrIndex, forSome)
+function frame:IsAddonSelected(nameOrIndex, forSome, character)
 	if (forSome) then
 		local state = frame.compat.GetAddOnEnableState(nameOrIndex, nil)
 		return state == 1
 	end
-	local character = frame:GetCharacterForApi()
-	local state = frame.compat.GetAddOnEnableState(nameOrIndex, character)
+	local char = character or frame:GetSelectedCharName()
+	if (character == true) then
+		char = nil
+	end
+	local state = frame.compat.GetAddOnEnableState(nameOrIndex, char)
 	return state == 2
 end
 
-local character -- [0] for all characters, [1] for player name
-local playerName
-function frame:GetCharacter()
-	return character or 0
+function frame:GetSelectedCharIndex()
+	return selectedCharIndex or 0
 end
 
-function frame:GetCharacterForApi()
-	if (character == 1) then return playerName end
+function frame:GetSelectedCharName()
+	if (selectedCharIndex >= 1) then return orderedCharList[selectedCharIndex + 1].name end
 	return nil
 end
 
-function frame:SetCharacter(value)
-	character = value
+function frame:SetSelectedCharIndex(value)
+	selectedCharIndex = value
 	frame:GetDb().config.selectedCharacter = value
+end
+
+function frame:GetCharList()
+	return orderedCharList
 end
 
 function frame:Update()
@@ -326,8 +335,8 @@ function frame:GetModules()
 end
 
 local addonsInitialState = {}
-function frame:GetAddonsInitialState()
-	return addonsInitialState
+function frame:GetAddonsInitialState(character)
+	return addonsInitialState[character or true] -- true represents "all"/nil
 end
 
 function frame:IsAddonInstalled(indexOrName)
@@ -336,22 +345,22 @@ function frame:IsAddonInstalled(indexOrName)
 end
 
 function frame:EnableAddOn(indexOrName)
-	local c = frame:GetCharacterForApi()
+	local c = frame:GetSelectedCharName()
 	frame.compat.EnableAddOn(indexOrName, c)
 end
 
 function frame:DisableAddOn(indexOrName)
-	local c = frame:GetCharacterForApi()
+	local c = frame:GetSelectedCharName()
 	frame.compat.DisableAddOn(indexOrName, c)
 end
 
 function frame:EnableAllAddOns()
-	local c = frame:GetCharacterForApi()
+	local c = frame:GetSelectedCharName()
 	frame.compat.EnableAllAddOns(c)
 end
 
 function frame:DisableAllAddOns()
-	local c = frame:GetCharacterForApi()
+	local c = frame:GetSelectedCharName()
 	frame.compat.DisableAllAddOns(c)
 end
 
@@ -362,7 +371,7 @@ end
 
 -- When entering/leaving lfg, realm returns nil. Cache to avoid errors.
 local nameCache, realmCache, classColor
-function frame:GetPlayerInfo()
+function frame:GetCurrentPlayerInfo()
 	if (nameCache == nil) then
 		nameCache, realmCache = UnitNameUnmodified("player")
 		if (realmCache == nil or realmCache == "") then
@@ -400,9 +409,14 @@ function frame:ADDON_LOADED(name)
 	frame:CreateDefaultOptions(SimpleAddonManagerDB.config, {
 		showVersions = false,
 		hookMenuButton = true,
+		characterList = {},
 	})
 
-	character = SimpleAddonManagerDB.config.selectedCharacter
+	selectedCharIndex = SimpleAddonManagerDB.config.selectedCharacter or 0
+	-- after reload, select the current character if any other is selected
+	if (selectedCharIndex > 1) then
+		selectedCharIndex = 1
+	end
 
 	frame:HookMenuButton()
 
@@ -413,15 +427,53 @@ function frame:ADDON_LOADED(name)
 	end
 end
 
+function frame:InitAddonStateFor(character)
+	if (addonsInitialState[character]) then return end
+
+	-- load initial state
+	addonsInitialState[character] = {}
+	for addonIndex = 1, frame.compat.GetNumAddOns() do
+		local addonName = frame.compat.GetAddOnInfo(addonIndex)
+		addonsInitialState[character][addonName] = frame:IsAddonSelected(addonIndex, nil, character)
+	end
+end
+
+function frame:ClearInitialState()
+	addonsInitialState = {}
+	frame:InitAddonStateFor(true)
+	frame:InitAddonStateFor(playerName)
+	local selectedChar = frame:GetSelectedCharName()
+	if (selectedChar) then
+		frame:InitAddonStateFor(selectedChar)
+	end
+end
+
 function frame:PLAYER_ENTERING_WORLD(...)
 	playerName = UnitName("player")
 
 	local isInitialLogin, isReloadingUi = ...
 	if (isInitialLogin or isReloadingUi) then
-		for addonIndex = 1, frame.compat.GetNumAddOns() do
-			local addonName = frame.compat.GetAddOnInfo(addonIndex)
-			addonsInitialState[addonName] = frame:IsAddonSelected(addonIndex)
+		-- init player list
+		local realm = GetRealmName()
+		local charList = frame:GetDb().config.characterList
+		charList[realm] = charList[realm] or {}
+
+		local _, classFile = UnitClass("player")
+		charList[realm][playerName] = { class = classFile }
+
+		orderedCharList = {}
+		for name, v in pairs(charList[realm]) do
+			if (v and name ~= playerName) then
+				table.insert(orderedCharList, { name = name, class = v.class })
+			end
 		end
+		table.sort(orderedCharList, function(a, b) return a.name < b.name end)
+		table.insert(orderedCharList, 1, { name = ALL })
+		table.insert(orderedCharList, 2, { name = playerName, class = classFile })
+
+		-- load initial state
+		frame:InitAddonStateFor(true)
+		frame:InitAddonStateFor(playerName)
 	end
 
 	for _, v in pairs(modules) do

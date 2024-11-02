@@ -7,35 +7,37 @@ local frame = T.AddonFrame
 local module = frame:RegisterModule("Main")
 
 local function CharacterDropDown_Initialize()
-	local isAll = frame:GetCharacter() == 0
-	EDDM.UIDropDownMenu_AddButton({
-		text = ALL,
-		value = 0,
-		func = function(self)
-			local value = self.value
-			frame:SetCharacter(value)
-			EDDM.UIDropDownMenu_SetSelectedValue(frame.CharacterDropDown, value)
-			frame.ScrollFrame.update()
-		end,
-		checked = isAll,
-	})
-
-	EDDM.UIDropDownMenu_AddButton({
-		text = UnitName("player"),
-		value = 1,
-		func = function(self)
-			local value = self.value
-			frame:SetCharacter(value)
-			EDDM.UIDropDownMenu_SetSelectedValue(frame.CharacterDropDown, value)
-			frame.ScrollFrame.update()
-		end,
-		checked = not isAll,
-	})
+	local selectedCharIndex = frame:GetSelectedCharIndex()
+	local charList = frame:GetCharList()
+	for i, v in ipairs(charList) do
+		local zeroIndex = i - 1
+		if (zeroIndex == 2) then
+			EDDM.UIDropDownMenu_AddSeparator()
+		end
+		local name = v.name
+		local coloredName = name
+		if (v.class) then
+			local _, _, _, hex = GetClassColor(v.class)
+			coloredName = "|c" .. hex .. coloredName .. "|r"
+		end
+		EDDM.UIDropDownMenu_AddButton({
+			text = coloredName,
+			value = zeroIndex,
+			func = function(self)
+				local value = self.value
+				frame:InitAddonStateFor(name)
+				frame:SetSelectedCharIndex(value)
+				EDDM.UIDropDownMenu_SetSelectedValue(frame.CharacterDropDown, value)
+				frame.ScrollFrame.update()
+			end,
+			checked = selectedCharIndex == zeroIndex,
+		})
+	end
 end
 
-function frame:DidAddonStateChanged(addonNameOrIndex)
-	local initiallyEnabledAddons = frame:GetAddonsInitialState()
-	local state = frame:IsAddonSelected(addonNameOrIndex)
+function frame:DidAddonStateChanged(addonNameOrIndex, character)
+	local initiallyEnabledAddons = frame:GetAddonsInitialState(character)
+	local state = frame:IsAddonSelected(addonNameOrIndex, nil, character)
 	local name = frame.compat.GetAddOnInfo(addonNameOrIndex)
 	local initialState = initiallyEnabledAddons[name]
 	if (state ~= initialState) then
@@ -43,16 +45,16 @@ function frame:DidAddonStateChanged(addonNameOrIndex)
 	end
 end
 
-function frame:DidAnyAddonStateChanged()
+function frame:DidAnyAddonStateChanged(character)
 	for addonIndex = 1, frame.compat.GetNumAddOns() do
-		if (frame:DidAddonStateChanged(addonIndex)) then
+		if (frame:DidAddonStateChanged(addonIndex, character)) then
 			return true
 		end
 	end
 end
 
 function frame:UpdateOkButton()
-	if (frame:DidAnyAddonStateChanged()) then
+	if (frame:DidAnyAddonStateChanged(frame:GetCurrentPlayerInfo().name)) then
 		frame.edited = true
 		frame.OkButton:SetText(L["Reload UI"])
 	else
@@ -88,7 +90,7 @@ function module:Initialize()
 
 	frame.CharacterDropDown:SetPoint("TOPLEFT", 0, -30)
 	EDDM.UIDropDownMenu_Initialize(frame.CharacterDropDown, CharacterDropDown_Initialize)
-	EDDM.UIDropDownMenu_SetSelectedValue(frame.CharacterDropDown, frame:GetCharacter())
+	EDDM.UIDropDownMenu_SetSelectedValue(frame.CharacterDropDown, frame:GetSelectedCharIndex())
 
 	frame.CancelButton:SetPoint("BOTTOMRIGHT", -22, 4)
 	frame.CancelButton:SetSize(100, 22)
@@ -104,10 +106,12 @@ function module:Initialize()
 	frame.OkButton:SetText(OKAY)
 	frame.OkButton:SetScript("OnClick", function()
 		frame.compat.SaveAddOns()
-		frame.ScrollFrame.update()
-		frame:Hide()
 		if (frame.edited) then
 			ReloadUI()
+		else
+			frame:ClearInitialState()
+			frame.ScrollFrame.update()
+			frame:Hide()
 		end
 	end)
 

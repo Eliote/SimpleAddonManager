@@ -188,11 +188,12 @@ local function Checkbox_SetAddonState(self, enabled, addonIndex)
 	if (enabled) then
 		self:SetChecked(true)
 	else
-		local togglingMe = frame:GetCharacter() == 1
+		local togglingMe = frame:GetSelectedCharIndex() >= 1
 		local enabledSome = (not togglingMe) and frame:IsAddonSelected(addonIndex, true)
 		if (enabledSome) then
 			self:SetChecked(true)
-			local isEnabledByMe = frame.compat.GetAddOnEnableState(addonIndex, UnitName("player")) == 2
+			local character = frame:GetSelectedCharName()
+			local isEnabledByMe = frame.compat.GetAddOnEnableState(addonIndex, character) == 2
 			if (isEnabledByMe) then
 				checkedTexture:SetVertexColor(0.4, 1.0, 0.4)
 			else

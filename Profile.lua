@@ -120,7 +120,7 @@ local function ProfilesDropDownCreate()
 	}
 	local db = frame:GetDb()
 
-	local me = frame:GetPlayerInfo().id
+	local me = frame:GetCurrentPlayerInfo().id
 	local charsTable = frame:TableAsSortedPairList(db.autoProfile, function(k)
 		return k ~= me
 	end)
@@ -399,7 +399,7 @@ function module:Initialize()
 end
 
 function module:UpdatePlayerProfileAddons()
-	local playerInfo = frame:GetPlayerInfo()
+	local playerInfo = frame:GetCurrentPlayerInfo()
 	local db = frame:GetDb()
 	db.autoProfile = db.autoProfile or {}
 
