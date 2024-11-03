@@ -113,4 +113,6 @@ L["Hide icons"] = "Esconder ícones"
 L["Clear list"] = "Limpar lista"
 L["Are you sure you want to remove all automatic character profiles?"] = "Deseja mesmo remover todos os perfis automáticos de personagem?"
 L["Hold shift to add/remove AddOns that depends on it as well"] = "Hold shift to add/remove AddOns that depends on it as well"
+L["Categories: "] = "Categorias: "
+L["Profiles: "] = "Perfis: "
 --@end-do-not-package@
