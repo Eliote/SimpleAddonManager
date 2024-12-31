@@ -115,4 +115,8 @@ L["Are you sure you want to remove all automatic character profiles?"] = "Deseja
 L["Hold shift to add/remove AddOns that depends on it as well"] = "Hold shift to add/remove AddOns that depends on it as well"
 L["Categories: "] = "Categorias: "
 L["Profiles: "] = "Perfis: "
+L["CPU: "] = "CPU: "
+L["Average CPU: "] = "CPU Média: "
+L["Peak CPU: "] = "CPU Pico: "
+L["Encounter CPU: "] = "CPU Encontro: "
 --@end-do-not-package@

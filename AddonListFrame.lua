@@ -303,6 +303,35 @@ local function CategoriesForAddon(name)
 	return resultText
 end
 
+local function FormatProfilerPercent(pct)
+	local color = C.white
+	if (pct > 50) then color = C.yellow end
+	if (pct > 80) then color = C.red end
+	return color:WrapText(string.format("%.2f", pct)) .. C.white:WrapText(" %");
+end
+
+local function GetAddonMetricPercent(addonName, metric)
+	if (not C_AddOnProfiler or not C_AddOnProfiler.IsEnabled()) then
+		return ""
+	end
+	local overall = C_AddOnProfiler.GetOverallMetric(metric)
+	local addon = C_AddOnProfiler.GetAddOnMetric(addonName, metric)
+	if overall <= 0 then
+		return ""
+	end
+	local percent = addon / overall
+	return FormatProfilerPercent(percent * 100.0)
+end
+
+local function AddLineIfNotEmpty(ttp, title, info)
+	if (not info or info == "") then return end
+	ttp:AddLine(title .. info);
+end
+
+local function IsProfilerEnabled()
+	return C_AddOnProfiler and C_AddOnProfiler.IsEnabled()
+end
+
 local function UpdateTooltip(self)
 	local addonIndex = self.addon.index
 	local name, title, notes, _, reason, security = frame.compat.GetAddOnInfo(addonIndex)
@@ -334,7 +363,14 @@ local function UpdateTooltip(self)
 		if (author) then
 			GameTooltip:AddLine(L["Author: "] .. C.white:WrapText(strtrim(author)));
 		end
-		if (frame.compat.IsAddOnLoaded(addonIndex) and security ~= SECURE_PROTECTED_ADDON and security ~= SECURE_ADDON) then
+		local loaded = frame.compat.IsAddOnLoaded(addonIndex);
+		if (loaded and IsProfilerEnabled()) then
+			AddLineIfNotEmpty(GameTooltip, L["CPU: "], GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.RecentAverageTime));
+			AddLineIfNotEmpty(GameTooltip, L["Average CPU: "], GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.SessionAverageTime));
+			AddLineIfNotEmpty(GameTooltip, L["Peak CPU: "], GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.PeakTime));
+			AddLineIfNotEmpty(GameTooltip, L["Encounter CPU: "], GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.EncounterAverageTime));
+		end
+		if (loaded and security ~= SECURE_PROTECTED_ADDON and security ~= SECURE_ADDON) then
 			local mem = GetAddOnMemoryUsage(addonIndex)
 			GameTooltip:AddLine(L["Memory: "] .. C.white:WrapText(frame:FormatMemory(mem)));
 		end
@@ -359,9 +395,18 @@ local function UpdateTooltip(self)
 	GameTooltip:Show()
 end
 
+local time = 0
+local function UpdateTooltipThrottled(self)
+	local ctime = GetTime()
+	if (ctime - time > 1) then
+		time = ctime
+		UpdateTooltip(self)
+	end
+end
+
 local function AddonButtonOnEnter(self)
-	if (frame:GetDb().config.memoryUpdate > 0) then
-		self.UpdateTooltip = UpdateTooltip
+	if (frame:GetDb().config.memoryUpdate > 0 or IsProfilerEnabled()) then
+		self.UpdateTooltip = UpdateTooltipThrottled
 	end
 	UpdateTooltip(self)
 	GameTooltip:Show()
