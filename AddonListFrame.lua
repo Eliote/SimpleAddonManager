@@ -111,6 +111,22 @@ local function AddonRightClickMenu(addon)
 		{ text = title, isTitle = true, notCheckable = true },
 	}
 
+	if (frame:IsAddonInstalled(addonIndex)) then
+		table.insert(menu, {
+			text = L["Lock Addon"],
+			tooltipOnButton = true,
+			tooltipTitle = "",
+			tooltipText = L["Tip: You can also alt-click the addon in the list to lock/unlock it"],
+			func = function(_, _, _, checked)
+				frame:GetModule("Lock"):SetLockState(addonIndex, not checked)
+				frame:Update()
+			end,
+			checked = function()
+				return frame:GetModule("Lock"):IsAddonLocked(addonIndex)
+			end,
+		})
+	end
+
 	if (not frame.compat.IsAddOnLoaded(addonIndex) and frame.compat.IsAddOnLoadOnDemand(addonIndex) and reason == "DEMAND_LOADED") then
 		table.insert(menu, {
 			text = L["Load AddOn"],
@@ -202,8 +218,15 @@ local function Checkbox_SetAddonState(self, enabled, addonIndex)
 	local checkedTexture = self.CheckedTexture
 	checkedTexture:SetVertexColor(1, 1, 1)
 	checkedTexture:SetDesaturated(false)
+	self:Show()
+	self:GetParent().LockButton:Hide()
 
-	if (enabled) then
+	local isLocked = frame:GetModule("Lock"):IsAddonLocked(addonIndex)
+	if (isLocked) then
+		self:SetChecked(true)
+		self:Hide()
+		self:GetParent().LockButton:Show()
+	elseif (enabled) then
 		self:SetChecked(true)
 	else
 		local togglingMe = frame:GetSelectedCharIndex() >= 1
@@ -230,16 +253,32 @@ local function ToggleAddon(self)
 		return
 	end
 
-	local newValue = not frame:IsAddonSelected(addonIndex)
-	Checkbox_SetAddonState(self, newValue, addonIndex)
-	if (newValue) then
-		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
-		frame:EnableAddOn(addonIndex)
+	if (IsAltKeyDown()) then
+		local lockModule = frame:GetModule("Lock")
+		local isLocking = not lockModule:IsAddonLocked(addonIndex)
+		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_FAER_TAB)
+		if (isLocking) then
+			lockModule:LockAddon(addonIndex)
+		else
+			lockModule:UnlockAddon(addonIndex)
+		end
 	else
-		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
-		frame:DisableAddOn(addonIndex)
+		local isEnabling = not frame:IsAddonSelected(addonIndex)
+		Checkbox_SetAddonState(self, isEnabling, addonIndex)
+		if (isEnabling) then
+			PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+			frame:EnableAddOn(addonIndex)
+		else
+			PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
+			frame:DisableAddOn(addonIndex)
+		end
 	end
+
 	frame:Update()
+end
+
+local function LockButtonToggleAddon(self)
+	ToggleAddon(self:GetParent().EnabledButton)
 end
 
 local function AddonButtonOnClick(self, mouseButton)
@@ -535,6 +574,7 @@ local function UpdateList()
 			Checkbox_SetAddonState(button.EnabledButton, enabled, addonIndex)
 			button.EnabledButton:SetScript("OnClick", ToggleAddon)
 			button.EnabledButton:SetEnabled(security ~= BANNED_ADDON and addon.exists)
+			button.LockButton:SetScript("OnClick", LockButtonToggleAddon)
 
 			button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 			button:SetScript("OnClick", AddonButtonOnClick)

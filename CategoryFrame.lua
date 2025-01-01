@@ -148,6 +148,14 @@ local fixedCategories = {
 			return CommonCountFunction(self)
 		end
 	},
+	["!!!!!_04_LOCKED_CATEGORY"] = {
+		type = "fixed",
+		name = C.green:WrapText(L["Locked Addons"]),
+		addons = function(_, key)
+			return frame:GetModule("Lock"):IsAddonLocked(key)
+		end,
+		count = CommonCountFunction
+	},
 	["!!!!!_55_CHANGING_STATE"] = {
 		type = "fixed",
 		name = C.red:WrapText(L["Addons being modified"]),

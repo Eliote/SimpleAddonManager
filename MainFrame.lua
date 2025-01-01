@@ -96,6 +96,8 @@ function module:Initialize()
 	frame.CancelButton:SetSize(100, 22)
 	frame.CancelButton:SetText(CANCEL)
 	frame.CancelButton:SetScript("OnClick", function()
+		frame:GetModule("Lock"):RollbackChanges()
+
 		frame.compat.ResetAddOns()
 		frame.ScrollFrame.update()
 		frame:Hide()
@@ -105,6 +107,8 @@ function module:Initialize()
 	frame.OkButton:SetSize(100, 22)
 	frame.OkButton:SetText(OKAY)
 	frame.OkButton:SetScript("OnClick", function()
+		frame:GetModule("Lock"):ConfirmChanges()
+
 		frame.compat.SaveAddOns()
 		if (frame.edited) then
 			ReloadUI()
@@ -132,11 +136,16 @@ function module:Initialize()
 	frame.DisableAllButton:SetText(DISABLE_ALL_ADDONS)
 	frame.DisableAllButton:SetScript("OnClick", function()
 		local addonsList = frame:GetAddonsList()
+		local isSAMLocked = frame:GetModule("Lock"):IsAddonLocked(ADDON_NAME)
 		local disablingMe = false
-		for _, addon in pairs(addonsList) do
-			if (addon.key == ADDON_NAME) then
-				disablingMe = frame:IsAddonSelected(ADDON_NAME)
-				break
+
+		-- if SAM is locked, there's no need to ask if you want to keep it. [DisableAddon] will ignore it!
+		if (not isSAMLocked) then
+			for _, addon in pairs(addonsList) do
+				if (addon.key == ADDON_NAME) then
+					disablingMe = frame:IsAddonSelected(ADDON_NAME)
+					break
+				end
 			end
 		end
 		local function disableList()

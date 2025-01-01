@@ -71,6 +71,16 @@ local function ConfigDropDownCreate()
 			end,
 		},
 		{
+			text = L["Show warning dialog when a disabled but locked addon is detected"],
+			checked = function()
+				return db.lock.canShowWarning
+			end,
+			func = function()
+				db.lock.canShowWarning = not db.lock.canShowWarning
+				frame:Update()
+			end,
+		},
+		{
 			text = L["Memory Update"],
 			notCheckable = true,
 			hasArrow = true,

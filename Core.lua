@@ -123,8 +123,10 @@ function frame:ShowDialog(dialogInfo)
 	dialog.OnAlt = dialogInfo.funcAlt
 	dialog.OnShow = function(self, ...)
 		self:SetFrameStrata("FULLSCREEN_DIALOG")
-		self:ClearAllPoints()
-		self:SetPoint("TOP", frame, "TOP", 0, -120)
+		if (not dialogInfo.outsideFrame) then
+			self:ClearAllPoints()
+			self:SetPoint("TOP", frame, "TOP", 0, -120)
+		end
 		self.OldStrata = self:GetFrameStrata()
 		if (self.editBox) then
 			self.editBox:SetText("")
@@ -350,6 +352,7 @@ function frame:EnableAddOn(indexOrName)
 end
 
 function frame:DisableAddOn(indexOrName)
+	if (frame:GetModule("Lock"):IsAddonLocked(indexOrName)) then return end
 	local c = frame:GetSelectedCharName()
 	frame.compat.DisableAddOn(indexOrName, c)
 end

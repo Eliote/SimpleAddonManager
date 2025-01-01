@@ -50,3 +50,4 @@ Profile.lua
 Search.lua
 SlashCommand.lua
 AddonFinder.lua
+Lock.lua

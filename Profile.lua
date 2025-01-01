@@ -98,8 +98,18 @@ function module:LoadAddonsFromProfile(profileName, keepEnabledAddons)
 	if (not keepEnabledAddons) then
 		frame:DisableAllAddOns()
 	end
+	module:LoadAddons(addons)
+end
+
+function module:LoadAddons(addons)
 	for name, _ in pairs(addons) do
 		frame:EnableAddOn(name)
+	end
+	local locks = frame:GetModule("Lock"):GetLockedAddons()
+	for name, state in pairs(locks) do
+		if (state.enabled) then
+			frame:EnableAddOn(name)
+		end
 	end
 	frame:Update()
 end
@@ -161,10 +171,7 @@ local function ProfilesDropDownCreate()
 								function()
 									local enabledAddons = info.addons
 									frame:DisableAllAddOns()
-									for name, _ in pairs(enabledAddons) do
-										frame:EnableAddOn(name)
-									end
-									frame:Update()
+									module:LoadAddons(enabledAddons)
 								end
 						)
 					end
