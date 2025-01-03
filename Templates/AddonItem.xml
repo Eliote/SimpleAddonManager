@@ -42,20 +42,22 @@
                 <HighlightTexture file="Interface\Buttons\UI-CheckBox-Highlight" alphaMode="ADD"/>
                 <CheckedTexture parentKey="CheckedTexture" file="Interface\Buttons\UI-CheckBox-Check"/>
                 <DisabledCheckedTexture file="Interface\Buttons\UI-CheckBox-Check-Disabled"/>
+                <Frames>
+                    <Frame parentKey="LockIcon" enableMouse="false">
+                        <Size>
+                            <AbsDimension x="16" y="16"/>
+                        </Size>
+                        <Anchors>
+                            <Anchor point="BOTTOMRIGHT" x="3" y="0"/>
+                        </Anchors>
+                        <Layers>
+                            <Layer level="OVERLAY">
+                                <Texture file="Interface\AddOns\SimpleAddonManager\Templates\lock"/>
+                            </Layer>
+                        </Layers>
+                    </Frame>
+                </Frames>
             </CheckButton>
-            <Button parentKey="LockButton">
-                <Size>
-                    <AbsDimension x="24" y="24"/>
-                </Size>
-                <HitRectInsets>
-                    <AbsInset left="0" right="0" top="0" bottom="0"/>
-                </HitRectInsets>
-                <Anchors>
-                    <Anchor point="CENTER" relativeKey="$parent.EnabledButton" x="3" y="-1"/>
-                </Anchors>
-                <NormalTexture file="Interface\lfgframe\ui-lfg-icon-lock"/>
-                <HighlightTexture parentKey="Highlight" file="Interface\lfgframe\ui-lfg-icon-lock" alphaMode="ADD"/>
-            </Button>
             <Button parentKey="ExpandOrCollapseButton">
                 <Size x="13" y="13"/>
                 <Anchors>

@@ -218,14 +218,12 @@ local function Checkbox_SetAddonState(self, enabled, addonIndex)
 	local checkedTexture = self.CheckedTexture
 	checkedTexture:SetVertexColor(1, 1, 1)
 	checkedTexture:SetDesaturated(false)
-	self:Show()
-	self:GetParent().LockButton:Hide()
+	self.LockIcon:Hide()
 
 	local isLocked = frame:GetModule("Lock"):IsAddonLocked(addonIndex)
 	if (isLocked) then
 		self:SetChecked(true)
-		self:Hide()
-		self:GetParent().LockButton:Show()
+		self.LockIcon:Show()
 	elseif (enabled) then
 		self:SetChecked(true)
 	else
@@ -275,10 +273,6 @@ local function ToggleAddon(self)
 	end
 
 	frame:Update()
-end
-
-local function LockButtonToggleAddon(self)
-	ToggleAddon(self:GetParent().EnabledButton)
 end
 
 local function AddonButtonOnClick(self, mouseButton)
@@ -574,7 +568,6 @@ local function UpdateList()
 			Checkbox_SetAddonState(button.EnabledButton, enabled, addonIndex)
 			button.EnabledButton:SetScript("OnClick", ToggleAddon)
 			button.EnabledButton:SetEnabled(security ~= BANNED_ADDON and addon.exists)
-			button.LockButton:SetScript("OnClick", LockButtonToggleAddon)
 
 			button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 			button:SetScript("OnClick", AddonButtonOnClick)
