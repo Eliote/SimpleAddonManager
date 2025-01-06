@@ -222,9 +222,10 @@ local function Checkbox_SetAddonState(self, enabled, addonIndex)
 
 	local isLocked = frame:GetModule("Lock"):IsAddonLocked(addonIndex)
 	if (isLocked) then
-		self:SetChecked(true)
 		self.LockIcon:Show()
-	elseif (enabled) then
+	end
+
+	if (enabled) then
 		self:SetChecked(true)
 	else
 		local togglingMe = frame:GetSelectedCharIndex() >= 1
