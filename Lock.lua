@@ -80,7 +80,7 @@ function module:OnPlayerEnteringWorld()
 	local me = UnitName("player")
 	local showWarning = false
 	for addon, state in pairs(locks) do
-		if (not frame:IsAddonSelected(addon, nil, me) and state.enabled) then
+		if (frame:IsAddonInstalled(addon) and not frame:IsAddonSelected(addon, nil, me) and state.enabled) then
 			frame:EnableAddOn(addon)
 			showWarning = true
 		end
