@@ -154,7 +154,7 @@ function frame:ShowDialog(dialogInfo)
 	StaticPopup_Show("SimpleAddonManager_Dialog")
 end
 
-function frame:ShowInputDialog(text, func, funcOnShow)
+function frame:ShowInputDialog(text, func, funcOnShow, button2)
 	self:ShowDialog({
 		text = text,
 		hasEditBox = true,
@@ -163,6 +163,7 @@ function frame:ShowInputDialog(text, func, funcOnShow)
 		end,
 		funcOnShow = funcOnShow,
 		hideOnEscape = true,
+		button2 = button2,
 	})
 end
 

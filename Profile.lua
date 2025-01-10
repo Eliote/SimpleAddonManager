@@ -352,6 +352,26 @@ local function ProfilesDropDownCreate()
 				},
 				T.separatorInfo,
 				{
+					text = L["Export"],
+					notCheckable = true,
+					func = function()
+						EDDM.CloseDropDownMenus()
+
+						local data = module:ExportProfile(profileName)
+						--DevTools_Dump(data)
+						frame:ShowInputDialog(
+								L["Export text"],
+								function() end,
+								function(self)
+									self.editBox:SetText(data)
+									self.editBox:HighlightText()
+									self.editBox:SetFocus()
+								end,
+								false
+						)
+					end
+				},
+				{
 					text = L["Rename"],
 					notCheckable = true,
 					func = function()
@@ -388,6 +408,23 @@ local function ProfilesDropDownCreate()
 	end
 
 	table.insert(menu, T.separatorInfo)
+	table.insert(menu, {
+		text = L["Import"],
+		notCheckable = true,
+		func = function()
+			EDDM.CloseDropDownMenus()
+			frame:ShowInputDialog(
+					L["Paste the exported text here to import it"],
+					function(text)
+						module:ImportProfile(text)
+					end,
+					function(self)
+						self.editBox:SetText("")
+						self.editBox:SetFocus()
+					end
+			)
+		end
+	})
 	table.insert(menu, {
 		text = L["Create new profile"],
 		func = function()
@@ -457,4 +494,63 @@ end
 
 function module:OnPlayerLeavingWorld()
 	module:UpdatePlayerProfileAddons()
+end
+
+local function ExportProfile(out, profileName)
+	local db = frame:GetDb()
+	out.profiles = out.profiles or {}
+	if (out.profiles[profileName]) then return end
+
+	local profile = db.sets[profileName]
+	local exportData = {
+		addons = {},
+		profileDep = {}
+	}
+	out.profiles[profileName] = exportData
+
+	if (profile.addons) then
+		for addon, enabled in pairs(profile.addons) do
+			if (enabled) then
+				exportData.addons[addon] = true
+			end
+		end
+	end
+
+	if (profile.subSets) then
+		for subProfile, selected in pairs(profile.subSets) do
+			if (selected) then
+				exportData.profileDep[subProfile] = true
+				ExportProfile(out, subProfile)
+			end
+		end
+	end
+end
+
+function module:ExportProfile(profileName)
+	local t = {}
+	ExportProfile(t, profileName)
+	local json = LibStub("JsonLua-0.1")
+	return json.encode(t)
+end
+
+local function countTable(t)
+	if not t then return 0 end
+
+	local count = 0
+	for _ in pairs(t) do count = count + 1 end
+	return count
+end
+
+function module:ImportProfile(str)
+	local json = LibStub("JsonLua-0.1")
+	local t = json.decode(str).profiles
+	for profileName, data in pairs(t) do
+		local db = frame:GetDb()
+		local profile = {
+			addons = data.addons or {},
+			addonsCount = countTable(data.addons) or 0,
+			subSets = data.profileDep or {},
+		}
+		db.sets[profileName] = profile
+	end
 end

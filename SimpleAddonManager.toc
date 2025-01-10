@@ -19,6 +19,7 @@ Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
 Libs\LibDBIcon-1.0\LibDBIcon-1.0.lua
 Libs\ElioteDropDownMenu-1.0\ElioteDropDownMenu-1.0.lua
 Libs\AceConsole-3.0\AceConsole-3.0.lua
+Libs\Json\json.lua
 
 Localization\enUS.lua
 

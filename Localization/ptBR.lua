@@ -124,4 +124,8 @@ L["Tip: You can also alt-click the addon in the list to lock/unlock it"] = "Voc�
 L["Some locked addons had to be re-enabled during login. Do you want to reload UI to apply?"] = "Algúns addons travados foram reativados durante o login. Gostaria de recarregar UI para aplicar as mudanças?"
 L["Show warning dialog when a disabled but locked addon is detected"] = "Exibir aviso quando um addon travado e desativado é detectado"
 L["Locked Addons"] = "Addons travados"
+L["Export"] = "Exportar"
+L["Export text"] = "Texto para exportar"
+L["Import"] = "Importar"
+L["Paste the exported text here to import it"] = "Cole o texto exportado aqui para importa-lo"
 --@end-do-not-package@
