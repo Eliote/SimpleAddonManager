@@ -249,6 +249,13 @@ end
 
 frame:SetScript("OnShow", function()
 	frame:Initialize()
+
+	for _, module in frame:ModulesIterator() do
+		if (module.OnShow) then
+			module:OnShow()
+		end
+	end
+
 	frame:Update()
 	frame:SetCategoryVisibility(frame:GetDb().isCategoryFrameVisible, false)
 
@@ -265,13 +272,13 @@ function frame:Initialize()
 
 	frame.initialized = true
 
-	for _, module in pairs(frame:GetModules()) do
+	for _, module in frame:ModulesIterator() do
 		if (module.PreInitialize) then
 			module:PreInitialize()
 		end
 	end
 
-	for _, module in pairs(frame:GetModules()) do
+	for _, module in frame:ModulesIterator() do
 		if (module.Initialize) then
 			module:Initialize()
 		end
@@ -320,12 +327,20 @@ function frame:FormatMemory(value)
 end
 
 local modules = {}
-function frame:RegisterModule(name)
+local modulesDeps = {}
+local modulesDepsDirty = true
+local modulesOrder = {}
+function frame:RegisterModule(name, ...)
 	if (modules[name]) then
 		error("Module '" .. name .. "' already exists!")
 	end
 	local module = {}
 	modules[name] = module
+	modulesDepsDirty = true
+	modulesDeps[name] = { }
+	for i, v in ipairs({ ... }) do
+		modulesDeps[name][v] = true
+	end
 	return module
 end
 
@@ -335,6 +350,57 @@ end
 
 function frame:GetModules()
 	return modules
+end
+
+function frame:ModulesIterator()
+	if (modulesDepsDirty) then
+		local order = {}
+		local nodes = {}
+		local permMarkNode = {}
+		local tempMarkNode = {}
+		for m, _ in pairs(modules) do
+			nodes[m] = true
+		end
+
+		local function visit(nodeName)
+			if (permMarkNode[nodeName]) then return end
+			if (tempMarkNode[nodeName]) then
+				error("Cycle detected! " .. nodeName .. "")
+			end
+
+			tempMarkNode[nodeName] = true
+
+			for name, _ in pairs(modules) do
+				if (modulesDeps[nodeName][name]) then
+					visit(name)
+				end
+			end
+
+			permMarkNode[nodeName] = true
+			nodes[nodeName] = nil
+			table.insert(order, nodeName)
+		end
+
+		local safeLimit = 1000
+		while (safeLimit > 0) do
+			safeLimit = safeLimit - 1
+			local n = next(nodes)
+			if (not n) then break end
+			visit(n)
+		end
+
+		modulesDepsDirty = false
+		modulesOrder = order
+	end
+
+	local i = 0
+	return function()
+		i = i + 1
+		if (i <= #modulesOrder) then
+			local name = modulesOrder[i]
+			return modulesOrder[i], modules[name]
+		end
+	end
 end
 
 local addonsInitialState = {}
@@ -424,7 +490,7 @@ function frame:ADDON_LOADED(name)
 
 	frame:HookMenuButton()
 
-	for _, v in pairs(modules) do
+	for _, v in frame:ModulesIterator() do
 		if (v.OnLoad) then
 			v:OnLoad()
 		end
@@ -480,7 +546,7 @@ function frame:PLAYER_ENTERING_WORLD(...)
 		frame:InitAddonStateFor(playerName)
 	end
 
-	for _, v in pairs(modules) do
+	for _, v in frame:ModulesIterator() do
 		if (v.OnPlayerEnteringWorld) then
 			v:OnPlayerEnteringWorld(...)
 		end
@@ -488,7 +554,7 @@ function frame:PLAYER_ENTERING_WORLD(...)
 end
 
 function frame:PLAYER_LEAVING_WORLD(...)
-	for _, v in pairs(modules) do
+	for _, v in frame:ModulesIterator() do
 		if (v.OnPlayerLeavingWorld) then
 			v:OnPlayerLeavingWorld(...)
 		end

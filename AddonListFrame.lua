@@ -337,26 +337,6 @@ local function CategoriesForAddon(name)
 	return resultText
 end
 
-local function FormatProfilerPercent(pct)
-	local color = C.white
-	if (pct > 50) then color = C.yellow end
-	if (pct > 80) then color = C.red end
-	return color:WrapText(string.format("%.2f", pct)) .. C.white:WrapText(" %");
-end
-
-local function GetAddonMetricPercent(addonName, metric)
-	if (not C_AddOnProfiler or not C_AddOnProfiler.IsEnabled()) then
-		return ""
-	end
-	local overall = C_AddOnProfiler.GetOverallMetric(metric)
-	local addon = C_AddOnProfiler.GetAddOnMetric(addonName, metric)
-	if overall <= 0 then
-		return ""
-	end
-	local percent = addon / overall
-	return FormatProfilerPercent(percent * 100.0)
-end
-
 local function AddLineIfNotEmpty(ttp, title, info)
 	if (not info or info == "") then return end
 	ttp:AddLine(title .. info);
@@ -399,10 +379,11 @@ local function UpdateTooltip(self)
 		end
 		local loaded = frame.compat.IsAddOnLoaded(addonIndex);
 		if (loaded and IsProfilerEnabled()) then
-			AddLineIfNotEmpty(GameTooltip, L["CPU: "], GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.RecentAverageTime));
-			AddLineIfNotEmpty(GameTooltip, L["Average CPU: "], GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.SessionAverageTime));
-			AddLineIfNotEmpty(GameTooltip, L["Peak CPU: "], GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.PeakTime));
-			AddLineIfNotEmpty(GameTooltip, L["Encounter CPU: "], GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.EncounterAverageTime));
+			local profiler = frame:GetModule("AddonProfiler")
+			AddLineIfNotEmpty(GameTooltip, L["CPU: "], profiler:GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.RecentAverageTime));
+			AddLineIfNotEmpty(GameTooltip, L["Average CPU: "], profiler:GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.SessionAverageTime));
+			AddLineIfNotEmpty(GameTooltip, L["Peak CPU: "], profiler:GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.PeakTime));
+			AddLineIfNotEmpty(GameTooltip, L["Encounter CPU: "], profiler:GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.EncounterAverageTime));
 		end
 		if (loaded and security ~= SECURE_PROTECTED_ADDON and security ~= SECURE_ADDON) then
 			local mem = GetAddOnMemoryUsage(addonIndex)

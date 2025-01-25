@@ -52,3 +52,4 @@ Search.lua
 SlashCommand.lua
 AddonFinder.lua
 Lock.lua
+AddonProfiler.lua
