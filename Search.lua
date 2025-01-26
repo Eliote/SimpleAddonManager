@@ -4,13 +4,13 @@ local EDDM = LibStub("ElioteDropDownMenu-1.0")
 local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFrame")
 
 --- @type SimpleAddonManager
-local frame = T.AddonFrame
-local module = frame:RegisterModule("Search")
+local SAM = T.AddonFrame
+local module = SAM:RegisterModule("Search")
 
 local function SearchResultDropDownCreate()
-	local userCategories, tocCategories = frame:GetCategoryTables()
-	local sortedCategories = frame:TableKeysToSortedList(userCategories, tocCategories)
-	local addons = frame:GetAddonsList()
+	local userCategories, tocCategories = SAM:GetCategoryTables()
+	local sortedCategories = SAM:TableKeysToSortedList(userCategories, tocCategories)
+	local addons = SAM:GetAddonsList()
 	local function categoriesMenu(add)
 		local menu = {}
 		for _, categoryName in ipairs(sortedCategories) do
@@ -19,7 +19,7 @@ local function SearchResultDropDownCreate()
 				notCheckable = true,
 				func = function()
 					for _, addon in ipairs(addons) do
-						local name = frame.compat.GetAddOnInfo(addon.index)
+						local name = SAM.compat.GetAddOnInfo(addon.index)
 						if (not add and (not userCategories[categoryName] or not userCategories[categoryName].addons)) then
 							-- there is nothing to remove, avoid creating custom category
 							return
@@ -30,7 +30,7 @@ local function SearchResultDropDownCreate()
 						EDDM.CloseDropDownMenus()
 					end
 
-					frame:Update()
+					SAM:Update()
 				end,
 			})
 		end
@@ -60,32 +60,32 @@ local function SearchResultDropDownCreate()
 end
 
 function module:PreInitialize()
-	frame.SearchBox = CreateFrame("EditBox", nil, frame, "SearchBoxTemplate")
-	frame.ResultOptionsButton = Mixin(
-			CreateFrame("Button", nil, frame, "UIPanelSquareButton"),
+	SAM.SearchBox = CreateFrame("EditBox", nil, SAM, "SearchBoxTemplate")
+	SAM.ResultOptionsButton = Mixin(
+			CreateFrame("Button", nil, SAM, "UIPanelSquareButton"),
 			EDDM.HandlesGlobalMouseEventMixin
 	)
 end
 
 function module:Initialize()
-	frame.SearchBox:SetPoint("LEFT", frame.SetsButton, "RIGHT", 8, 0)
-	frame.SearchBox:SetSize(120, 20)
-	frame.SearchBox:SetScript("OnTextChanged", function(self)
+	SAM.SearchBox:SetPoint("LEFT", SAM.SetsButton, "RIGHT", 8, 0)
+	SAM.SearchBox:SetSize(120, 20)
+	SAM.SearchBox:SetScript("OnTextChanged", function(self)
 		SearchBoxTemplate_OnTextChanged(self)
-		frame:UpdateListFilters()
-		if (frame.SearchBox:GetText() == "") then
-			frame.ResultOptionsButton:Hide()
+		SAM:UpdateListFilters()
+		if (SAM.SearchBox:GetText() == "") then
+			SAM.ResultOptionsButton:Hide()
 		else
-			frame.ResultOptionsButton:Show()
+			SAM.ResultOptionsButton:Show()
 		end
 	end)
 
-	frame.ResultOptionsButton:SetPoint("LEFT", frame.SearchBox, "RIGHT", 1, 0)
-	frame.ResultOptionsButton:SetSize(26, 26)
-	frame.ResultOptionsButton.icon:SetAtlas("transmog-icon-downarrow")
-	frame.ResultOptionsButton.icon:SetTexCoord(0, 1, 0, 1)
-	frame.ResultOptionsButton.icon:SetSize(15, 9)
-	frame.ResultOptionsButton:SetScript("OnClick", function()
-		EDDM.ToggleEasyMenu(SearchResultDropDownCreate(), dropdownFrame, frame.ResultOptionsButton, 0, 0, "MENU")
+	SAM.ResultOptionsButton:SetPoint("LEFT", SAM.SearchBox, "RIGHT", 1, 0)
+	SAM.ResultOptionsButton:SetSize(26, 26)
+	SAM.ResultOptionsButton.icon:SetAtlas("transmog-icon-downarrow")
+	SAM.ResultOptionsButton.icon:SetTexCoord(0, 1, 0, 1)
+	SAM.ResultOptionsButton.icon:SetSize(15, 9)
+	SAM.ResultOptionsButton:SetScript("OnClick", function()
+		EDDM.ToggleEasyMenu(SearchResultDropDownCreate(), dropdownFrame, SAM.ResultOptionsButton, 0, 0, "MENU")
 	end)
 end

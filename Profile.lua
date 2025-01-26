@@ -4,11 +4,11 @@ local EDDM = LibStub("ElioteDropDownMenu-1.0")
 local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFrame")
 
 --- @type SimpleAddonManager
-local frame = T.AddonFrame
-local module = frame:RegisterModule("Profile")
+local SAM = T.AddonFrame
+local module = SAM:RegisterModule("Profile")
 
 local function MigrateProfileAddonsTable()
-	local db = frame:GetDb()
+	local db = SAM:GetDb()
 	if (not db.setsVersion) then
 		if (db.sets) then
 			for _, profile in pairs(db.sets) do
@@ -44,7 +44,7 @@ local function AddonsInProfilesRec(profiles)
 		end
 		recMark[name] = true
 
-		local db = frame:GetDb()
+		local db = SAM:GetDb()
 		if (not db.sets[name]) then
 			return
 		end
@@ -74,16 +74,16 @@ local function AddonsInProfilesRec(profiles)
 end
 
 local function SaveCurrentAddonsToProfile(profileName, depAware)
-	local db = frame:GetDb()
+	local db = SAM:GetDb()
 	local enabledAddons = {}
-	local count = frame.compat.GetNumAddOns()
+	local count = SAM.compat.GetNumAddOns()
 	db.sets[profileName] = db.sets[profileName] or {}
 	local subSets = db.sets[profileName].subSets or {}
 	local addonsCount = 0
 	local subSetsAddons = depAware and AddonsInProfilesRec(subSets) or {}
 	for i = 1, count do
-		local name = frame.compat.GetAddOnInfo(i)
-		if not subSetsAddons[name] and frame:IsAddonSelected(i) then
+		local name = SAM.compat.GetAddOnInfo(i)
+		if not subSetsAddons[name] and SAM:IsAddonSelected(i) then
 			enabledAddons[name] = true
 			addonsCount = addonsCount + 1
 		end
@@ -96,34 +96,34 @@ end
 function module:LoadAddonsFromProfile(profileName, keepEnabledAddons)
 	local addons = AddonsInProfilesRec({ [profileName] = true })
 	if (not keepEnabledAddons) then
-		frame:DisableAllAddOns()
+		SAM:DisableAllAddOns()
 	end
 	module:LoadAddons(addons)
 end
 
 function module:LoadAddons(addons)
 	for name, _ in pairs(addons) do
-		frame:EnableAddOn(name)
+		SAM:EnableAddOn(name)
 	end
-	local locks = frame:GetModule("Lock"):GetLockedAddons()
+	local locks = SAM:GetModule("Lock"):GetLockedAddons()
 	for name, state in pairs(locks) do
 		if (state.enabled) then
-			frame:EnableAddOn(name)
+			SAM:EnableAddOn(name)
 		end
 	end
-	frame:Update()
+	SAM:Update()
 end
 
 function module:UnloadAddonsFromProfile(profileName)
 	local addons = AddonsInProfilesRec({ [profileName] = true })
 	for name, _ in pairs(addons) do
-		frame:DisableAddOn(name)
+		SAM:DisableAddOn(name)
 	end
-	frame:Update()
+	SAM:Update()
 end
 
 function module:ShowLoadProfileAndReloadUIDialog(profile)
-	frame:ShowConfirmDialog(
+	SAM:ShowConfirmDialog(
 			L("Load profile '${profile}' and reload UI?", { profile = profile }),
 			function()
 				module:LoadAddonsFromProfile(profile)
@@ -136,10 +136,10 @@ local function ProfilesDropDownCreate()
 	local menu = {
 		{ text = L["Profiles"], isTitle = true, notCheckable = true },
 	}
-	local db = frame:GetDb()
+	local db = SAM:GetDb()
 
-	local me = frame:GetCurrentPlayerInfo().id
-	local charsTable = frame:TableAsSortedPairList(db.autoProfile, function(k)
+	local me = SAM:GetCurrentPlayerInfo().id
+	local charsTable = SAM:TableAsSortedPairList(db.autoProfile, function(k)
 		return k ~= me
 	end)
 	local charsMenuList = {}
@@ -166,11 +166,11 @@ local function ProfilesDropDownCreate()
 					notCheckable = true,
 					func = function()
 						EDDM.CloseDropDownMenus();
-						frame:ShowConfirmDialog(
+						SAM:ShowConfirmDialog(
 								L("Load the AddOns from '${char}'?", { char = title }),
 								function()
 									local enabledAddons = info.addons
-									frame:DisableAllAddOns()
+									SAM:DisableAllAddOns()
 									module:LoadAddons(enabledAddons)
 								end
 						)
@@ -186,7 +186,7 @@ local function ProfilesDropDownCreate()
 		notCheckable = true,
 		hasArrow = false,
 		func = function()
-			frame:ShowConfirmDialog(
+			SAM:ShowConfirmDialog(
 					L["Are you sure you want to remove all automatic character profiles?"],
 					function()
 						db.autoProfile = {}
@@ -197,7 +197,7 @@ local function ProfilesDropDownCreate()
 
 	table.insert(menu, T.separatorInfo)
 
-	local setsList = frame:TableAsSortedPairList(db.sets)
+	local setsList = SAM:TableAsSortedPairList(db.sets)
 
 	local function createSubSetsMenuListFor(profileName, parent)
 		local subSetsMenuList = {
@@ -225,7 +225,7 @@ local function ProfilesDropDownCreate()
 	end
 
 	local function addonsIn(set)
-		local list = frame:TableAsSortedPairList(set.addons)
+		local list = SAM:TableAsSortedPairList(set.addons)
 		local maxPerMenu = 30
 
 		local function next(from)
@@ -283,7 +283,7 @@ local function ProfilesDropDownCreate()
 					notCheckable = true,
 					func = function()
 						EDDM.CloseDropDownMenus();
-						frame:ShowConfirmDialog(
+						SAM:ShowConfirmDialog(
 								L("Save current addons, ignoring addons included in dependent profiles, into profile '${profile}'?", { profile = profileName }),
 								function()
 									SaveCurrentAddonsToProfile(profileName, true)
@@ -296,7 +296,7 @@ local function ProfilesDropDownCreate()
 					notCheckable = true,
 					func = function()
 						EDDM.CloseDropDownMenus();
-						frame:ShowConfirmDialog(
+						SAM:ShowConfirmDialog(
 								L("Save current addons in profile '${profile}'?", { profile = profileName }),
 								function()
 									SaveCurrentAddonsToProfile(profileName)
@@ -310,7 +310,7 @@ local function ProfilesDropDownCreate()
 					notCheckable = true,
 					func = function()
 						EDDM.CloseDropDownMenus();
-						frame:ShowConfirmDialog(
+						SAM:ShowConfirmDialog(
 								L("Load the profile '${profile}'?", { profile = profileName }),
 								function()
 									module:LoadAddonsFromProfile(profileName)
@@ -323,7 +323,7 @@ local function ProfilesDropDownCreate()
 					notCheckable = true,
 					func = function()
 						EDDM.CloseDropDownMenus();
-						frame:ShowConfirmDialog(
+						SAM:ShowConfirmDialog(
 								L("Enable addons from the profile '${profile}'?", { profile = profileName }),
 								function()
 									module:LoadAddonsFromProfile(profileName, true)
@@ -336,7 +336,7 @@ local function ProfilesDropDownCreate()
 					notCheckable = true,
 					func = function()
 						EDDM.CloseDropDownMenus();
-						frame:ShowConfirmDialog(
+						SAM:ShowConfirmDialog(
 								L("Disable addons from the profile '${profile}'?", { profile = profileName }),
 								function()
 									module:UnloadAddonsFromProfile(profileName, true)
@@ -359,7 +359,7 @@ local function ProfilesDropDownCreate()
 
 						local data = module:ExportProfile(profileName)
 						--DevTools_Dump(data)
-						frame:ShowInputDialog(
+						SAM:ShowInputDialog(
 								L["Export text"],
 								function() end,
 								function(self)
@@ -376,7 +376,7 @@ local function ProfilesDropDownCreate()
 					notCheckable = true,
 					func = function()
 						EDDM.CloseDropDownMenus();
-						frame:ShowInputDialog(
+						SAM:ShowInputDialog(
 								L("Enter the new name for the profile '${profile}'", { profile = profileName }),
 								function(text)
 									db.sets[text] = db.sets[profileName]
@@ -394,7 +394,7 @@ local function ProfilesDropDownCreate()
 					notCheckable = true,
 					func = function()
 						EDDM.CloseDropDownMenus();
-						frame:ShowConfirmDialog(
+						SAM:ShowConfirmDialog(
 								L("Delete the profile '${profile}'?", { profile = profileName }),
 								function()
 									db.sets[profileName] = nil
@@ -413,7 +413,7 @@ local function ProfilesDropDownCreate()
 		notCheckable = true,
 		func = function()
 			EDDM.CloseDropDownMenus()
-			frame:ShowInputDialog(
+			SAM:ShowInputDialog(
 					L["Paste the exported text here to import it"],
 					function(text)
 						module:ImportProfile(text)
@@ -428,7 +428,7 @@ local function ProfilesDropDownCreate()
 	table.insert(menu, {
 		text = L["Create new profile"],
 		func = function()
-			frame:ShowInputDialog(
+			SAM:ShowInputDialog(
 					L["Enter the name for the new profile"],
 					function(text)
 						SaveCurrentAddonsToProfile(text)
@@ -448,31 +448,31 @@ function module:OnLoad()
 end
 
 function module:PreInitialize()
-	frame.SetsButton = Mixin(
-			CreateFrame("Button", nil, frame, "UIPanelButtonTemplate"),
+	SAM.SetsButton = Mixin(
+			CreateFrame("Button", nil, SAM, "UIPanelButtonTemplate"),
 			EDDM.HandlesGlobalMouseEventMixin
 	)
 end
 
 function module:Initialize()
-	frame.SetsButton:SetPoint("LEFT", frame.CharacterDropDown.Button, "RIGHT", 4, 0)
-	frame.SetsButton:SetSize(80, 22)
-	frame.SetsButton:SetText(L["Profiles"])
-	frame.SetsButton:SetScript("OnClick", function()
-		EDDM.ToggleEasyMenu(ProfilesDropDownCreate(), dropdownFrame, frame.SetsButton, 0, 0, "MENU")
+	SAM.SetsButton:SetPoint("LEFT", SAM.CharacterDropDown.Button, "RIGHT", 4, 0)
+	SAM.SetsButton:SetSize(80, 22)
+	SAM.SetsButton:SetText(L["Profiles"])
+	SAM.SetsButton:SetScript("OnClick", function()
+		EDDM.ToggleEasyMenu(ProfilesDropDownCreate(), dropdownFrame, SAM.SetsButton, 0, 0, "MENU")
 	end)
 end
 
 function module:UpdatePlayerProfileAddons()
-	local playerInfo = frame:GetCurrentPlayerInfo()
-	local db = frame:GetDb()
+	local playerInfo = SAM:GetCurrentPlayerInfo()
+	local db = SAM:GetDb()
 	db.autoProfile = db.autoProfile or {}
 
 	local addons = {}
 	local addonsCount = 1
-	for addonIndex = 1, frame.compat.GetNumAddOns() do
-		local addonName = frame.compat.GetAddOnInfo(addonIndex)
-		if (frame.compat.GetAddOnEnableState(addonIndex, playerInfo.name) > 0) then
+	for addonIndex = 1, SAM.compat.GetNumAddOns() do
+		local addonName = SAM.compat.GetAddOnInfo(addonIndex)
+		if (SAM.compat.GetAddOnEnableState(addonIndex, playerInfo.name) > 0) then
 			addons[addonName] = true
 			addonsCount = addonsCount + 1
 		end
@@ -497,7 +497,7 @@ function module:OnPlayerLeavingWorld()
 end
 
 local function ExportProfile(out, profileName)
-	local db = frame:GetDb()
+	local db = SAM:GetDb()
 	out.profiles = out.profiles or {}
 	if (out.profiles[profileName]) then return end
 
@@ -545,7 +545,7 @@ function module:ImportProfile(str)
 	local json = LibStub("JsonLua-0.1")
 	local t = json.decode(str).profiles
 	for profileName, data in pairs(t) do
-		local db = frame:GetDb()
+		local db = SAM:GetDb()
 		local profile = {
 			addons = data.addons or {},
 			addonsCount = countTable(data.addons) or 0,

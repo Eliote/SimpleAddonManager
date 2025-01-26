@@ -2,11 +2,11 @@ local ADDON_NAME, T = ...
 local L = T.L
 
 --- @type SimpleAddonManager
-local frame = T.AddonFrame
-local module = frame:RegisterModule("Lock")
+local SAM = T.AddonFrame
+local module = SAM:RegisterModule("Lock")
 
 function module:IsAddonLocked(nameOrIndex)
-	local name = frame.compat.GetAddOnInfo(nameOrIndex)
+	local name = SAM.compat.GetAddOnInfo(nameOrIndex)
 	local locks = module:GetLockedAddons()
 	local state = locks[name]
 	return state and state.enabled
@@ -22,11 +22,11 @@ end
 
 function module:SetLockState(nameOrIndex, isLocking)
 	local previousState = module:IsAddonLocked(nameOrIndex)
-	local name = frame.compat.GetAddOnInfo(nameOrIndex)
+	local name = SAM.compat.GetAddOnInfo(nameOrIndex)
 	local locks = module:GetLockedAddons()
 	if (isLocking) then
 		-- enable the addon for everyone
-		frame.compat.EnableAddOn(nameOrIndex, nil)
+		SAM.compat.EnableAddOn(nameOrIndex, nil)
 
 		locks[name] = locks[name] or {}
 		locks[name].enabled = isLocking
@@ -57,12 +57,12 @@ function module:ConfirmChanges()
 end
 
 function module:GetLockedAddons()
-	return frame:GetDb().lock.addons
+	return SAM:GetDb().lock.addons
 end
 
 function module:OnLoad()
-	local db = frame:GetDb()
-	frame:CreateDefaultOptions(db, {
+	local db = SAM:GetDb()
+	SAM:CreateDefaultOptions(db, {
 		lock = {
 			addons = { [ADDON_NAME] = { enabled = true } },
 			canShowWarning = true,
@@ -80,14 +80,14 @@ function module:OnPlayerEnteringWorld()
 	local me = UnitName("player")
 	local showWarning = false
 	for addon, state in pairs(locks) do
-		if (frame:IsAddonInstalled(addon) and not frame:IsAddonSelected(addon, nil, me) and state.enabled) then
-			frame:EnableAddOn(addon)
+		if (SAM:IsAddonInstalled(addon) and not SAM:IsAddonSelected(addon, nil, me) and state.enabled) then
+			SAM:EnableAddOn(addon)
 			showWarning = true
 		end
 	end
-	local canShowWarning = frame:GetDb().lock.canShowWarning
+	local canShowWarning = SAM:GetDb().lock.canShowWarning
 	if (showWarning and canShowWarning) then
-		frame:ShowDialog({
+		SAM:ShowDialog({
 			text = L["Some locked addons had to be re-enabled during login. Do you want to reload UI to apply?"],
 			funcAccept = function()
 				ReloadUI()

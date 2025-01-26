@@ -7,40 +7,40 @@ local selectedCharIndex -- [0] for all characters, [1] for player name
 local playerName
 
 --- @class SimpleAddonManager
-local frame = CreateFrame("Frame", ADDON_NAME, UIParent, "ButtonFrameTemplate")
-ButtonFrameTemplate_HidePortrait(frame)
-frame:Hide()
-T.AddonFrame = frame
-frame.MIN_SIZE_W = 470
-frame.MIN_SIZE_H = 400
-frame.CATEGORY_SIZE_W = 250
-frame:SetFrameStrata("FULLSCREEN")
-frame:SetPoint("CENTER", 0, 24)
-frame:SetSize(frame.MIN_SIZE_W, frame.MIN_SIZE_H)
-frame:SetResizable(true)
-frame:SetMovable(true)
-frame:EnableMouse(true)
-frame:SetClampedToScreen(true)
-if (frame.SetResizeBounds) then
-	frame.SetMinResize = function(self, w, h)
+local SAM = CreateFrame("Frame", ADDON_NAME, UIParent, "ButtonFrameTemplate")
+ButtonFrameTemplate_HidePortrait(SAM)
+SAM:Hide()
+T.AddonFrame = SAM
+SAM.MIN_SIZE_W = 470
+SAM.MIN_SIZE_H = 400
+SAM.CATEGORY_SIZE_W = 250
+SAM:SetFrameStrata("FULLSCREEN")
+SAM:SetPoint("CENTER", 0, 24)
+SAM:SetSize(SAM.MIN_SIZE_W, SAM.MIN_SIZE_H)
+SAM:SetResizable(true)
+SAM:SetMovable(true)
+SAM:EnableMouse(true)
+SAM:SetClampedToScreen(true)
+if (SAM.SetResizeBounds) then
+	SAM.SetMinResize = function(self, w, h)
 		self:SetResizeBounds(w, h)
 		local cw, ch = self:GetSize()
 		self:SetSize(cw < w and w or cw, ch < h and h or ch)
 	end
 end
-frame:SetMinResize(frame.MIN_SIZE_W, frame.MIN_SIZE_H)
-frame:SetScript("OnMouseDown", function(self)
+SAM:SetMinResize(SAM.MIN_SIZE_W, SAM.MIN_SIZE_H)
+SAM:SetScript("OnMouseDown", function(self)
 	self:StartMoving()
 end)
-frame:SetScript("OnMouseUp", function(self)
+SAM:SetScript("OnMouseUp", function(self)
 	self:StopMovingOrSizing()
 end)
-frame:SetScript("OnHide", function()
+SAM:SetScript("OnHide", function()
 	StaticPopup_Hide("SimpleAddonManager_Dialog")
 end)
-table.insert(UISpecialFrames, frame:GetName()) -- Register frame to be closed with ESC
+table.insert(UISpecialFrames, SAM:GetName()) -- Register frame to be closed with ESC
 
-function frame:GetDb()
+function SAM:GetDb()
 	return SimpleAddonManagerDB
 end
 
@@ -102,7 +102,7 @@ T.closeMenuInfo = {
 	notCheckable = true,
 };
 
-function frame:CreateDefaultOptions(db, defaults)
+function SAM:CreateDefaultOptions(db, defaults)
 	if (defaults[1]) then
 		error("array with defaults is not supported!")
 	end
@@ -110,12 +110,12 @@ function frame:CreateDefaultOptions(db, defaults)
 		if (db[k] == nil) then
 			db[k] = v
 		elseif (type(v) == "table") then
-			frame:CreateDefaultOptions(db[k], v)
+			SAM:CreateDefaultOptions(db[k], v)
 		end
 	end
 end
 
-function frame:ShowDialog(dialogInfo)
+function SAM:ShowDialog(dialogInfo)
 	local dialog = StaticPopupDialogs["SimpleAddonManager_Dialog"]
 	dialog.text = dialogInfo.text
 	dialog.OnAccept = dialogInfo.funcAccept
@@ -125,7 +125,7 @@ function frame:ShowDialog(dialogInfo)
 		self:SetFrameStrata("FULLSCREEN_DIALOG")
 		if (not dialogInfo.outsideFrame) then
 			self:ClearAllPoints()
-			self:SetPoint("TOP", frame, "TOP", 0, -120)
+			self:SetPoint("TOP", SAM, "TOP", 0, -120)
 		end
 		self.OldStrata = self:GetFrameStrata()
 		if (self.editBox) then
@@ -154,7 +154,7 @@ function frame:ShowDialog(dialogInfo)
 	StaticPopup_Show("SimpleAddonManager_Dialog")
 end
 
-function frame:ShowInputDialog(text, func, funcOnShow, button2)
+function SAM:ShowInputDialog(text, func, funcOnShow, button2)
 	self:ShowDialog({
 		text = text,
 		hasEditBox = true,
@@ -167,7 +167,7 @@ function frame:ShowInputDialog(text, func, funcOnShow, button2)
 	})
 end
 
-function frame:ShowConfirmDialog(text, func)
+function SAM:ShowConfirmDialog(text, func)
 	self:ShowDialog({
 		text = text,
 		funcAccept = func,
@@ -175,7 +175,7 @@ function frame:ShowConfirmDialog(text, func)
 	})
 end
 
-function frame:ShowWarningDialog(text, func)
+function SAM:ShowWarningDialog(text, func)
 	self:ShowDialog({
 		text = text,
 		funcAccept = func,
@@ -185,7 +185,7 @@ function frame:ShowWarningDialog(text, func)
 	})
 end
 
-function frame:ShowYesNoDialog(text, funcYes, funcNo)
+function SAM:ShowYesNoDialog(text, funcYes, funcNo)
 	self:ShowDialog({
 		text = text,
 		funcAccept = funcYes,
@@ -196,7 +196,7 @@ function frame:ShowYesNoDialog(text, funcYes, funcNo)
 	})
 end
 
-function frame:ShowYesNoCancelDialog(text, funcYes, funcNo, funcCancel)
+function SAM:ShowYesNoCancelDialog(text, funcYes, funcNo, funcCancel)
 	self:ShowDialog({
 		text = text,
 		funcAccept = funcYes,
@@ -208,84 +208,84 @@ function frame:ShowYesNoCancelDialog(text, funcYes, funcNo, funcCancel)
 	})
 end
 
-function frame:IsAddonSelected(nameOrIndex, forSome, character)
+function SAM:IsAddonSelected(nameOrIndex, forSome, character)
 	if (forSome) then
-		local state = frame.compat.GetAddOnEnableState(nameOrIndex, nil)
+		local state = SAM.compat.GetAddOnEnableState(nameOrIndex, nil)
 		return state == 1
 	end
-	local char = character or frame:GetSelectedCharName()
+	local char = character or SAM:GetSelectedCharName()
 	if (character == true) then
 		char = nil
 	end
-	local state = frame.compat.GetAddOnEnableState(nameOrIndex, char)
+	local state = SAM.compat.GetAddOnEnableState(nameOrIndex, char)
 	return state == 2
 end
 
-function frame:GetSelectedCharIndex()
+function SAM:GetSelectedCharIndex()
 	return selectedCharIndex or 0
 end
 
-function frame:GetSelectedCharName()
+function SAM:GetSelectedCharName()
 	if (selectedCharIndex >= 1) then return orderedCharList[selectedCharIndex + 1].name end
 	return nil
 end
 
-function frame:SetSelectedCharIndex(value)
+function SAM:SetSelectedCharIndex(value)
 	selectedCharIndex = value
-	frame:GetDb().config.selectedCharacter = value
+	SAM:GetDb().config.selectedCharacter = value
 end
 
-function frame:GetCharList()
+function SAM:GetCharList()
 	return orderedCharList
 end
 
-function frame:Update()
-	if (frame.initialized) then
-		frame:UpdateCategoryFrame()
-		frame:UpdateListFilters()
-		frame:UpdateOkButton()
+function SAM:Update()
+	if (SAM.initialized) then
+		SAM:UpdateCategoryFrame()
+		SAM:UpdateListFilters()
+		SAM:UpdateOkButton()
 	end
 end
 
-frame:SetScript("OnShow", function()
-	frame:Initialize()
+SAM:SetScript("OnShow", function()
+	SAM:Initialize()
 
-	for _, module in frame:ModulesIterator() do
+	for _, module in SAM:ModulesIterator() do
 		if (module.OnShow) then
 			module:OnShow()
 		end
 	end
 
-	frame:Update()
-	frame:SetCategoryVisibility(frame:GetDb().isCategoryFrameVisible, false)
+	SAM:Update()
+	SAM:SetCategoryVisibility(SAM:GetDb().isCategoryFrameVisible, false)
 
-	local db = frame:GetDb()
+	local db = SAM:GetDb()
 	if (db.config.autofocusSearch) then
-		frame.SearchBox:SetFocus()
+		SAM.SearchBox:SetFocus()
 	end
 end)
 
-function frame:Initialize()
-	if (frame.initialized) then
+function SAM:Initialize()
+	if (SAM.initialized) then
 		return
 	end
 
-	frame.initialized = true
+	SAM.initialized = true
 
-	for _, module in frame:ModulesIterator() do
+	for _, module in SAM:ModulesIterator() do
 		if (module.PreInitialize) then
 			module:PreInitialize()
 		end
 	end
 
-	for _, module in frame:ModulesIterator() do
+	for _, module in SAM:ModulesIterator() do
 		if (module.Initialize) then
 			module:Initialize()
 		end
 	end
 end
 
-function frame:TableKeysToSortedList(...)
+function SAM:TableKeysToSortedList(...)
 	local list = {}
 	local added = {}
 	for _, t in ipairs({ ... }) do
@@ -300,7 +300,7 @@ function frame:TableKeysToSortedList(...)
 	return list
 end
 
-function frame:TableAsSortedPairList(t, filter)
+function SAM:TableAsSortedPairList(t, filter)
 	local list = {}
 	for key, v in pairs(t) do
 		if (filter == nil or filter(key, v)) then
@@ -317,7 +317,7 @@ function frame:TableAsSortedPairList(t, filter)
 	return list
 end
 
-function frame:FormatMemory(value)
+function SAM:FormatMemory(value)
 	if (value >= 1000) then
 		value = value / 1000
 		return format("%.2f MB", value)
@@ -330,7 +330,7 @@ local modules = {}
 local modulesDeps = {}
 local modulesDepsDirty = true
 local modulesOrder = {}
-function frame:RegisterModule(name, ...)
+function SAM:RegisterModule(name, ...)
 	if (modules[name]) then
 		error("Module '" .. name .. "' already exists!")
 	end
@@ -344,15 +344,15 @@ function frame:RegisterModule(name, ...)
 	return module
 end
 
-function frame:GetModule(name)
+function SAM:GetModule(name)
 	return modules[name]
 end
 
-function frame:GetModules()
+function SAM:GetModules()
 	return modules
 end
 
-function frame:ModulesIterator()
+function SAM:ModulesIterator()
 	if (modulesDepsDirty) then
 		local order = {}
 		local nodes = {}
@@ -404,44 +404,44 @@ function frame:ModulesIterator()
 end
 
 local addonsInitialState = {}
-function frame:GetAddonsInitialState(character)
+function SAM:GetAddonsInitialState(character)
 	return addonsInitialState[character or true] -- true represents "all"/nil
 end
 
-function frame:IsAddonInstalled(indexOrName)
-	local _, _, _, _, reason = frame.compat.GetAddOnInfo(indexOrName)
+function SAM:IsAddonInstalled(indexOrName)
+	local _, _, _, _, reason = SAM.compat.GetAddOnInfo(indexOrName)
 	return reason ~= "MISSING"
 end
 
-function frame:EnableAddOn(indexOrName)
-	local c = frame:GetSelectedCharName()
-	frame.compat.EnableAddOn(indexOrName, c)
+function SAM:EnableAddOn(indexOrName)
+	local c = SAM:GetSelectedCharName()
+	SAM.compat.EnableAddOn(indexOrName, c)
 end
 
-function frame:DisableAddOn(indexOrName)
-	if (frame:GetModule("Lock"):IsAddonLocked(indexOrName)) then return end
-	local c = frame:GetSelectedCharName()
-	frame.compat.DisableAddOn(indexOrName, c)
+function SAM:DisableAddOn(indexOrName)
+	if (SAM:GetModule("Lock"):IsAddonLocked(indexOrName)) then return end
+	local c = SAM:GetSelectedCharName()
+	SAM.compat.DisableAddOn(indexOrName, c)
 end
 
-function frame:EnableAllAddOns()
-	local c = frame:GetSelectedCharName()
-	frame.compat.EnableAllAddOns(c)
+function SAM:EnableAllAddOns()
+	local c = SAM:GetSelectedCharName()
+	SAM.compat.EnableAllAddOns(c)
 end
 
-function frame:DisableAllAddOns()
-	local c = frame:GetSelectedCharName()
-	frame.compat.DisableAllAddOns(c)
+function SAM:DisableAllAddOns()
+	local c = SAM:GetSelectedCharName()
+	SAM.compat.DisableAllAddOns(c)
 end
 
 local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
-function frame:GetAddOnMetadata(addon, field)
+function SAM:GetAddOnMetadata(addon, field)
 	return GetAddOnMetadata(addon, field)
 end
 
 -- When entering/leaving lfg, realm returns nil. Cache to avoid errors.
 local nameCache, realmCache, classColor
-function frame:GetCurrentPlayerInfo()
+function SAM:GetCurrentPlayerInfo()
 	if (nameCache == nil) then
 		nameCache, realmCache = UnitNameUnmodified("player")
 		if (realmCache == nil or realmCache == "") then
@@ -457,14 +457,14 @@ function frame:GetCurrentPlayerInfo()
 	}
 end
 
-frame:SetScript("OnEvent", function(self, event, ...)
+SAM:SetScript("OnEvent", function(self, event, ...)
 	self[event](self, ...)
 end)
-frame:RegisterEvent("ADDON_LOADED")
-frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-frame:RegisterEvent("PLAYER_LEAVING_WORLD")
+SAM:RegisterEvent("ADDON_LOADED")
+SAM:RegisterEvent("PLAYER_ENTERING_WORLD")
+SAM:RegisterEvent("PLAYER_LEAVING_WORLD")
 
-function frame:ADDON_LOADED(name)
+function SAM:ADDON_LOADED(name)
 	if name ~= ADDON_NAME then
 		return
 	end
@@ -476,7 +476,7 @@ function frame:ADDON_LOADED(name)
 	SimpleAddonManagerDB.categories = SimpleAddonManagerDB.categories or {}
 	SimpleAddonManagerDB.config = SimpleAddonManagerDB.config or {}
 
-	frame:CreateDefaultOptions(SimpleAddonManagerDB.config, {
+	SAM:CreateDefaultOptions(SimpleAddonManagerDB.config, {
 		showVersions = false,
 		hookMenuButton = true,
 		characterList = {},
@@ -488,44 +488,44 @@ function frame:ADDON_LOADED(name)
 		selectedCharIndex = 1
 	end
 
-	frame:HookMenuButton()
+	SAM:HookMenuButton()
 
-	for _, v in frame:ModulesIterator() do
+	for _, v in SAM:ModulesIterator() do
 		if (v.OnLoad) then
 			v:OnLoad()
 		end
 	end
 end
 
-function frame:InitAddonStateFor(character)
+function SAM:InitAddonStateFor(character)
 	if (addonsInitialState[character]) then return end
 
 	-- load initial state
 	addonsInitialState[character] = {}
-	for addonIndex = 1, frame.compat.GetNumAddOns() do
-		local addonName = frame.compat.GetAddOnInfo(addonIndex)
-		addonsInitialState[character][addonName] = frame:IsAddonSelected(addonIndex, nil, character)
+	for addonIndex = 1, SAM.compat.GetNumAddOns() do
+		local addonName = SAM.compat.GetAddOnInfo(addonIndex)
+		addonsInitialState[character][addonName] = SAM:IsAddonSelected(addonIndex, nil, character)
 	end
 end
 
-function frame:ClearInitialState()
+function SAM:ClearInitialState()
 	addonsInitialState = {}
-	frame:InitAddonStateFor(true)
-	frame:InitAddonStateFor(playerName)
-	local selectedChar = frame:GetSelectedCharName()
+	SAM:InitAddonStateFor(true)
+	SAM:InitAddonStateFor(playerName)
+	local selectedChar = SAM:GetSelectedCharName()
 	if (selectedChar) then
-		frame:InitAddonStateFor(selectedChar)
+		SAM:InitAddonStateFor(selectedChar)
 	end
 end
 
-function frame:PLAYER_ENTERING_WORLD(...)
+function SAM:PLAYER_ENTERING_WORLD(...)
 	playerName = UnitName("player")
 
 	local isInitialLogin, isReloadingUi = ...
 	if (isInitialLogin or isReloadingUi) then
 		-- init player list
 		local realm = GetRealmName()
-		local charList = frame:GetDb().config.characterList
+		local charList = SAM:GetDb().config.characterList
 		charList[realm] = charList[realm] or {}
 
 		local _, classFile = UnitClass("player")
@@ -542,27 +542,27 @@ function frame:PLAYER_ENTERING_WORLD(...)
 		table.insert(orderedCharList, 2, { name = playerName, class = classFile })
 
 		-- load initial state
-		frame:InitAddonStateFor(true)
-		frame:InitAddonStateFor(playerName)
+		SAM:InitAddonStateFor(true)
+		SAM:InitAddonStateFor(playerName)
 	end
 
-	for _, v in frame:ModulesIterator() do
+	for _, v in SAM:ModulesIterator() do
 		if (v.OnPlayerEnteringWorld) then
 			v:OnPlayerEnteringWorld(...)
 		end
 	end
 end
 
-function frame:PLAYER_LEAVING_WORLD(...)
-	for _, v in frame:ModulesIterator() do
+function SAM:PLAYER_LEAVING_WORLD(...)
+	for _, v in SAM:ModulesIterator() do
 		if (v.OnPlayerLeavingWorld) then
 			v:OnPlayerLeavingWorld(...)
 		end
 	end
 end
 
-function frame:HookMenuButton()
-	if (frame.isMenuHooked or not frame:GetDb().config.hookMenuButton) then
+function SAM:HookMenuButton()
+	if (SAM.isMenuHooked or not SAM:GetDb().config.hookMenuButton) then
 		return
 	end
 
@@ -570,10 +570,10 @@ function frame:HookMenuButton()
 		local function overrideSetScript(widget)
 			local original = widget:GetScript("OnClick")
 			widget:SetScript("OnClick", function()
-				if (frame:GetDb().config.hookMenuButton) then
+				if (SAM:GetDb().config.hookMenuButton) then
 					PlaySound(SOUNDKIT.IG_MAINMENU_OPTION)
 					HideUIPanel(GameMenuFrame)
-					ShowUIPanel(frame)
+					ShowUIPanel(SAM)
 				else
 					original()
 				end
@@ -594,10 +594,10 @@ function frame:HookMenuButton()
 		end
 	end)
 
-	frame.isMenuHooked = true
+	SAM.isMenuHooked = true
 end
 
-function frame.HybridScrollFrame_ShiftAwareOnScrollWheel(self, delta, step)
+function SAM.HybridScrollFrame_ShiftAwareOnScrollWheel(self, delta, step)
 	step = step or self.stepSize or self.buttonHeight
 	if (IsShiftKeyDown()) then
 		step = step * 10;

@@ -3,8 +3,8 @@ local L = T.L
 local C = T.Color
 
 --- @type SimpleAddonManager
-local frame = T.AddonFrame
-local module = frame:RegisterModule("Filter")
+local SAM = T.AddonFrame
+local module = SAM:RegisterModule("Filter")
 
 local function AddonsInCategoriesFunc(categories)
 	if categories == nil or next(categories) == nil then
@@ -15,7 +15,7 @@ local function AddonsInCategoriesFunc(categories)
 	local m = {}
 	local fixedCategories = {}
 	for categoryName, _ in pairs(categories) do
-		local userTable, tocTable, fixedTable = frame:GetCategoryTable(categoryName)
+		local userTable, tocTable, fixedTable = SAM:GetCategoryTable(categoryName)
 		if (userTable) then
 			for name, _ in pairs(userTable.addons) do
 				m[name] = true
@@ -59,7 +59,7 @@ local sortingFunctionMap = {
 }
 
 local function SortAddons(list)
-	local db = frame:GetDb()
+	local db = SAM:GetDb()
 	local sortFunc = sortingFunctionMap[db.config.sorting]
 	if (sortFunc) then
 		table.sort(list, sortFunc)
@@ -67,12 +67,12 @@ local function SortAddons(list)
 end
 
 local function AddonMatchFilter(addonIndex, filterLower, inCategoriesFunc)
-	local name, title, _, _, reason = frame.compat.GetAddOnInfo(addonIndex)
+	local name, title, _, _, reason = SAM.compat.GetAddOnInfo(addonIndex)
 	if (not inCategoriesFunc(name)) then
 		return false
 	end
 
-	local searchBy = frame:GetDb().config.searchBy
+	local searchBy = SAM:GetDb().config.searchBy
 	if (searchBy.name and name:lower():find(filterLower, 0, true)) then
 		return true
 	end
@@ -81,7 +81,7 @@ local function AddonMatchFilter(addonIndex, filterLower, inCategoriesFunc)
 	end
 	if (searchBy.author) then
 		if (reason ~= "MISSING") then
-			local author = frame:GetAddOnMetadata(addonIndex, "Author")
+			local author = SAM:GetAddOnMetadata(addonIndex, "Author")
 			if (author and author:lower():find(filterLower, 0, true)) then
 				return true
 			end
@@ -110,14 +110,14 @@ local function GetOrCreateAddonTableWithFilter(
 	end
 
 	if (pool[key] == nil) then
-		local _, title, _, _, _, security = frame.compat.GetAddOnInfo(key)
+		local _, title, _, _, _, security = SAM.compat.GetAddOnInfo(key)
 		local isSecure = security == "SECURE"
 		local exposeAddon = (exposeBlizzardDep) or not isSecure
 		if (exposeAddon and AddonMatchFilter(key, filterLower, inCategoriesFunc)) then
 			node = {
 				dep = {},
 				children = {},
-				exists = frame:IsAddonInstalled(key),
+				exists = SAM:IsAddonInstalled(key),
 				index = key,
 				key = strtrim(key),
 				name = key:lower(),
@@ -127,10 +127,10 @@ local function GetOrCreateAddonTableWithFilter(
 			}
 			pool[key] = node
 			if (createChildren and node.exists) then
-				local deps = { frame.compat.GetAddOnDependencies(key) }
+				local deps = { SAM.compat.GetAddOnDependencies(key) }
 				for _, depName in ipairs(deps) do
 					depName = strtrim(depName)
-					if (addUnknownDep or frame:IsAddonInstalled(depName)) then
+					if (addUnknownDep or SAM:IsAddonInstalled(depName)) then
 						local depNode = GetOrCreateAddonTableWithFilter(
 								pool,
 								depName,
@@ -157,20 +157,20 @@ end
 
 local rootKey = " *:/root/:* " -- Just add some invalid characters for folders name, to avoid collision with real addons
 
-function frame:SetAddonCollapsed(addonKey, parentKey, isCollapsed)
+function SAM:SetAddonCollapsed(addonKey, parentKey, isCollapsed)
 	parentKey = parentKey or rootKey
-	local collapsedAddons = frame:GetDb().collapsedAddons
+	local collapsedAddons = SAM:GetDb().collapsedAddons
 	collapsedAddons[addonKey] = collapsedAddons[addonKey] or { parent = {} }
 	collapsedAddons[addonKey].parent[parentKey] = isCollapsed
 end
 
-function frame:IsAddonCollapsed(addonKey, parentKey)
-	local collapsedAddons = frame:GetDb().collapsedAddons
+function SAM:IsAddonCollapsed(addonKey, parentKey)
+	local collapsedAddons = SAM:GetDb().collapsedAddons
 	return collapsedAddons[addonKey] and collapsedAddons[addonKey].parent[parentKey or rootKey]
 end
 
-function frame:ToggleAddonCollapsed(addonKey, parentKey)
-	frame:SetAddonCollapsed(addonKey, parentKey, not frame:IsAddonCollapsed(addonKey, parentKey))
+function SAM:ToggleAddonCollapsed(addonKey, parentKey)
+	SAM:SetAddonCollapsed(addonKey, parentKey, not SAM:IsAddonCollapsed(addonKey, parentKey))
 end
 
 local function CreateSortedAddonsTreeAsList(tree, out, dept, parentKey)
@@ -187,19 +187,19 @@ local function CreateSortedAddonsTreeAsList(tree, out, dept, parentKey)
 
 	for _, v in ipairs(list) do
 		table.insert(out, v)
-		if (not frame:IsAddonCollapsed(v.key, parentKey)) then
+		if (not SAM:IsAddonCollapsed(v.key, parentKey)) then
 			CreateSortedAddonsTreeAsList(v.children, out, dept + 1, v.key)
 		end
 	end
 end
 
 local function CreateAddonListAsTable(filterLower, inCategoriesFunc)
-	local showSecureAddons = frame:GetDb().config.showSecureAddons
+	local showSecureAddons = SAM:GetDb().config.showSecureAddons
 	local nodesPool = {}
 	local filteredCache = {}
-	local count = frame.compat.GetNumAddOns()
+	local count = SAM.compat.GetNumAddOns()
 	for addonIndex = 1, count do
-		local name = frame.compat.GetAddOnInfo(addonIndex)
+		local name = SAM.compat.GetAddOnInfo(addonIndex)
 		GetOrCreateAddonTableWithFilter(
 				nodesPool,
 				name,
@@ -260,12 +260,12 @@ end
 
 local function CreateAddonListAsList(filterLower, inCategoriesFunc)
 	local addons = {}
-	local showSecureAddons = frame:GetDb().config.showSecureAddons
+	local showSecureAddons = SAM:GetDb().config.showSecureAddons
 	local nodesPool = {}
 	local filteredCache = {}
-	local count = frame.compat.GetNumAddOns()
+	local count = SAM.compat.GetNumAddOns()
 	for addonIndex = 1, count do
-		local name = frame.compat.GetAddOnInfo(addonIndex)
+		local name = SAM.compat.GetAddOnInfo(addonIndex)
 		local addon = GetOrCreateAddonTableWithFilter(
 				nodesPool,
 				name,
@@ -288,7 +288,7 @@ local addons = {}
 local function CreateList(filter, categories)
 	local inCategoriesFunc = AddonsInCategoriesFunc(categories)
 	local filterLower = filter:lower()
-	local listStyle = frame:GetDb().config.addonListStyle
+	local listStyle = SAM:GetDb().config.addonListStyle
 
 	if (listStyle == "tree") then
 		addons = CreateAddonListAsTable(filterLower, inCategoriesFunc)
@@ -297,20 +297,20 @@ local function CreateList(filter, categories)
 	end
 end
 
-function frame:GetAddonsList()
+function SAM:GetAddonsList()
 	return addons
 end
 
-function frame:UpdateListFilters()
+function SAM:UpdateListFilters()
 	--local t = GetTimePreciseSec()
-	CreateList(frame.SearchBox:GetText(), frame:SelectedCategories())
-	frame.AddonListFrame.ScrollFrame.update()
+	CreateList(SAM.SearchBox:GetText(), SAM:SelectedCategories())
+	SAM.AddonListFrame.ScrollFrame.update()
 	--print(GetTimePreciseSec() - t)
 end
 
 function module:OnLoad()
-	local db = frame:GetDb()
-	frame:CreateDefaultOptions(db, {
+	local db = SAM:GetDb()
+	SAM:CreateDefaultOptions(db, {
 		collapsedAddons = {},
 		config = {
 			sorting = "smart",

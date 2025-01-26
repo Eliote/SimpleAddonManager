@@ -4,10 +4,10 @@ local EDDM = LibStub("ElioteDropDownMenu-1.0")
 local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFrame")
 
 --- @type SimpleAddonManager
-local frame = T.AddonFrame
-local module = frame:RegisterModule("Minimap")
+local SAM = T.AddonFrame
+local module = SAM:RegisterModule("Minimap")
 
-local title = frame:GetAddOnMetadata(ADDON_NAME, "Title") or ADDON_NAME
+local title = SAM:GetAddOnMetadata(ADDON_NAME, "Title") or ADDON_NAME
 
 local IS_MAINLINE = WOW_PROJECT_MAINLINE == WOW_PROJECT_ID
 local ICON_MOUSE_LEFT = IS_MAINLINE and "|A:newplayertutorial-icon-mouse-leftbutton:0:0|a " or ""
@@ -22,7 +22,7 @@ local broker = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject(ADDON_NAME,
 		ttp:AddLine(ICON_MOUSE_LEFT .. L["Left-click to open"])
 		ttp:AddLine(ICON_MOUSE_RIGHT .. L["Right-click to show profile menu"])
 
-		if (not frame:GetDb().config.showMemoryInBrokerTtp) then
+		if (not SAM:GetDb().config.showMemoryInBrokerTtp) then
 			return
 		end
 
@@ -32,14 +32,14 @@ local broker = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject(ADDON_NAME,
 		UpdateAddOnMemoryUsage()
 
 		local totalMem = 0
-		for addonIndex = 1, frame.compat.GetNumAddOns() do
+		for addonIndex = 1, SAM.compat.GetNumAddOns() do
 			local mem = GetAddOnMemoryUsage(addonIndex)
 			totalMem = totalMem + mem
 			for i = 1, maxAddons do
 				if (topAddOns[i] == nil or topAddOns[i].value < mem) then
 					table.insert(topAddOns, i, {
 						value = mem,
-						name = frame.compat.GetAddOnInfo(addonIndex)
+						name = SAM.compat.GetAddOnInfo(addonIndex)
 					})
 					break
 				end
@@ -48,19 +48,19 @@ local broker = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject(ADDON_NAME,
 
 		if (totalMem > 0) then
 			ttp:AddLine("\n")
-			ttp:AddDoubleLine(L["AddOns Total Memory"], frame:FormatMemory(totalMem), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+			ttp:AddDoubleLine(L["AddOns Total Memory"], SAM:FormatMemory(totalMem), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
 
 			for i = 1, maxAddons do
 				if (topAddOns[i].value == 0) then
 					break
 				end
-				ttp:AddDoubleLine(topAddOns[i].name, frame:FormatMemory(topAddOns[i].value), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+				ttp:AddDoubleLine(topAddOns[i].name, SAM:FormatMemory(topAddOns[i].value), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
 			end
 		end
 	end,
 	OnClick = function(_, button)
 		if (button == "LeftButton") then
-			frame:Show()
+			SAM:Show()
 		else
 			module:ShowMenuDropDown()
 		end
@@ -69,15 +69,15 @@ local broker = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject(ADDON_NAME,
 local ldbIcon = LibStub("LibDBIcon-1.0")
 
 function module:OnLoad()
-	local db = frame:GetDb()
-	frame:CreateDefaultOptions(SimpleAddonManagerDB.config, {
+	local db = SAM:GetDb()
+	SAM:CreateDefaultOptions(SimpleAddonManagerDB.config, {
 		minimap = { hide = false }
 	})
 	ldbIcon:Register(ADDON_NAME, broker, db.config.minimap)
 end
 
 function module:ToggleMinimapButton()
-	local db = frame:GetDb()
+	local db = SAM:GetDb()
 	db.config.minimap.hide = not db.config.minimap.hide
 	if (db.config.minimap.hide) then
 		ldbIcon:Hide(ADDON_NAME)
@@ -92,8 +92,8 @@ function module:ShowMenuDropDown()
 		{ text = L["Load Profile"], isTitle = true, notCheckable = true },
 	}
 
-	local db = frame:GetDb()
-	local setsList = frame:TableAsSortedPairList(db.sets)
+	local db = SAM:GetDb()
+	local setsList = SAM:TableAsSortedPairList(db.sets)
 
 	for _, pair in ipairs(setsList) do
 		local profileName = pair.key
@@ -101,7 +101,7 @@ function module:ShowMenuDropDown()
 			text = profileName,
 			notCheckable = true,
 			func = function()
-				frame:GetModule("Profile"):ShowLoadProfileAndReloadUIDialog(profileName)
+				SAM:GetModule("Profile"):ShowLoadProfileAndReloadUIDialog(profileName)
 			end
 		})
 	end

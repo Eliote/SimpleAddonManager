@@ -4,11 +4,11 @@ local EDDM = LibStub("ElioteDropDownMenu-1.0")
 local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFrame")
 
 --- @type SimpleAddonManager
-local frame = T.AddonFrame
-local module = frame:RegisterModule("Options")
+local SAM = T.AddonFrame
+local module = SAM:RegisterModule("Options")
 
 local function MemoryUpdateMenuList()
-	local db = frame:GetDb()
+	local db = SAM:GetDb()
 	local menu = {}
 	local periods = { 0, 5, 10, 15, 30 }
 	for _, v in ipairs(periods) do
@@ -19,7 +19,7 @@ local function MemoryUpdateMenuList()
 			end,
 			func = function()
 				db.config.memoryUpdate = v
-				frame:UpdateMemoryTickerPeriod(v)
+				SAM:UpdateMemoryTickerPeriod(v)
 			end,
 		})
 	end
@@ -27,17 +27,17 @@ local function MemoryUpdateMenuList()
 end
 
 local function ConfigDropDownCreate()
-	local db = frame:GetDb()
+	local db = SAM:GetDb()
 	return {
 		{ text = L["Options"], isTitle = true, notCheckable = true },
 		{
 			text = ADDON_FORCE_LOAD,
 			checked = function()
-				return not frame.compat.IsAddonVersionCheckEnabled()
+				return not SAM.compat.IsAddonVersionCheckEnabled()
 			end,
 			func = function(_, _, _, checked)
-				frame.compat.SetAddonVersionCheck(checked)
-				frame:Update()
+				SAM.compat.SetAddonVersionCheck(checked)
+				SAM:Update()
 			end,
 		},
 		{
@@ -48,7 +48,7 @@ local function ConfigDropDownCreate()
 			func = function()
 				db.config.hookMenuButton = not db.config.hookMenuButton
 				if (db.config.hookMenuButton) then
-					frame:HookMenuButton()
+					SAM:HookMenuButton()
 				end
 			end,
 		},
@@ -58,7 +58,7 @@ local function ConfigDropDownCreate()
 				return not db.config.minimap.hide
 			end,
 			func = function()
-				frame:GetModule("Minimap"):ToggleMinimapButton()
+				SAM:GetModule("Minimap"):ToggleMinimapButton()
 			end,
 		},
 		{
@@ -77,7 +77,7 @@ local function ConfigDropDownCreate()
 			end,
 			func = function()
 				db.lock.canShowWarning = not db.lock.canShowWarning
-				frame:Update()
+				SAM:Update()
 			end,
 		},
 		{
@@ -95,7 +95,7 @@ local function ConfigDropDownCreate()
 			end,
 			func = function()
 				db.config.showVersions = not db.config.showVersions
-				frame:Update()
+				SAM:Update()
 			end,
 		},
 		{
@@ -105,7 +105,7 @@ local function ConfigDropDownCreate()
 			end,
 			func = function(_, _, _, value)
 				db.config.addonListStyle = (not value) and "tree" or "list"
-				frame:Update()
+				SAM:Update()
 			end,
 		},
 		{
@@ -116,16 +116,16 @@ local function ConfigDropDownCreate()
 			func = function()
 				local isEnabling = not db.config.showSecureAddons
 				if (isEnabling) then
-					frame:ShowWarningDialog(
+					SAM:ShowWarningDialog(
 							L["Be careful with this option, enabling/disabling Blizzard Addons might have unintended consequences!"],
 							function()
 								db.config.showSecureAddons = true
-								frame:Update()
+								SAM:Update()
 							end
 					)
 				else
 					db.config.showSecureAddons = false
-					frame:Update()
+					SAM:Update()
 				end
 			end,
 		},
@@ -136,17 +136,17 @@ local function ConfigDropDownCreate()
 			end,
 			func = function()
 				db.config.hideIcons = not db.config.hideIcons
-				frame:Update()
+				SAM:Update()
 			end,
 		},
 		{
 			text = L["Collapse all"],
 			notCheckable = true,
 			func = function()
-				for _, v in pairs(frame:GetAddonsList()) do
-					frame:SetAddonCollapsed(v.key, v.parentKey, true)
+				for _, v in pairs(SAM:GetAddonsList()) do
+					SAM:SetAddonCollapsed(v.key, v.parentKey, true)
 				end
-				frame:Update()
+				SAM:Update()
 			end,
 			disabled = db.config.addonListStyle ~= "tree",
 		},
@@ -154,8 +154,8 @@ local function ConfigDropDownCreate()
 			text = L["Expand all"],
 			notCheckable = true,
 			func = function()
-				frame:GetDb().collapsedAddons = {}
-				frame:Update()
+				SAM:GetDb().collapsedAddons = {}
+				SAM:Update()
 			end,
 			disabled = db.config.addonListStyle ~= "tree",
 		},
@@ -171,7 +171,7 @@ local function ConfigDropDownCreate()
 					end,
 					func = function()
 						db.config.sorting = "smart"
-						frame:Update()
+						SAM:Update()
 					end,
 				},
 				{
@@ -181,7 +181,7 @@ local function ConfigDropDownCreate()
 					end,
 					func = function()
 						db.config.sorting = "name"
-						frame:Update()
+						SAM:Update()
 					end,
 				},
 				{
@@ -191,7 +191,7 @@ local function ConfigDropDownCreate()
 					end,
 					func = function()
 						db.config.sorting = "title"
-						frame:Update()
+						SAM:Update()
 					end,
 				},
 				{
@@ -201,7 +201,7 @@ local function ConfigDropDownCreate()
 					end,
 					func = function()
 						db.config.sorting = false
-						frame:Update()
+						SAM:Update()
 					end,
 				},
 			},
@@ -215,7 +215,7 @@ local function ConfigDropDownCreate()
 			end,
 			func = function()
 				db.config.hideTocCategories = not db.config.hideTocCategories
-				frame:Update()
+				SAM:Update()
 			end,
 		},
 		{
@@ -225,7 +225,7 @@ local function ConfigDropDownCreate()
 			end,
 			func = function()
 				db.config.localizeCategoryName = not db.config.localizeCategoryName
-				frame:Update()
+				SAM:Update()
 			end,
 		},
 		T.separatorInfo,
@@ -251,7 +251,7 @@ local function ConfigDropDownCreate()
 					end,
 					func = function()
 						db.config.searchBy.name = not db.config.searchBy.name
-						frame:Update()
+						SAM:Update()
 					end,
 				},
 				{
@@ -261,7 +261,7 @@ local function ConfigDropDownCreate()
 					end,
 					func = function()
 						db.config.searchBy.title = not db.config.searchBy.title
-						frame:Update()
+						SAM:Update()
 					end,
 				},
 				{
@@ -271,7 +271,7 @@ local function ConfigDropDownCreate()
 					end,
 					func = function()
 						db.config.searchBy.author = not db.config.searchBy.author
-						frame:Update()
+						SAM:Update()
 					end,
 				},
 			},
@@ -282,7 +282,7 @@ local function ConfigDropDownCreate()
 			text = L["AddOn binary search"] .. " (beta)",
 			notCheckable = true,
 			func = function()
-				frame:GetModule("AddonFinder"):StartSearch()
+				SAM:GetModule("AddonFinder"):StartSearch()
 			end,
 			disabled = db.addonFinder and db.addonFinder.isSearching,
 		},
@@ -292,25 +292,25 @@ local function ConfigDropDownCreate()
 end
 
 function module:OnLoad()
-	frame:CreateDefaultOptions(frame:GetDb().config, {
+	SAM:CreateDefaultOptions(SAM:GetDb().config, {
 		showMemoryInBrokerTtp = true,
 	})
 end
 
 function module:PreInitialize()
-	frame.ConfigButton = Mixin(
-			CreateFrame("Button", nil, frame, "UIPanelSquareButton"),
+	SAM.ConfigButton = Mixin(
+			CreateFrame("Button", nil, SAM, "UIPanelSquareButton"),
 			EDDM.HandlesGlobalMouseEventMixin
 	)
 end
 
 function module:Initialize()
-	frame.ConfigButton:SetPoint("RIGHT", frame.CategoryButton, "LEFT", -4, 0)
-	frame.ConfigButton:SetSize(30, 30)
-	frame.ConfigButton.icon:SetAtlas("OptionsIcon-Brown")
-	frame.ConfigButton.icon:SetTexCoord(0, 1, 0, 1)
-	frame.ConfigButton.icon:SetSize(16, 16)
-	frame.ConfigButton:SetScript("OnClick", function()
-		EDDM.ToggleEasyMenu(ConfigDropDownCreate(), dropdownFrame, frame.ConfigButton, 0, 0, "MENU")
+	SAM.ConfigButton:SetPoint("RIGHT", SAM.CategoryButton, "LEFT", -4, 0)
+	SAM.ConfigButton:SetSize(30, 30)
+	SAM.ConfigButton.icon:SetAtlas("OptionsIcon-Brown")
+	SAM.ConfigButton.icon:SetTexCoord(0, 1, 0, 1)
+	SAM.ConfigButton.icon:SetSize(16, 16)
+	SAM.ConfigButton:SetScript("OnClick", function()
+		EDDM.ToggleEasyMenu(ConfigDropDownCreate(), dropdownFrame, SAM.ConfigButton, 0, 0, "MENU")
 	end)
 end

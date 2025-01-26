@@ -1,13 +1,13 @@
 local _, T = ...
 
 --- @type SimpleAddonManager
-local frame = T.AddonFrame
+local SAM = T.AddonFrame
 
 local function getFunction(fun)
 	return (C_AddOns and C_AddOns[fun]) or _G[fun]
 end
 
-frame.compat = {
+SAM.compat = {
 	EnableAddOn = getFunction("EnableAddOn"),
 	DisableAddOn = getFunction("DisableAddOn"),
 	IsAddOnLoaded = getFunction("IsAddOnLoaded"),

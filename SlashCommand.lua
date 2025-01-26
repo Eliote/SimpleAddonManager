@@ -2,14 +2,14 @@ local ADDON_NAME, T = ...
 local L = T.L
 
 --- @type SimpleAddonManager
-local frame = T.AddonFrame
+local SAM = T.AddonFrame
 local CommandsModule = {}
 local Commands = {
 	open = {
 		usage = "open",
 		args = {},
 		func = function()
-			frame:Show()
+			SAM:Show()
 		end,
 	},
 	profile = {
@@ -25,15 +25,15 @@ local Commands = {
 			}
 		},
 		func = function(profile, reloadType)
-			local db = frame:GetDb()
+			local db = SAM:GetDb()
 			if (not db.sets[profile]) then
 				CommandsModule:Print(L("Profile '${profile}' not found!", { profile = profile }))
 			else
 				reloadType = reloadType or "ask"
 				if (reloadType == "ask") then
-					frame:GetModule("Profile"):ShowLoadProfileAndReloadUIDialog(profile)
+					SAM:GetModule("Profile"):ShowLoadProfileAndReloadUIDialog(profile)
 				else
-					frame:GetModule("Profile"):LoadAddonsFromProfile(profile)
+					SAM:GetModule("Profile"):LoadAddonsFromProfile(profile)
 					if (reloadType == "reload") then
 						ReloadUI()
 					end
@@ -47,7 +47,7 @@ LibStub("AceConsole-3.0"):Embed(CommandsModule)
 
 setmetatable(CommandsModule, {
 	__tostring = function()
-		return (frame:GetAddOnMetadata(ADDON_NAME, "Title"))
+		return (SAM:GetAddOnMetadata(ADDON_NAME, "Title"))
 	end
 })
 

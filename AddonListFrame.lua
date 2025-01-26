@@ -6,21 +6,21 @@ local EDDM = LibStub("ElioteDropDownMenu-1.0")
 local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFrame")
 
 --- @type SimpleAddonManager
-local frame = T.AddonFrame
-local module = frame:RegisterModule("AddonList")
+local SAM = T.AddonFrame
+local module = SAM:RegisterModule("AddonList")
 
 local BANNED_ADDON = "BANNED"
 local SECURE_PROTECTED_ADDON = "SECURE_PROTECTED"
 local SECURE_ADDON = "SECURE"
 
 local function AddonTooltipBuildDepsString(addonIndex)
-	local deps = { frame.compat.GetAddOnDependencies(addonIndex) }
+	local deps = { SAM.compat.GetAddOnDependencies(addonIndex) }
 	local depsString = "";
 	for i, name in ipairs(deps) do
 		local color = C.white
-		if (not frame:IsAddonInstalled(name)) then
+		if (not SAM:IsAddonInstalled(name)) then
 			color = C.red
-		elseif (frame:IsAddonSelected(name)) then
+		elseif (SAM:IsAddonSelected(name)) then
 			color = C.green
 		end
 		if (i == 1) then
@@ -37,9 +37,9 @@ local function AddonTooltipBuildChildrenString(children)
 	local first = true
 	for name, _ in pairs(children) do
 		local color = C.white
-		if (not frame:IsAddonInstalled(name)) then
+		if (not SAM:IsAddonInstalled(name)) then
 			color = C.red
-		elseif (frame:IsAddonSelected(name)) then
+		elseif (SAM:IsAddonSelected(name)) then
 			color = C.green
 		end
 		if (first) then
@@ -53,10 +53,10 @@ local function AddonTooltipBuildChildrenString(children)
 end
 
 local function EnableAllDeps(addonIndex)
-	local requiredDeps = { frame.compat.GetAddOnDependencies(addonIndex) }
+	local requiredDeps = { SAM.compat.GetAddOnDependencies(addonIndex) }
 	for _, depName in ipairs(requiredDeps) do
-		if (frame:IsAddonInstalled(depName)) then
-			frame:EnableAddOn(depName)
+		if (SAM:IsAddonInstalled(depName)) then
+			SAM:EnableAddOn(depName)
 			EnableAllDeps(depName)
 		end
 	end
@@ -64,9 +64,9 @@ end
 
 local function CreateAddonChildrenList(name)
 	local list = {}
-	for i = 1, frame.compat.GetNumAddOns() do
-		local addon = frame.compat.GetAddOnInfo(i)
-		local requiredDeps = { frame.compat.GetAddOnDependencies(i) }
+	for i = 1, SAM.compat.GetNumAddOns() do
+		local addon = SAM.compat.GetAddOnInfo(i)
+		local requiredDeps = { SAM.compat.GetAddOnDependencies(i) }
 		for _, depName in ipairs(requiredDeps) do
 			if (depName == name) then
 				list[addon] = true
@@ -79,11 +79,11 @@ end
 
 local function SetAllChildren(children, state)
 	for name, _ in pairs(children) do
-		if (frame:IsAddonInstalled(name)) then
+		if (SAM:IsAddonInstalled(name)) then
 			if (state) then
-				frame:EnableAddOn(name)
+				SAM:EnableAddOn(name)
 			else
-				frame:DisableAddOn(name)
+				SAM:DisableAddOn(name)
 			end
 		end
 	end
@@ -102,48 +102,48 @@ local function SetCategoryForAllChildren(children, state, categoryTable, categor
 end
 
 local function AddonRightClickMenu(addon)
-	if (not frame:IsAddonInstalled(addon.index)) then
+	if (not SAM:IsAddonInstalled(addon.index)) then
 		return
 	end
 	local addonIndex = addon.index
-	local name, title, _, _, reason = frame.compat.GetAddOnInfo(addonIndex)
+	local name, title, _, _, reason = SAM.compat.GetAddOnInfo(addonIndex)
 	local menu = {
 		{ text = title, isTitle = true, notCheckable = true },
 	}
 
-	if (frame:IsAddonInstalled(addonIndex)) then
+	if (SAM:IsAddonInstalled(addonIndex)) then
 		table.insert(menu, {
 			text = L["Lock Addon"],
 			tooltipOnButton = true,
 			tooltipTitle = "",
 			tooltipText = L["Tip: You can also alt-click the addon in the list to lock/unlock it"],
 			func = function(_, _, _, checked)
-				frame:GetModule("Lock"):SetLockState(addonIndex, not checked)
-				frame:Update()
+				SAM:GetModule("Lock"):SetLockState(addonIndex, not checked)
+				SAM:Update()
 			end,
 			checked = function()
-				return frame:GetModule("Lock"):IsAddonLocked(addonIndex)
+				return SAM:GetModule("Lock"):IsAddonLocked(addonIndex)
 			end,
 		})
 	end
 
-	if (not frame.compat.IsAddOnLoaded(addonIndex) and frame.compat.IsAddOnLoadOnDemand(addonIndex) and reason == "DEMAND_LOADED") then
+	if (not SAM.compat.IsAddOnLoaded(addonIndex) and SAM.compat.IsAddOnLoadOnDemand(addonIndex) and reason == "DEMAND_LOADED") then
 		table.insert(menu, {
 			text = L["Load AddOn"],
 			func = function()
-				frame:Update()
+				SAM:Update()
 			end,
 			notCheckable = true,
 		})
 	end
 
-	if (frame.compat.GetAddOnDependencies(addonIndex)) then
+	if (SAM.compat.GetAddOnDependencies(addonIndex)) then
 		table.insert(menu, {
 			text = L["Enable this Addon and its dependencies"],
 			func = function()
-				frame:EnableAddOn(addonIndex)
+				SAM:EnableAddOn(addonIndex)
 				EnableAllDeps(addonIndex)
-				frame:Update()
+				SAM:Update()
 			end,
 			notCheckable = true,
 			tooltipOnButton = true,
@@ -157,9 +157,9 @@ local function AddonRightClickMenu(addon)
 		table.insert(menu, {
 			text = L["Enable this and every AddOn that depends on it"],
 			func = function()
-				frame:EnableAddOn(addonIndex)
+				SAM:EnableAddOn(addonIndex)
 				SetAllChildren(children, true)
-				frame:Update()
+				SAM:Update()
 			end,
 			notCheckable = true,
 			tooltipOnButton = true,
@@ -169,9 +169,9 @@ local function AddonRightClickMenu(addon)
 		table.insert(menu, {
 			text = L["Disable this and every AddOn that depends on it"],
 			func = function()
-				frame:DisableAddOn(addonIndex)
+				SAM:DisableAddOn(addonIndex)
 				SetAllChildren(children, false)
-				frame:Update()
+				SAM:Update()
 			end,
 			notCheckable = true,
 			tooltipOnButton = true,
@@ -183,14 +183,14 @@ local function AddonRightClickMenu(addon)
 	table.insert(menu, T.separatorInfo)
 	table.insert(menu, { text = L["Categories"], isTitle = true, notCheckable = true })
 
-	local userCategories, tocCategories = frame:GetCategoryTables()
-	local sortedCategories = frame:TableKeysToSortedList(userCategories, tocCategories)
+	local userCategories, tocCategories = SAM:GetCategoryTables()
+	local sortedCategories = SAM:TableKeysToSortedList(userCategories, tocCategories)
 	for _, categoryName in ipairs(sortedCategories) do
 		local categoryDb = userCategories[categoryName]
 		local tocCategory = tocCategories[categoryName]
 		local isInToc = tocCategory and tocCategory.addons and tocCategory.addons[name]
 		table.insert(menu, {
-			text = frame:LocalizeCategoryName(categoryName, not isInToc) .. (isInToc and (" " .. C.yellow:WrapText(L["(Automatically in category)"])) or ""),
+			text = SAM:LocalizeCategoryName(categoryName, not isInToc) .. (isInToc and (" " .. C.yellow:WrapText(L["(Automatically in category)"])) or ""),
 			tooltipOnButton = true,
 			tooltipTitle = categoryName,
 			tooltipText = L["Hold shift to add/remove AddOns that depends on it as well"],
@@ -205,7 +205,7 @@ local function AddonRightClickMenu(addon)
 					SetCategoryForAllChildren(children, checked, userCategories, categoryName)
 				end
 
-				frame:Update()
+				SAM:Update()
 			end,
 		})
 	end
@@ -220,7 +220,7 @@ local function Checkbox_SetAddonState(self, enabled, addonIndex)
 	checkedTexture:SetDesaturated(false)
 	self.LockIcon:Hide()
 
-	local isLocked = frame:GetModule("Lock"):IsAddonLocked(addonIndex)
+	local isLocked = SAM:GetModule("Lock"):IsAddonLocked(addonIndex)
 	if (isLocked) then
 		self.LockIcon:Show()
 	end
@@ -228,12 +228,12 @@ local function Checkbox_SetAddonState(self, enabled, addonIndex)
 	if (enabled) then
 		self:SetChecked(true)
 	else
-		local togglingMe = frame:GetSelectedCharIndex() >= 1
-		local enabledSome = (not togglingMe) and frame:IsAddonSelected(addonIndex, true)
+		local togglingMe = SAM:GetSelectedCharIndex() >= 1
+		local enabledSome = (not togglingMe) and SAM:IsAddonSelected(addonIndex, true)
 		if (enabledSome) then
 			self:SetChecked(true)
-			local character = frame:GetSelectedCharName()
-			local isEnabledByMe = frame.compat.GetAddOnEnableState(addonIndex, character) == 2
+			local character = SAM:GetSelectedCharName()
+			local isEnabledByMe = SAM.compat.GetAddOnEnableState(addonIndex, character) == 2
 			if (isEnabledByMe) then
 				checkedTexture:SetVertexColor(0.4, 1.0, 0.4)
 			else
@@ -247,13 +247,13 @@ end
 
 local function ToggleAddon(self)
 	local addonIndex = self:GetParent().addon.index
-	local _, _, _, _, _, security = frame.compat.GetAddOnInfo(addonIndex)
+	local _, _, _, _, _, security = SAM.compat.GetAddOnInfo(addonIndex)
 	if (security == BANNED_ADDON) then
 		return
 	end
 
 	if (IsAltKeyDown()) then
-		local lockModule = frame:GetModule("Lock")
+		local lockModule = SAM:GetModule("Lock")
 		local isLocking = not lockModule:IsAddonLocked(addonIndex)
 		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_FAER_TAB)
 		if (isLocking) then
@@ -262,18 +262,18 @@ local function ToggleAddon(self)
 			lockModule:UnlockAddon(addonIndex)
 		end
 	else
-		local isEnabling = not frame:IsAddonSelected(addonIndex)
+		local isEnabling = not SAM:IsAddonSelected(addonIndex)
 		Checkbox_SetAddonState(self, isEnabling, addonIndex)
 		if (isEnabling) then
 			PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
-			frame:EnableAddOn(addonIndex)
+			SAM:EnableAddOn(addonIndex)
 		else
 			PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
-			frame:DisableAddOn(addonIndex)
+			SAM:DisableAddOn(addonIndex)
 		end
 	end
 
-	frame:Update()
+	SAM:Update()
 end
 
 local function AddonButtonOnClick(self, mouseButton)
@@ -285,7 +285,7 @@ local function AddonButtonOnClick(self, mouseButton)
 end
 
 local function ProfilesInAddon(name)
-	local db = frame:GetDb()
+	local db = SAM:GetDb()
 	local setsList = db.sets
 	local profilesForAddon = ""
 	local profilesTable = {}
@@ -308,20 +308,20 @@ local function ProfilesInAddon(name)
 end
 
 local function CategoriesForAddon(name)
-	local userTable, tocTable, fixedTable = frame:GetCategoryTables()
+	local userTable, tocTable, fixedTable = SAM:GetCategoryTables()
 
 	local resultText = ""
 	local sep = ""
 	for _, categoryTable in pairs(userTable) do
 		if (categoryTable.addons[name]) then
-			resultText = resultText .. sep .. frame:LocalizeCategoryName(categoryTable.name, userTable)
+			resultText = resultText .. sep .. SAM:LocalizeCategoryName(categoryTable.name, userTable)
 			sep = ", "
 		end
 	end
 
 	for _, categoryTable in pairs(tocTable) do
 		if (categoryTable.addons[name]) then
-			resultText = resultText .. sep .. frame:LocalizeCategoryName(categoryTable.name, tocTable)
+			resultText = resultText .. sep .. SAM:LocalizeCategoryName(categoryTable.name, tocTable)
 			sep = ", "
 		end
 	end
@@ -348,7 +348,7 @@ end
 
 local function UpdateTooltip(self)
 	local addonIndex = self.addon.index
-	local name, title, notes, _, reason, security = frame.compat.GetAddOnInfo(addonIndex)
+	local name, title, notes, _, reason, security = SAM.compat.GetAddOnInfo(addonIndex)
 
 	GameTooltip:ClearLines();
 	GameTooltip:SetOwner(self, "ANCHOR_NONE")
@@ -369,17 +369,17 @@ local function UpdateTooltip(self)
 			GameTooltip:AddLine(C.red:WrapText(L["This addons is not installed!"]), nil, nil, nil, true);
 			return
 		end
-		local version = frame:GetAddOnMetadata(addonIndex, "Version")
+		local version = SAM:GetAddOnMetadata(addonIndex, "Version")
 		if (version) then
 			GameTooltip:AddLine(L["Version: "] .. C.white:WrapText(version));
 		end
-		local author = frame:GetAddOnMetadata(addonIndex, "Author")
+		local author = SAM:GetAddOnMetadata(addonIndex, "Author")
 		if (author) then
 			GameTooltip:AddLine(L["Author: "] .. C.white:WrapText(strtrim(author)));
 		end
-		local loaded = frame.compat.IsAddOnLoaded(addonIndex);
+		local loaded = SAM.compat.IsAddOnLoaded(addonIndex);
 		if (loaded and IsProfilerEnabled()) then
-			local profiler = frame:GetModule("AddonProfiler")
+			local profiler = SAM:GetModule("AddonProfiler")
 			AddLineIfNotEmpty(GameTooltip, L["CPU: "], profiler:GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.RecentAverageTime));
 			AddLineIfNotEmpty(GameTooltip, L["Average CPU: "], profiler:GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.SessionAverageTime));
 			AddLineIfNotEmpty(GameTooltip, L["Peak CPU: "], profiler:GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.PeakTime));
@@ -387,7 +387,7 @@ local function UpdateTooltip(self)
 		end
 		if (loaded and security ~= SECURE_PROTECTED_ADDON and security ~= SECURE_ADDON) then
 			local mem = GetAddOnMemoryUsage(addonIndex)
-			GameTooltip:AddLine(L["Memory: "] .. C.white:WrapText(frame:FormatMemory(mem)));
+			GameTooltip:AddLine(L["Memory: "] .. C.white:WrapText(SAM:FormatMemory(mem)));
 		end
 		GameTooltip:AddLine(AddonTooltipBuildDepsString(addonIndex), nil, nil, nil, true);
 		if (self.addon.warning) then
@@ -420,7 +420,7 @@ local function UpdateTooltipThrottled(self)
 end
 
 local function AddonButtonOnEnter(self)
-	if (frame:GetDb().config.memoryUpdate > 0 or IsProfilerEnabled()) then
+	if (SAM:GetDb().config.memoryUpdate > 0 or IsProfilerEnabled()) then
 		self.UpdateTooltip = UpdateTooltipThrottled
 	end
 	UpdateTooltip(self)
@@ -450,8 +450,8 @@ end
 
 local function ExpandOrCollapseButtonOnClick(self)
 	local addon = self:GetParent().addon
-	frame:ToggleAddonCollapsed(addon.key, addon.parentKey)
-	frame:Update()
+	SAM:ToggleAddonCollapsed(addon.key, addon.parentKey)
+	SAM:Update()
 end
 
 local function DeptMargin(dept)
@@ -460,18 +460,18 @@ end
 
 local function GetTitleWithIcon(addon)
 	local addonIndex = addon.index
-	local name, title = frame.compat.GetAddOnInfo(addonIndex)
+	local name, title = SAM.compat.GetAddOnInfo(addonIndex)
 	local titleText = title or name
 	local version = ""
 
-	if (frame:GetDb().config.showVersions and addon.exists) then
-		version = frame:GetAddOnMetadata(addonIndex, "Version")
+	if (SAM:GetDb().config.showVersions and addon.exists) then
+		version = SAM:GetAddOnMetadata(addonIndex, "Version")
 		version = (version and C.grey:WrapText(" (" .. version .. ")")) or ""
 	end
 
-	if (not frame:GetDb().config.hideIcons) then
-		local iconTexture = frame:GetAddOnMetadata(addonIndex, "IconTexture");
-		local iconAtlas = frame:GetAddOnMetadata(addonIndex, "IconAtlas");
+	if (not SAM:GetDb().config.hideIcons) then
+		local iconTexture = SAM:GetAddOnMetadata(addonIndex, "IconTexture");
+		local iconAtlas = SAM:GetAddOnMetadata(addonIndex, "IconAtlas");
 		if iconTexture and CreateSimpleTextureMarkup then
 			titleText = CreateSimpleTextureMarkup(iconTexture, 20, 20) .. " " .. titleText;
 		elseif iconAtlas and CreateAtlasMarkup then
@@ -484,17 +484,17 @@ end
 local wowExpMargin = LE_EXPANSION_LEVEL_CURRENT >= 9 and 4 or 0
 
 local function UpdateList()
-	local buttons = HybridScrollFrame_GetButtons(frame.AddonListFrame.ScrollFrame);
-	local offset = HybridScrollFrame_GetOffset(frame.AddonListFrame.ScrollFrame);
+	local buttons = HybridScrollFrame_GetButtons(SAM.AddonListFrame.ScrollFrame);
+	local offset = HybridScrollFrame_GetOffset(SAM.AddonListFrame.ScrollFrame);
 	local buttonHeight;
-	local addons = frame:GetAddonsList()
+	local addons = SAM:GetAddonsList()
 	local count = #addons
-	local isInTreeMode = frame:GetDb().config.addonListStyle == "tree"
+	local isInTreeMode = SAM:GetDb().config.addonListStyle == "tree"
 
 	for buttonIndex = 1, #buttons do
 		local button = buttons[buttonIndex]
-		button:SetPoint("LEFT", frame.AddonListFrame.ScrollFrame)
-		button:SetPoint("RIGHT", frame.AddonListFrame.ScrollFrame)
+		button:SetPoint("LEFT", SAM.AddonListFrame.ScrollFrame)
+		button:SetPoint("RIGHT", SAM.AddonListFrame.ScrollFrame)
 
 		local relativeButtonIndex = buttonIndex + offset
 		buttonHeight = button:GetHeight()
@@ -502,13 +502,13 @@ local function UpdateList()
 		if relativeButtonIndex <= count then
 			local addon = addons[relativeButtonIndex]
 			local addonIndex = addon.index
-			local _, _, _, loadable, reason, security = frame.compat.GetAddOnInfo(addonIndex)
-			local loaded = frame.compat.IsAddOnLoaded(addonIndex)
-			local enabled = frame:IsAddonSelected(addonIndex)
+			local _, _, _, loadable, reason, security = SAM.compat.GetAddOnInfo(addonIndex)
+			local loaded = SAM.compat.IsAddOnLoaded(addonIndex)
+			local enabled = SAM:IsAddonSelected(addonIndex)
 
 			button.ExpandOrCollapseButton:SetScript("OnClick", ExpandOrCollapseButtonOnClick)
 			local showExpandOrCollapseButton = isInTreeMode and addon.children and next(addon.children)
-			local isCollapsed = frame:IsAddonCollapsed(addon.key, addon.parentKey)
+			local isCollapsed = SAM:IsAddonCollapsed(addon.key, addon.parentKey)
 			if showExpandOrCollapseButton then
 				button.ExpandOrCollapseButton:Show()
 				UpdateExpandOrCollapseButtonState(
@@ -562,7 +562,7 @@ local function UpdateList()
 		end
 	end
 
-	HybridScrollFrame_Update(frame.AddonListFrame.ScrollFrame, count * buttonHeight, frame.AddonListFrame.ScrollFrame:GetHeight())
+	HybridScrollFrame_Update(SAM.AddonListFrame.ScrollFrame, count * buttonHeight, SAM.AddonListFrame.ScrollFrame:GetHeight())
 end
 
 local function OnSizeChanged(self)
@@ -577,15 +577,15 @@ local function UpdateMemory()
 end
 
 local function OnShow()
-	frame:UpdateMemoryTickerPeriod(frame:GetDb().config.memoryUpdate)
+	SAM:UpdateMemoryTickerPeriod(SAM:GetDb().config.memoryUpdate)
 	UpdateMemory()
 end
 
 local function OnHide()
-	frame:UpdateMemoryTickerPeriod(0)
+	SAM:UpdateMemoryTickerPeriod(0)
 end
 
-function frame:UpdateMemoryTickerPeriod(period)
+function SAM:UpdateMemoryTickerPeriod(period)
 	if (self.MemoryUpdateTicker) then
 		self.MemoryUpdateTicker:Cancel()
 		self.MemoryUpdateTicker = nil
@@ -596,37 +596,37 @@ function frame:UpdateMemoryTickerPeriod(period)
 end
 
 function module:PreInitialize()
-	frame.AddonListFrame = CreateFrame("Frame", nil, frame)
-	frame.AddonListFrame.ScrollFrame = CreateFrame("ScrollFrame", nil, frame.AddonListFrame, "HybridScrollFrameTemplate")
-	frame.AddonListFrame.ScrollFrame:SetScript("OnMouseWheel", frame.HybridScrollFrame_ShiftAwareOnScrollWheel)
-	frame.AddonListFrame.ScrollFrame.ScrollBar = CreateFrame("Slider", nil, frame.AddonListFrame.ScrollFrame, "HybridScrollBarTemplate")
+	SAM.AddonListFrame = CreateFrame("Frame", nil, SAM)
+	SAM.AddonListFrame.ScrollFrame = CreateFrame("ScrollFrame", nil, SAM.AddonListFrame, "HybridScrollFrameTemplate")
+	SAM.AddonListFrame.ScrollFrame:SetScript("OnMouseWheel", SAM.HybridScrollFrame_ShiftAwareOnScrollWheel)
+	SAM.AddonListFrame.ScrollFrame.ScrollBar = CreateFrame("Slider", nil, SAM.AddonListFrame.ScrollFrame, "HybridScrollBarTemplate")
 end
 
 function module:Initialize()
-	frame.AddonListFrame.rightPadding = -9
-	frame.AddonListFrame:Hide()
-	frame.AddonListFrame:SetPoint("TOPLEFT", 7, -64)
-	frame.AddonListFrame:SetPoint("BOTTOMRIGHT", frame.AddonListFrame.rightPadding, 30)
-	frame.AddonListFrame:SetScript("OnShow", OnShow)
-	frame.AddonListFrame:SetScript("OnHide", OnHide)
-	frame.AddonListFrame:Show()
+	SAM.AddonListFrame.rightPadding = -9
+	SAM.AddonListFrame:Hide()
+	SAM.AddonListFrame:SetPoint("TOPLEFT", 7, -64)
+	SAM.AddonListFrame:SetPoint("BOTTOMRIGHT", SAM.AddonListFrame.rightPadding, 30)
+	SAM.AddonListFrame:SetScript("OnShow", OnShow)
+	SAM.AddonListFrame:SetScript("OnHide", OnHide)
+	SAM.AddonListFrame:Show()
 
-	frame.AddonListFrame.ScrollFrame:SetPoint("TOPLEFT")
-	frame.AddonListFrame.ScrollFrame:SetPoint("BOTTOMRIGHT", -20, 0)
-	frame.AddonListFrame.ScrollFrame.update = UpdateList
+	SAM.AddonListFrame.ScrollFrame:SetPoint("TOPLEFT")
+	SAM.AddonListFrame.ScrollFrame:SetPoint("BOTTOMRIGHT", -20, 0)
+	SAM.AddonListFrame.ScrollFrame.update = UpdateList
 
-	frame.AddonListFrame.ScrollFrame.ScrollBar:ClearAllPoints()
-	frame.AddonListFrame.ScrollFrame.ScrollBar:SetPoint("TOPRIGHT", frame.AddonListFrame, "TOPRIGHT", 0, -16)
-	frame.AddonListFrame.ScrollFrame.ScrollBar:SetPoint("BOTTOMRIGHT", frame.AddonListFrame, "BOTTOMRIGHT", 0, 12)
-	frame.AddonListFrame.ScrollFrame.ScrollBar:SetScript("OnSizeChanged", OnSizeChanged)
-	frame.AddonListFrame.ScrollFrame.ScrollBar.doNotHide = true
+	SAM.AddonListFrame.ScrollFrame.ScrollBar:ClearAllPoints()
+	SAM.AddonListFrame.ScrollFrame.ScrollBar:SetPoint("TOPRIGHT", SAM.AddonListFrame, "TOPRIGHT", 0, -16)
+	SAM.AddonListFrame.ScrollFrame.ScrollBar:SetPoint("BOTTOMRIGHT", SAM.AddonListFrame, "BOTTOMRIGHT", 0, 12)
+	SAM.AddonListFrame.ScrollFrame.ScrollBar:SetScript("OnSizeChanged", OnSizeChanged)
+	SAM.AddonListFrame.ScrollFrame.ScrollBar.doNotHide = true
 
-	HybridScrollFrame_CreateButtons(frame.AddonListFrame.ScrollFrame, "SimpleAddonManagerAddonItem")
+	HybridScrollFrame_CreateButtons(SAM.AddonListFrame.ScrollFrame, "SimpleAddonManagerAddonItem")
 end
 
 function module:OnLoad()
-	local db = frame:GetDb()
-	frame:CreateDefaultOptions(db.config, {
+	local db = SAM:GetDb()
+	SAM:CreateDefaultOptions(db.config, {
 		memoryUpdate = 0,
 		hideIcons = false,
 	})
