@@ -100,8 +100,8 @@ end
 local profilerSizeFrame = 30
 
 function module:Initialize()
-	SAM.ProfilerFrame:SetPoint("TOPLEFT", 12, -64)
-	SAM.ProfilerFrame:SetPoint("TOPRIGHT", SAM.ScrollFrame, "TOPRIGHT")
+	SAM.ProfilerFrame:SetPoint("TOPLEFT", SAM.AddonListFrame, "TOPLEFT")
+	SAM.ProfilerFrame:SetPoint("TOPRIGHT", SAM.AddonListFrame, "TOPRIGHT", -18, 0)
 	SAM.ProfilerFrame:SetHeight(profilerSizeFrame)
 	SAM.ProfilerFrame:SetScript("OnUpdate", module.OnUpdate)
 
@@ -109,33 +109,23 @@ function module:Initialize()
 	SAM.ProfilerFrame.Divider:SetPoint("BOTTOMLEFT", SAM.ProfilerFrame, "BOTTOMLEFT", 10, 4)
 	SAM.ProfilerFrame.Divider:SetPoint("BOTTOMRIGHT", SAM.ProfilerFrame, "BOTTOMRIGHT", -10, 4)
 
-	SAM.ProfilerFrame.CurrentCPU:SetPoint("LEFT", 8, 2)
+	SAM.ProfilerFrame.CurrentCPU:SetPoint("LEFT", 10, 2)
 	SAM.ProfilerFrame.AverageCPU:SetPoint("CENTER", 0, 2)
-	SAM.ProfilerFrame.PeakCPU:SetPoint("RIGHT", -8, 2)
+	SAM.ProfilerFrame.PeakCPU:SetPoint("RIGHT", -10, 2)
+
+	SAM.AddonListFrame.ScrollFrame:SetPoint("TOPLEFT", SAM.ProfilerFrame, "BOTTOMLEFT")
 
 	module:UpdateCPU()
 end
 
-local movedFrames = false
-
 function module:OnShow()
 	if (module:CanShow()) then
 		SAM.ProfilerFrame:SetScript("OnUpdate", module.OnUpdate)
-		if (not movedFrames) then
-			MovePoint(SAM.ScrollFrame, "TOPLEFT", 0, -profilerSizeFrame)
-			MovePoint(SAM.ScrollFrame.ScrollBar, "TOPLEFT", 0, profilerSizeFrame)
-			MovePoint(SAM.CategoryFrame, "TOPLEFT", 0, profilerSizeFrame)
-			movedFrames = true
-		end
+		SAM.AddonListFrame.ScrollFrame:SetPoint("TOPLEFT", SAM.ProfilerFrame, "BOTTOMLEFT")
 		SAM.ProfilerFrame:Show()
 	else
 		SAM.ProfilerFrame:SetScript("OnUpdate", nil)
+		SAM.AddonListFrame.ScrollFrame:SetPoint("TOPLEFT")
 		SAM.ProfilerFrame:Hide()
-		if (movedFrames) then
-			MovePoint(SAM.ScrollFrame, "TOPLEFT", 0, profilerSizeFrame)
-			MovePoint(SAM.ScrollFrame.ScrollBar, "TOPLEFT", 0, -profilerSizeFrame)
-			MovePoint(SAM.CategoryFrame, "TOPLEFT", 0, -profilerSizeFrame)
-			movedFrames = false
-		end
 	end
 end

@@ -415,7 +415,7 @@ function frame:SetCategoryVisibility(show, resize)
 	local fw = frame:GetWidth()
 	if (show) then
 		SquareButton_SetIcon(frame.CategoryButton, "LEFT")
-		frame.ScrollFrame:SetPoint("BOTTOMRIGHT", (-30 - frame.CATEGORY_SIZE_W), 30)
+		frame.AddonListFrame:SetPoint("BOTTOMRIGHT", (frame.AddonListFrame.rightPadding - frame.CATEGORY_SIZE_W), 30)
 		if (resize) then
 			frame:SetWidth(math.max(frame.MIN_SIZE_W, fw + frame.CATEGORY_SIZE_W))
 		end
@@ -424,7 +424,7 @@ function frame:SetCategoryVisibility(show, resize)
 		frame.CategoryFrame:Show()
 	else
 		SquareButton_SetIcon(frame.CategoryButton, "RIGHT")
-		frame.ScrollFrame:SetPoint("BOTTOMRIGHT", -30, 30)
+		frame.AddonListFrame:SetPoint("BOTTOMRIGHT", frame.AddonListFrame.rightPadding, 30)
 		if (resize) then
 			frame:SetWidth(math.max(frame.MIN_SIZE_W, fw - frame.CATEGORY_SIZE_W))
 		end
@@ -432,7 +432,7 @@ function frame:SetCategoryVisibility(show, resize)
 		frame:SetMinResize(frame.MIN_SIZE_W, frame.MIN_SIZE_H)
 		frame.CategoryFrame:Hide()
 	end
-	frame.ScrollFrame.update()
+	frame.AddonListFrame.ScrollFrame.update()
 	frame.CategoryFrame.ScrollFrame.update()
 end
 
@@ -459,7 +459,7 @@ function module:PreInitialize()
 end
 
 function module:Initialize()
-	frame.CategoryFrame:SetPoint("TOPLEFT", frame.ScrollFrame, "TOPRIGHT", 20, 0)
+	frame.CategoryFrame:SetPoint("TOPLEFT", frame.AddonListFrame, "TOPRIGHT", 0, 0)
 	frame.CategoryFrame:SetPoint("BOTTOMRIGHT", 0, 30)
 
 	frame.CategoryFrame.NewButton:SetPoint("TOP", 0, 43)

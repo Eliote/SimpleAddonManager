@@ -484,8 +484,8 @@ end
 local wowExpMargin = LE_EXPANSION_LEVEL_CURRENT >= 9 and 4 or 0
 
 local function UpdateList()
-	local buttons = HybridScrollFrame_GetButtons(frame.ScrollFrame);
-	local offset = HybridScrollFrame_GetOffset(frame.ScrollFrame);
+	local buttons = HybridScrollFrame_GetButtons(frame.AddonListFrame.ScrollFrame);
+	local offset = HybridScrollFrame_GetOffset(frame.AddonListFrame.ScrollFrame);
 	local buttonHeight;
 	local addons = frame:GetAddonsList()
 	local count = #addons
@@ -493,8 +493,8 @@ local function UpdateList()
 
 	for buttonIndex = 1, #buttons do
 		local button = buttons[buttonIndex]
-		button:SetPoint("LEFT", frame.ScrollFrame)
-		button:SetPoint("RIGHT", frame.ScrollFrame)
+		button:SetPoint("LEFT", frame.AddonListFrame.ScrollFrame)
+		button:SetPoint("RIGHT", frame.AddonListFrame.ScrollFrame)
 
 		local relativeButtonIndex = buttonIndex + offset
 		buttonHeight = button:GetHeight()
@@ -562,7 +562,7 @@ local function UpdateList()
 		end
 	end
 
-	HybridScrollFrame_Update(frame.ScrollFrame, count * buttonHeight, frame.ScrollFrame:GetHeight())
+	HybridScrollFrame_Update(frame.AddonListFrame.ScrollFrame, count * buttonHeight, frame.AddonListFrame.ScrollFrame:GetHeight())
 end
 
 local function OnSizeChanged(self)
@@ -596,26 +596,32 @@ function frame:UpdateMemoryTickerPeriod(period)
 end
 
 function module:PreInitialize()
-	frame.ScrollFrame = CreateFrame("ScrollFrame", nil, frame, "HybridScrollFrameTemplate")
-	frame.ScrollFrame:SetScript("OnMouseWheel", frame.HybridScrollFrame_ShiftAwareOnScrollWheel)
-	frame.ScrollFrame.ScrollBar = CreateFrame("Slider", nil, frame.ScrollFrame, "HybridScrollBarTemplate")
+	frame.AddonListFrame = CreateFrame("Frame", nil, frame)
+	frame.AddonListFrame.ScrollFrame = CreateFrame("ScrollFrame", nil, frame.AddonListFrame, "HybridScrollFrameTemplate")
+	frame.AddonListFrame.ScrollFrame:SetScript("OnMouseWheel", frame.HybridScrollFrame_ShiftAwareOnScrollWheel)
+	frame.AddonListFrame.ScrollFrame.ScrollBar = CreateFrame("Slider", nil, frame.AddonListFrame.ScrollFrame, "HybridScrollBarTemplate")
 end
 
 function module:Initialize()
-	frame.ScrollFrame:Hide()
-	frame.ScrollFrame:SetPoint("TOPLEFT", 7, -64)
-	frame.ScrollFrame:SetPoint("BOTTOMRIGHT", -30, 30)
-	frame.ScrollFrame:SetScript("OnShow", OnShow)
-	frame.ScrollFrame:SetScript("OnHide", OnHide)
-	frame.ScrollFrame.update = UpdateList
-	frame.ScrollFrame:Show()
+	frame.AddonListFrame.rightPadding = -9
+	frame.AddonListFrame:Hide()
+	frame.AddonListFrame:SetPoint("TOPLEFT", 7, -64)
+	frame.AddonListFrame:SetPoint("BOTTOMRIGHT", frame.AddonListFrame.rightPadding, 30)
+	frame.AddonListFrame:SetScript("OnShow", OnShow)
+	frame.AddonListFrame:SetScript("OnHide", OnHide)
+	frame.AddonListFrame:Show()
 
-	frame.ScrollFrame.ScrollBar:SetPoint("TOPLEFT", frame.ScrollFrame, "TOPRIGHT", 1, -16)
-	frame.ScrollFrame.ScrollBar:SetPoint("BOTTOMLEFT", frame.ScrollFrame, "BOTTOMRIGHT", 1, 12)
-	frame.ScrollFrame.ScrollBar:SetScript("OnSizeChanged", OnSizeChanged)
-	frame.ScrollFrame.ScrollBar.doNotHide = true
+	frame.AddonListFrame.ScrollFrame:SetPoint("TOPLEFT")
+	frame.AddonListFrame.ScrollFrame:SetPoint("BOTTOMRIGHT", -20, 0)
+	frame.AddonListFrame.ScrollFrame.update = UpdateList
 
-	HybridScrollFrame_CreateButtons(frame.ScrollFrame, "SimpleAddonManagerAddonItem")
+	frame.AddonListFrame.ScrollFrame.ScrollBar:ClearAllPoints()
+	frame.AddonListFrame.ScrollFrame.ScrollBar:SetPoint("TOPRIGHT", frame.AddonListFrame, "TOPRIGHT", 0, -16)
+	frame.AddonListFrame.ScrollFrame.ScrollBar:SetPoint("BOTTOMRIGHT", frame.AddonListFrame, "BOTTOMRIGHT", 0, 12)
+	frame.AddonListFrame.ScrollFrame.ScrollBar:SetScript("OnSizeChanged", OnSizeChanged)
+	frame.AddonListFrame.ScrollFrame.ScrollBar.doNotHide = true
+
+	HybridScrollFrame_CreateButtons(frame.AddonListFrame.ScrollFrame, "SimpleAddonManagerAddonItem")
 end
 
 function module:OnLoad()

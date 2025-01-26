@@ -28,7 +28,7 @@ local function CharacterDropDown_Initialize()
 				frame:InitAddonStateFor(name)
 				frame:SetSelectedCharIndex(value)
 				EDDM.UIDropDownMenu_SetSelectedValue(frame.CharacterDropDown, value)
-				frame.ScrollFrame.update()
+				frame.AddonListFrame.ScrollFrame.update()
 			end,
 			checked = selectedCharIndex == zeroIndex,
 		})
@@ -99,7 +99,7 @@ function module:Initialize()
 		frame:GetModule("Lock"):RollbackChanges()
 
 		frame.compat.ResetAddOns()
-		frame.ScrollFrame.update()
+		frame.AddonListFrame.ScrollFrame.update()
 		frame:Hide()
 	end)
 
@@ -114,7 +114,7 @@ function module:Initialize()
 			ReloadUI()
 		else
 			frame:ClearInitialState()
-			frame.ScrollFrame.update()
+			frame.AddonListFrame.ScrollFrame.update()
 			frame:Hide()
 		end
 	end)

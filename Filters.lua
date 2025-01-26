@@ -304,7 +304,7 @@ end
 function frame:UpdateListFilters()
 	--local t = GetTimePreciseSec()
 	CreateList(frame.SearchBox:GetText(), frame:SelectedCategories())
-	frame.ScrollFrame.update()
+	frame.AddonListFrame.ScrollFrame.update()
 	--print(GetTimePreciseSec() - t)
 end
 
