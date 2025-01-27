@@ -8,7 +8,8 @@ local module = SAM:RegisterModule("AddonProfiler", "AddonList", "Category")
 
 local function FormatProfilerPercent(pct)
 	local color = C.white
-	if (pct > 50) then color = C.yellow end
+	if (pct > 25) then color = C.yellow end
+	if (pct > 50) then color = C.orange end
 	if (pct > 80) then color = C.red end
 	return color:WrapText(string.format("%.2f", pct)) .. C.white:WrapText("%")
 end
@@ -45,7 +46,7 @@ function module:GetOverallMetricPercent(metric)
 	return FormatProfilerPercent(percent * 100.0) .. GetWarningFor(percent)
 end
 
-function module:GetAddonMetricPercent(addonName, metric)
+function module:GetAddonMetricPercent(addonName, metric, warningInLeftSide)
 	if (not C_AddOnProfiler or not C_AddOnProfiler.IsEnabled()) then
 		return ""
 	end
@@ -60,6 +61,9 @@ function module:GetAddonMetricPercent(addonName, metric)
 		return ""
 	end
 	local percent = addon / relative
+	if (warningInLeftSide) then
+		return GetWarningFor(percent) .. FormatProfilerPercent(percent * 100.0)
+	end
 	return FormatProfilerPercent(percent * 100.0) .. GetWarningFor(percent)
 end
 
@@ -79,14 +83,14 @@ end
 local timeElapsed = 0
 function module:OnUpdate(elapsed)
 	timeElapsed = timeElapsed + elapsed
-	if (timeElapsed > 0.5) then
+	if (timeElapsed > SAM:GetDb().config.cpuUpdate) then
 		timeElapsed = 0
 		module:UpdateCPU()
 	end
 end
 
 function module:CanShow()
-	return C_AddOnProfiler and C_AddOnProfiler.IsEnabled() and C_AddOnProfiler.GetApplicationMetric
+	return C_AddOnProfiler and C_AddOnProfiler.IsEnabled() and C_AddOnProfiler.GetApplicationMetric and SAM:GetDb().config.cpuUpdate > 0
 end
 
 function module:PreInitialize()
@@ -128,4 +132,11 @@ function module:OnShow()
 		SAM.AddonListFrame.ScrollFrame:SetPoint("TOPLEFT")
 		SAM.ProfilerFrame:Hide()
 	end
+end
+
+function module:OnLoad()
+	local db = SAM:GetDb()
+	SAM:CreateDefaultOptions(db.config, {
+		cpuUpdate = 0.5,
+	})
 end

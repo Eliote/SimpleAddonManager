@@ -26,6 +26,26 @@ local function MemoryUpdateMenuList()
 	return menu
 end
 
+local function CPUUpdateMenuList()
+	local db = SAM:GetDb()
+	local menu = {}
+	local periods = { 0, 0.1, 0.25, 0.5, 1, 5 }
+	for _, v in ipairs(periods) do
+		table.insert(menu, {
+			text = (v == 0) and DISABLE or L("${n} seconds", { n = v }),
+			checked = function()
+				return db.config.cpuUpdate == v
+			end,
+			func = function()
+				db.config.cpuUpdate = v
+				SAM:GetModule("AddonProfiler"):OnShow()
+				SAM:Update()
+			end,
+		})
+	end
+	return menu
+end
+
 local function ConfigDropDownCreate()
 	local db = SAM:GetDb()
 	return {
@@ -85,6 +105,16 @@ local function ConfigDropDownCreate()
 			notCheckable = true,
 			hasArrow = true,
 			menuList = MemoryUpdateMenuList(),
+		},
+		{
+			text = L["CPU Update"],
+			notCheckable = true,
+			hasArrow = true,
+			disabled = not C_AddOnProfiler or not C_AddOnProfiler.IsEnabled(),
+			menuList = CPUUpdateMenuList(),
+			tooltipOnButton = not C_AddOnProfiler or not C_AddOnProfiler.IsEnabled(),
+			tooltipTitle = L["Only available in 11.1 and above and when profiler is enabled."],
+			tooltipText = "",
 		},
 		T.separatorInfo,
 		{ text = L["List Options"], isTitle = true, notCheckable = true },

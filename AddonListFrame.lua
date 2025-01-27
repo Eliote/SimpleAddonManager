@@ -413,7 +413,7 @@ end
 local time = 0
 local function UpdateTooltipThrottled(self)
 	local ctime = GetTime()
-	if (ctime - time > 1) then
+	if (ctime - time > SAM:GetDb().config.cpuUpdate) then
 		time = ctime
 		UpdateTooltip(self)
 	end
@@ -481,6 +481,24 @@ local function GetTitleWithIcon(addon)
 	return titleText .. version
 end
 
+local function UpdateButtonProfiling(self)
+	local addon = self.addon
+	local loaded = SAM.compat.IsAddOnLoaded(addon.index);
+	if (loaded) then
+		local profiler = SAM:GetModule("AddonProfiler")
+		self.Status:SetText(profiler:GetAddonMetricPercent(addon.index, Enum.AddOnProfilerMetric.RecentAverageTime, true))
+	end
+end
+
+local timeElapsed = 0
+local function OnUpdateButtonProfiling(self, elapsed)
+	timeElapsed = timeElapsed + elapsed
+	if (timeElapsed > SAM:GetDb().config.cpuUpdate) then
+		timeElapsed = 0
+		UpdateButtonProfiling(self)
+	end
+end
+
 local wowExpMargin = LE_EXPANSION_LEVEL_CURRENT >= 9 and 4 or 0
 
 local function UpdateList()
@@ -490,6 +508,7 @@ local function UpdateList()
 	local addons = SAM:GetAddonsList()
 	local count = #addons
 	local isInTreeMode = SAM:GetDb().config.addonListStyle == "tree"
+	local showProfiling = SAM:GetDb().config.cpuUpdate > 0
 
 	for buttonIndex = 1, #buttons do
 		local button = buttons[buttonIndex]
@@ -545,6 +564,12 @@ local function UpdateList()
 				if (reason == nil) then
 					button.Status:SetText(REQUIRES_RELOAD)
 				end
+			end
+
+			button:SetScript("OnUpdate", nil)
+			if (IsProfilerEnabled() and loaded and showProfiling) then
+				button:SetScript("OnUpdate", OnUpdateButtonProfiling)
+				UpdateButtonProfiling(button)
 			end
 
 			Checkbox_SetAddonState(button.EnabledButton, enabled, addonIndex)
