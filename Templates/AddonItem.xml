@@ -52,7 +52,7 @@
                         </Anchors>
                         <Layers>
                             <Layer level="OVERLAY">
-                                <Texture file="Interface\AddOns\SimpleAddonManager\Templates\lock"/>
+                                <Texture file="Interface\AddOns\SimpleAddonManager\Icons\lock"/>
                             </Layer>
                         </Layers>
                     </Frame>
