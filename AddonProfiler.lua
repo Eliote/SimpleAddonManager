@@ -38,13 +38,13 @@ local function MovePoint(frame, point, x, y)
 	frame:SetPoint(point, relativeTo, relativePoint, offsetX + x, offsetY + y)
 end
 
-function module:GetOverallMetricPercent(metric)
+function module:GetOverallMetricPercent(metric, def)
 	if (not C_AddOnProfiler or not C_AddOnProfiler.IsEnabled()) then
 		return ""
 	end
 	local app = C_AddOnProfiler.GetApplicationMetric and C_AddOnProfiler.GetApplicationMetric(metric) or 0
 	if app <= 0 then
-		return FormatProfilerPercent(0)
+		return def or FormatProfilerPercent(0)
 	end
 	local overall = C_AddOnProfiler.GetOverallMetric(metric)
 	local percent = overall / app
@@ -81,7 +81,7 @@ function module:UpdateCPU()
 			module:GetOverallMetricPercent(Enum.AddOnProfilerMetric.SessionAverageTime)
 	)
 	SAM.ProfilerFrame.EncounterCPU:SetText(
-			module:GetOverallMetricPercent(Enum.AddOnProfilerMetric.EncounterAverageTime)
+			module:GetOverallMetricPercent(Enum.AddOnProfilerMetric.EncounterAverageTime, "--")
 	)
 	SAM.ProfilerFrame.PeakCPU:SetText(
 			module:GetOverallMetricPercent(Enum.AddOnProfilerMetric.PeakTime)
@@ -91,14 +91,15 @@ end
 local timeElapsed = 0
 function module:OnUpdate(elapsed)
 	timeElapsed = timeElapsed + elapsed
-	if (timeElapsed > SAM:GetDb().config.profiling.cpuUpdate) then
+	local update = SAM:GetDb().config.profiling.cpuUpdate
+	if (timeElapsed > update and update > 0) then
 		timeElapsed = 0
 		module:UpdateCPU()
 	end
 end
 
 function module:CanShow()
-	return C_AddOnProfiler and C_AddOnProfiler.IsEnabled() and C_AddOnProfiler.GetApplicationMetric and SAM:GetDb().config.cpuUpdate > 0
+	return C_AddOnProfiler and C_AddOnProfiler.IsEnabled() and C_AddOnProfiler.GetApplicationMetric and SAM:GetDb().config.profiling.cpuUpdate > 0
 end
 
 function module:PreInitialize()
@@ -174,7 +175,7 @@ function module:OnLoad()
 	local db = SAM:GetDb()
 	SAM:CreateDefaultOptions(db.config, {
 		profiling = {
-			cpuUpdate = 0.5,
+			cpuUpdate = 1.0,
 			cpuShowCurrent = true,
 			cpuShowAverage = false,
 			cpuShowPeak = false,

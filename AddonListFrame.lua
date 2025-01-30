@@ -412,15 +412,22 @@ end
 
 local time = 0
 local function UpdateTooltipThrottled(self)
+	local mem = SAM:GetDb().config.memoryUpdate
+	local cpu = SAM:GetDb().config.profiling.cpuUpdate
+	if (mem + cpu <= 0) then return end
+
 	local ctime = GetTime()
-	if (ctime - time > SAM:GetDb().config.profiling.cpuUpdate) then
+	local elapsed = ctime - time
+	if ((mem > 0 and elapsed > mem) or (cpu > 0 and elapsed > cpu)) then
 		time = ctime
 		UpdateTooltip(self)
 	end
 end
 
 local function AddonButtonOnEnter(self)
-	if (SAM:GetDb().config.memoryUpdate > 0 or IsProfilerEnabled()) then
+	local mem = SAM:GetDb().config.memoryUpdate
+	local cpu = SAM:GetDb().config.profiling.cpuUpdate
+	if (mem > 0 or (cpu > 0 and IsProfilerEnabled())) then
 		self.UpdateTooltip = UpdateTooltipThrottled
 	end
 	UpdateTooltip(self)
@@ -540,15 +547,6 @@ local function UpdateButtonProfiling(self)
 	end
 end
 
-local timeElapsed = 0
-local function OnUpdateButtonProfiling(self, elapsed)
-	timeElapsed = timeElapsed + elapsed
-	if (timeElapsed > SAM:GetDb().config.profiling.cpuUpdate) then
-		timeElapsed = 0
-		UpdateButtonProfiling(self)
-	end
-end
-
 local wowExpMargin = LE_EXPANSION_LEVEL_CURRENT >= 9 and 4 or 0
 
 local function UpdateList()
@@ -616,9 +614,7 @@ local function UpdateList()
 				end
 			end
 
-			button:SetScript("OnUpdate", nil)
 			if (IsProfilerEnabled() and loaded and showProfiling) then
-				button:SetScript("OnUpdate", OnUpdateButtonProfiling)
 				UpdateButtonProfiling(button)
 			end
 
@@ -660,6 +656,16 @@ local function OnHide()
 	SAM:UpdateMemoryTickerPeriod(0)
 end
 
+local timeElapsed = 0
+local function OnUpdate(_, elapsed)
+	timeElapsed = timeElapsed + elapsed
+	local update = SAM:GetDb().config.profiling.cpuUpdate
+	if (update > 0 and timeElapsed > update) then
+		timeElapsed = 0
+		UpdateList()
+	end
+end
+
 function SAM:UpdateMemoryTickerPeriod(period)
 	if (self.MemoryUpdateTicker) then
 		self.MemoryUpdateTicker:Cancel()
@@ -684,6 +690,7 @@ function module:Initialize()
 	SAM.AddonListFrame:SetPoint("BOTTOMRIGHT", SAM.AddonListFrame.rightPadding, 30)
 	SAM.AddonListFrame:SetScript("OnShow", OnShow)
 	SAM.AddonListFrame:SetScript("OnHide", OnHide)
+	module:UpdateProfiling()
 	SAM.AddonListFrame:Show()
 
 	SAM.AddonListFrame.ScrollFrame:SetPoint("TOPLEFT")
@@ -705,4 +712,12 @@ function module:OnLoad()
 		memoryUpdate = 0,
 		hideIcons = false,
 	})
+end
+
+function module:UpdateProfiling()
+	if (SAM:GetDb().config.profiling.cpuUpdate > 0) then
+		SAM.AddonListFrame:SetScript("OnUpdate", OnUpdate)
+	else
+		SAM.AddonListFrame:SetScript("OnUpdate", nil)
+	end
 end

@@ -39,6 +39,7 @@ local function CPUUpdateMenuList()
 			func = function()
 				db.config.profiling.cpuUpdate = v
 				SAM:GetModule("AddonProfiler"):OnShow()
+				SAM:GetModule("AddonList"):UpdateProfiling()
 				SAM:Update()
 			end,
 		})
@@ -113,11 +114,11 @@ local function ConfigDropDownCreate()
 			disabled = not C_AddOnProfiler or not C_AddOnProfiler.IsEnabled(),
 			menuList = CPUUpdateMenuList(),
 			tooltipOnButton = not C_AddOnProfiler or not C_AddOnProfiler.IsEnabled(),
-			tooltipTitle = L["Only available in 11.1 and above and when profiler is enabled."],
+			tooltipTitle = L["CPU data is not available in this version of WoW."],
 			tooltipText = "",
 		},
 		{
-			text = L["CPU List Format"],
+			text = L["CPU Visibility"],
 			notCheckable = true,
 			hasArrow = true,
 			disabled = not C_AddOnProfiler or not C_AddOnProfiler.IsEnabled(),
@@ -164,7 +165,7 @@ local function ConfigDropDownCreate()
 				},
 			},
 			tooltipOnButton = not C_AddOnProfiler or not C_AddOnProfiler.IsEnabled(),
-			tooltipTitle = L["Only available in 11.1 and above and when profiler is enabled."],
+			tooltipTitle = L["CPU data is not available in this version of WoW."],
 			tooltipText = "",
 		},
 		T.separatorInfo,
