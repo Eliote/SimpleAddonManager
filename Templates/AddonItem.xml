@@ -8,20 +8,20 @@
         <HighlightFont style="GameFontHighlight"/>
         <Layers>
             <Layer level="OVERLAY">
-                <FontString parentKey="Name" inherits="GameFontNormal" justifyH="LEFT">
-                    <Color r="1" g="1" b="1"/>
-                    <Anchors>
-                        <Anchor point="TOPLEFT" x="30" y="0"/>
-                        <Anchor point="BOTTOMRIGHT" x="-25" y="0"/>
-                    </Anchors>
-                </FontString>
-            </Layer>
-            <Layer level="OVERLAY">
-                <FontString parentKey="Status" inherits="GameFontNormalSmall" justifyH="LEFT">
+                <FontString parentKey="Status" inherits="GameFontNormalSmall" justifyH="RIGHT">
                     <Color r="1" g="1" b="1"/>
                     <Anchors>
                         <Anchor point="TOPRIGHT" x="-8" y="0"/>
                         <Anchor point="BOTTOMRIGHT" x="-8" y="0"/>
+                    </Anchors>
+                </FontString>
+            </Layer>
+            <Layer level="OVERLAY">
+                <FontString parentKey="Name" inherits="GameFontNormal" justifyH="LEFT">
+                    <Color r="1" g="1" b="1"/>
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="30" y="0"/>
+                        <Anchor point="BOTTOMRIGHT" relativeKey="$parent.Status" relativePoint="BOTTOMLEFT" x="-25" y="0"/>
                     </Anchors>
                 </FontString>
             </Layer>

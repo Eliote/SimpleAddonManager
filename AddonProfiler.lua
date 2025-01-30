@@ -6,6 +6,11 @@ local C = T.Color
 local SAM = T.AddonFrame
 local module = SAM:RegisterModule("AddonProfiler", "AddonList", "Category")
 
+module.IconCurrent = CreateSimpleTextureMarkup([[Interface\AddOns\SimpleAddonManager\Icons\current]], 16, 16)
+module.IconAverage = CreateSimpleTextureMarkup([[Interface\AddOns\SimpleAddonManager\Icons\average]], 16, 16)
+module.IconEncounter = CreateSimpleTextureMarkup([[Interface\AddOns\SimpleAddonManager\Icons\weapon]], 16, 16)
+module.IconPeak = CreateSimpleTextureMarkup([[Interface\AddOns\SimpleAddonManager\Icons\peak]], 16, 16)
+
 local function FormatProfilerPercent(pct)
 	local color = C.white
 	if (pct > 25) then color = C.yellow end
@@ -37,7 +42,7 @@ function module:GetOverallMetricPercent(metric)
 	if (not C_AddOnProfiler or not C_AddOnProfiler.IsEnabled()) then
 		return ""
 	end
-	local app = C_AddOnProfiler.GetApplicationMetric(metric)
+	local app = C_AddOnProfiler.GetApplicationMetric and C_AddOnProfiler.GetApplicationMetric(metric) or 0
 	if app <= 0 then
 		return FormatProfilerPercent(0)
 	end
@@ -46,9 +51,9 @@ function module:GetOverallMetricPercent(metric)
 	return FormatProfilerPercent(percent * 100.0) .. GetWarningFor(percent)
 end
 
-function module:GetAddonMetricPercent(addonName, metric, warningInLeftSide)
+function module:GetAddonMetricPercent(addonName, metric, warningInLeftSide, def)
 	if (not C_AddOnProfiler or not C_AddOnProfiler.IsEnabled()) then
-		return ""
+		return def or ""
 	end
 	local overall = C_AddOnProfiler.GetOverallMetric(metric)
 	local addon = C_AddOnProfiler.GetAddOnMetric(addonName, metric)
@@ -58,7 +63,7 @@ function module:GetAddonMetricPercent(addonName, metric, warningInLeftSide)
 		relative = app - overall + addon
 	end
 	if relative <= 0 then
-		return ""
+		return def or ""
 	end
 	local percent = addon / relative
 	if (warningInLeftSide) then
@@ -70,20 +75,23 @@ end
 function module:UpdateCPU()
 	if (not module:CanShow()) then return end
 	SAM.ProfilerFrame.CurrentCPU:SetText(
-			C.yellow:WrapText(L["CPU: "]) .. module:GetOverallMetricPercent(Enum.AddOnProfilerMetric.RecentAverageTime)
+			module:GetOverallMetricPercent(Enum.AddOnProfilerMetric.RecentAverageTime)
 	)
 	SAM.ProfilerFrame.AverageCPU:SetText(
-			C.yellow:WrapText(L["Average CPU: "]) .. module:GetOverallMetricPercent(Enum.AddOnProfilerMetric.SessionAverageTime)
+			module:GetOverallMetricPercent(Enum.AddOnProfilerMetric.SessionAverageTime)
+	)
+	SAM.ProfilerFrame.EncounterCPU:SetText(
+			module:GetOverallMetricPercent(Enum.AddOnProfilerMetric.EncounterAverageTime)
 	)
 	SAM.ProfilerFrame.PeakCPU:SetText(
-			C.yellow:WrapText(L["Peak CPU: "]) .. module:GetOverallMetricPercent(Enum.AddOnProfilerMetric.PeakTime)
+			module:GetOverallMetricPercent(Enum.AddOnProfilerMetric.PeakTime)
 	)
 end
 
 local timeElapsed = 0
 function module:OnUpdate(elapsed)
 	timeElapsed = timeElapsed + elapsed
-	if (timeElapsed > SAM:GetDb().config.cpuUpdate) then
+	if (timeElapsed > SAM:GetDb().config.profiling.cpuUpdate) then
 		timeElapsed = 0
 		module:UpdateCPU()
 	end
@@ -95,13 +103,24 @@ end
 
 function module:PreInitialize()
 	SAM.ProfilerFrame = CreateFrame("Frame", nil, SAM)
+
 	SAM.ProfilerFrame.Divider = SAM.ProfilerFrame:CreateTexture(nil, "ARTWORK")
+
+	SAM.ProfilerFrame.Left = CreateFrame("Frame", nil, SAM.ProfilerFrame)
+	SAM.ProfilerFrame.Right = CreateFrame("Frame", nil, SAM.ProfilerFrame)
+
+	SAM.ProfilerFrame.CurrentCPULabel = SAM.ProfilerFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalTiny")
+	SAM.ProfilerFrame.AverageCPULabel = SAM.ProfilerFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalTiny")
+	SAM.ProfilerFrame.EncounterCPULabel = SAM.ProfilerFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalTiny")
+	SAM.ProfilerFrame.PeakCPULabel = SAM.ProfilerFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalTiny")
+
 	SAM.ProfilerFrame.CurrentCPU = SAM.ProfilerFrame:CreateFontString(nil, "ARTWORK", "GameFontWhite")
 	SAM.ProfilerFrame.AverageCPU = SAM.ProfilerFrame:CreateFontString(nil, "ARTWORK", "GameFontWhite")
+	SAM.ProfilerFrame.EncounterCPU = SAM.ProfilerFrame:CreateFontString(nil, "ARTWORK", "GameFontWhite")
 	SAM.ProfilerFrame.PeakCPU = SAM.ProfilerFrame:CreateFontString(nil, "ARTWORK", "GameFontWhite")
 end
 
-local profilerSizeFrame = 30
+local profilerSizeFrame = 32
 
 function module:Initialize()
 	SAM.ProfilerFrame:SetPoint("TOPLEFT", SAM.AddonListFrame, "TOPLEFT")
@@ -113,9 +132,26 @@ function module:Initialize()
 	SAM.ProfilerFrame.Divider:SetPoint("BOTTOMLEFT", SAM.ProfilerFrame, "BOTTOMLEFT", 10, 4)
 	SAM.ProfilerFrame.Divider:SetPoint("BOTTOMRIGHT", SAM.ProfilerFrame, "BOTTOMRIGHT", -10, 4)
 
-	SAM.ProfilerFrame.CurrentCPU:SetPoint("LEFT", 10, 2)
-	SAM.ProfilerFrame.AverageCPU:SetPoint("CENTER", 0, 2)
-	SAM.ProfilerFrame.PeakCPU:SetPoint("RIGHT", -10, 2)
+	SAM.ProfilerFrame.Left:SetPoint("TOPLEFT", 8, -1)
+	SAM.ProfilerFrame.Left:SetPoint("BOTTOMRIGHT", SAM.ProfilerFrame, "BOTTOM")
+	SAM.ProfilerFrame.Right:SetPoint("TOPLEFT", SAM.ProfilerFrame, "TOP", 0, -1)
+	SAM.ProfilerFrame.Right:SetPoint("BOTTOMRIGHT", -8, 0)
+
+	SAM.ProfilerFrame.CurrentCPULabel:SetPoint("TOPLEFT", SAM.ProfilerFrame.Left)
+	SAM.ProfilerFrame.AverageCPULabel:SetPoint("TOPLEFT", SAM.ProfilerFrame.Left, "TOP")
+	SAM.ProfilerFrame.EncounterCPULabel:SetPoint("TOPRIGHT", SAM.ProfilerFrame.Right, "TOP")
+	SAM.ProfilerFrame.PeakCPULabel:SetPoint("TOPRIGHT", SAM.ProfilerFrame.Right)
+
+	SAM.ProfilerFrame.CurrentCPULabel:SetText(module.IconCurrent .. " " .. L["Current CPU"])
+	SAM.ProfilerFrame.AverageCPULabel:SetText(module.IconAverage .. " " .. L["Average CPU"])
+	SAM.ProfilerFrame.EncounterCPULabel:SetText(module.IconEncounter .. " " .. L["Encounter CPU"])
+	SAM.ProfilerFrame.PeakCPULabel:SetText(module.IconPeak .. " " .. L["Peak CPU"])
+
+	local marginLabel = -1
+	SAM.ProfilerFrame.CurrentCPU:SetPoint("TOPLEFT", SAM.ProfilerFrame.CurrentCPULabel, "BOTTOMLEFT", 0, marginLabel)
+	SAM.ProfilerFrame.AverageCPU:SetPoint("TOP", SAM.ProfilerFrame.AverageCPULabel, "BOTTOM", 0, marginLabel)
+	SAM.ProfilerFrame.EncounterCPU:SetPoint("TOP", SAM.ProfilerFrame.EncounterCPULabel, "BOTTOM", 0, marginLabel)
+	SAM.ProfilerFrame.PeakCPU:SetPoint("TOPRIGHT", SAM.ProfilerFrame.PeakCPULabel, "BOTTOMRIGHT", 0, marginLabel)
 
 	SAM.AddonListFrame.ScrollFrame:SetPoint("TOPLEFT", SAM.ProfilerFrame, "BOTTOMLEFT")
 
@@ -137,6 +173,12 @@ end
 function module:OnLoad()
 	local db = SAM:GetDb()
 	SAM:CreateDefaultOptions(db.config, {
-		cpuUpdate = 0.5,
+		profiling = {
+			cpuUpdate = 0.5,
+			cpuShowCurrent = true,
+			cpuShowAverage = false,
+			cpuShowPeak = false,
+			cpuShowEncounter = false,
+		}
 	})
 end

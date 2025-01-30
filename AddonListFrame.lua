@@ -413,7 +413,7 @@ end
 local time = 0
 local function UpdateTooltipThrottled(self)
 	local ctime = GetTime()
-	if (ctime - time > SAM:GetDb().config.cpuUpdate) then
+	if (ctime - time > SAM:GetDb().config.profiling.cpuUpdate) then
 		time = ctime
 		UpdateTooltip(self)
 	end
@@ -481,19 +481,69 @@ local function GetTitleWithIcon(addon)
 	return titleText .. version
 end
 
+local function JoinString(sep, ...)
+	local s = ""
+	local res = ""
+	for i = 1, select("#", ...) do
+		local text = select(i, ...)
+		if (text and text ~= "") then
+			res = res .. s .. text
+			s = sep
+		end
+	end
+	return res
+end
+
+local function DataWithIcon(icon, data)
+	if (data and data ~= "") then
+		return icon .. " " .. data
+	end
+	return ""
+end
+
 local function UpdateButtonProfiling(self)
 	local addon = self.addon
 	local loaded = SAM.compat.IsAddOnLoaded(addon.index);
 	if (loaded) then
 		local profiler = SAM:GetModule("AddonProfiler")
-		self.Status:SetText(profiler:GetAddonMetricPercent(addon.index, Enum.AddOnProfilerMetric.RecentAverageTime, true))
+		local curr = ""
+		local avg = ""
+		local peak = ""
+		local enc = ""
+		local db = SAM:GetDb().config.profiling
+		if (db.cpuShowCurrent) then
+			curr = DataWithIcon(
+					profiler.IconCurrent,
+					profiler:GetAddonMetricPercent(addon.index, Enum.AddOnProfilerMetric.RecentAverageTime, true)
+			)
+		end
+		if (db.cpuShowAverage) then
+			avg = DataWithIcon(
+					profiler.IconAverage,
+					profiler:GetAddonMetricPercent(addon.index, Enum.AddOnProfilerMetric.SessionAverageTime, true)
+			)
+		end
+		if (db.cpuShowEncounter) then
+			enc = DataWithIcon(
+					profiler.IconEncounter,
+					profiler:GetAddonMetricPercent(addon.index, Enum.AddOnProfilerMetric.EncounterAverageTime, true)
+					--C.white:WrapText("1.23%")
+			)
+		end
+		if (db.cpuShowPeak) then
+			peak = DataWithIcon(
+					profiler.IconPeak,
+					profiler:GetAddonMetricPercent(addon.index, Enum.AddOnProfilerMetric.PeakTime, true)
+			)
+		end
+		self.Status:SetText(JoinString(C.grey:WrapText(" | "), curr, avg, enc, peak))
 	end
 end
 
 local timeElapsed = 0
 local function OnUpdateButtonProfiling(self, elapsed)
 	timeElapsed = timeElapsed + elapsed
-	if (timeElapsed > SAM:GetDb().config.cpuUpdate) then
+	if (timeElapsed > SAM:GetDb().config.profiling.cpuUpdate) then
 		timeElapsed = 0
 		UpdateButtonProfiling(self)
 	end
@@ -508,7 +558,7 @@ local function UpdateList()
 	local addons = SAM:GetAddonsList()
 	local count = #addons
 	local isInTreeMode = SAM:GetDb().config.addonListStyle == "tree"
-	local showProfiling = SAM:GetDb().config.cpuUpdate > 0
+	local showProfiling = SAM:GetDb().config.profiling.cpuUpdate > 0
 
 	for buttonIndex = 1, #buttons do
 		local button = buttons[buttonIndex]
