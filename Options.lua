@@ -39,7 +39,6 @@ local function CPUUpdateMenuList()
 			func = function()
 				db.config.profiling.cpuUpdate = v
 				SAM:GetModule("AddonProfiler"):OnShow()
-				SAM:GetModule("AddonList"):UpdateProfiling()
 				SAM:Update()
 			end,
 		})

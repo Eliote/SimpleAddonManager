@@ -35,9 +35,6 @@ end)
 SAM:SetScript("OnMouseUp", function(self)
 	self:StopMovingOrSizing()
 end)
-SAM:SetScript("OnHide", function()
-	StaticPopup_Hide("SimpleAddonManager_Dialog")
-end)
 table.insert(UISpecialFrames, SAM:GetName()) -- Register frame to be closed with ESC
 
 function SAM:GetDb()
@@ -262,6 +259,16 @@ SAM:SetScript("OnShow", function()
 	local db = SAM:GetDb()
 	if (db.config.autofocusSearch) then
 		SAM.SearchBox:SetFocus()
+	end
+end)
+
+SAM:SetScript("OnHide", function()
+	StaticPopup_Hide("SimpleAddonManager_Dialog")
+
+	for _, module in SAM:ModulesIterator() do
+		if (module.OnHide) then
+			module:OnHide()
+		end
 	end
 end)
 

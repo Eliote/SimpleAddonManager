@@ -33,11 +33,6 @@ local function GetWarningFor(percent)
 	return ""
 end
 
-local function MovePoint(frame, point, x, y)
-	local _, relativeTo, relativePoint, offsetX, offsetY = frame:GetPointByName(point)
-	frame:SetPoint(point, relativeTo, relativePoint, offsetX + x, offsetY + y)
-end
-
 function module:GetOverallMetricPercent(metric, def)
 	if (not C_AddOnProfiler or not C_AddOnProfiler.IsEnabled()) then
 		return ""
@@ -88,13 +83,24 @@ function module:UpdateCPU()
 	)
 end
 
-local timeElapsed = 0
-function module:OnUpdate(elapsed)
-	timeElapsed = timeElapsed + elapsed
-	local update = SAM:GetDb().config.profiling.cpuUpdate
-	if (timeElapsed > update and update > 0) then
-		timeElapsed = 0
-		module:UpdateCPU()
+local function EnableTicker()
+	module:UpdateProfilingTickerPeriod(SAM:GetDb().config.profiling.cpuUpdate)
+end
+
+local function DisableTicker()
+	module:UpdateProfilingTickerPeriod(0)
+end
+
+function module:UpdateProfilingTickerPeriod(period)
+	if (module.CpuUpdateTicker) then
+		module.CpuUpdateTicker:Cancel()
+		module.CpuUpdateTicker = nil
+	end
+	if (period > 0) then
+		module.CpuUpdateTicker = C_Timer.NewTicker(period, function()
+			module:UpdateCPU()
+			SAM.AddonListFrame.ScrollFrame.update()
+		end)
 	end
 end
 
@@ -121,13 +127,15 @@ function module:PreInitialize()
 	SAM.ProfilerFrame.PeakCPU = SAM.ProfilerFrame:CreateFontString(nil, "ARTWORK", "GameFontWhite")
 end
 
-local profilerSizeFrame = 32
+local profilerSizeFrame = 36
 
 function module:Initialize()
-	SAM.ProfilerFrame:SetPoint("TOPLEFT", SAM.AddonListFrame, "TOPLEFT")
-	SAM.ProfilerFrame:SetPoint("TOPRIGHT", SAM.AddonListFrame, "TOPRIGHT", -18, 0)
+	SAM.ProfilerFrame:Hide()
+	--SAM.ProfilerFrame:SetScript("OnShow", OnShow)
+	--SAM.ProfilerFrame:SetScript("OnHide", OnHide)
+	SAM.ProfilerFrame:SetPoint("TOPLEFT", SAM.AddonListFrame, "TOPLEFT", 0, -2)
+	SAM.ProfilerFrame:SetPoint("TOPRIGHT", SAM.AddonListFrame, "TOPRIGHT", -18, -2)
 	SAM.ProfilerFrame:SetHeight(profilerSizeFrame)
-	SAM.ProfilerFrame:SetScript("OnUpdate", module.OnUpdate)
 
 	SAM.ProfilerFrame.Divider:SetAtlas("Options_HorizontalDivider", true)
 	SAM.ProfilerFrame.Divider:SetPoint("BOTTOMLEFT", SAM.ProfilerFrame, "BOTTOMLEFT", 10, 4)
@@ -160,15 +168,21 @@ function module:Initialize()
 end
 
 function module:OnShow()
+	SAM.AddonListFrame.ScrollFrame:SetPoint("TOPLEFT")
+	SAM.ProfilerFrame:Hide()
+
 	if (module:CanShow()) then
-		SAM.ProfilerFrame:SetScript("OnUpdate", module.OnUpdate)
 		SAM.AddonListFrame.ScrollFrame:SetPoint("TOPLEFT", SAM.ProfilerFrame, "BOTTOMLEFT")
 		SAM.ProfilerFrame:Show()
-	else
-		SAM.ProfilerFrame:SetScript("OnUpdate", nil)
-		SAM.AddonListFrame.ScrollFrame:SetPoint("TOPLEFT")
-		SAM.ProfilerFrame:Hide()
 	end
+
+	if (C_AddOnProfiler and C_AddOnProfiler.IsEnabled()) then
+		EnableTicker()
+	end
+end
+
+function module:OnHide()
+	DisableTicker()
 end
 
 function module:OnLoad()

@@ -556,7 +556,7 @@ local function UpdateList()
 	local addons = SAM:GetAddonsList()
 	local count = #addons
 	local isInTreeMode = SAM:GetDb().config.addonListStyle == "tree"
-	local showProfiling = SAM:GetDb().config.profiling.cpuUpdate > 0
+	local showProfiling = IsProfilerEnabled() and SAM:GetDb().config.profiling.cpuUpdate > 0
 
 	for buttonIndex = 1, #buttons do
 		local button = buttons[buttonIndex]
@@ -614,7 +614,7 @@ local function UpdateList()
 				end
 			end
 
-			if (IsProfilerEnabled() and loaded and showProfiling) then
+			if (loaded and showProfiling) then
 				UpdateButtonProfiling(button)
 			end
 
@@ -656,16 +656,6 @@ local function OnHide()
 	SAM:UpdateMemoryTickerPeriod(0)
 end
 
-local timeElapsed = 0
-local function OnUpdate(_, elapsed)
-	timeElapsed = timeElapsed + elapsed
-	local update = SAM:GetDb().config.profiling.cpuUpdate
-	if (update > 0 and timeElapsed > update) then
-		timeElapsed = 0
-		UpdateList()
-	end
-end
-
 function SAM:UpdateMemoryTickerPeriod(period)
 	if (self.MemoryUpdateTicker) then
 		self.MemoryUpdateTicker:Cancel()
@@ -690,7 +680,6 @@ function module:Initialize()
 	SAM.AddonListFrame:SetPoint("BOTTOMRIGHT", SAM.AddonListFrame.rightPadding, 30)
 	SAM.AddonListFrame:SetScript("OnShow", OnShow)
 	SAM.AddonListFrame:SetScript("OnHide", OnHide)
-	module:UpdateProfiling()
 	SAM.AddonListFrame:Show()
 
 	SAM.AddonListFrame.ScrollFrame:SetPoint("TOPLEFT")
@@ -712,12 +701,4 @@ function module:OnLoad()
 		memoryUpdate = 0,
 		hideIcons = false,
 	})
-end
-
-function module:UpdateProfiling()
-	if (SAM:GetDb().config.profiling.cpuUpdate > 0) then
-		SAM.AddonListFrame:SetScript("OnUpdate", OnUpdate)
-	else
-		SAM.AddonListFrame:SetScript("OnUpdate", nil)
-	end
 end
