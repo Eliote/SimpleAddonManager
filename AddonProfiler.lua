@@ -5,6 +5,7 @@ local C = T.Color
 --- @type SimpleAddonManager
 local SAM = T.AddonFrame
 local module = SAM:RegisterModule("AddonProfiler", "AddonList", "Category")
+SAM.AddonProfiler = module
 
 module.IconCurrent = CreateSimpleTextureMarkup([[Interface\AddOns\SimpleAddonManager\Icons\current]], 16, 16)
 module.IconAverage = CreateSimpleTextureMarkup([[Interface\AddOns\SimpleAddonManager\Icons\average]], 16, 16)
@@ -99,6 +100,7 @@ function module:UpdateProfilingTickerPeriod(period)
 	if (period > 0) then
 		module.CpuUpdateTicker = C_Timer.NewTicker(period, function()
 			module:UpdateCPU()
+			SAM.AddonList:UpdateTooltip()
 			SAM.AddonListFrame.ScrollFrame.update()
 		end)
 	end

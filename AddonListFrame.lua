@@ -8,10 +8,13 @@ local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFr
 --- @type SimpleAddonManager
 local SAM = T.AddonFrame
 local module = SAM:RegisterModule("AddonList")
+SAM.AddonList = module
 
 local BANNED_ADDON = "BANNED"
 local SECURE_PROTECTED_ADDON = "SECURE_PROTECTED"
 local SECURE_ADDON = "SECURE"
+
+local AddonTooltip = CreateFrame("GameTooltip", "SAM_ADDON_LIST_TOOLTIP", SAM, "GameTooltipTemplate");
 
 local function AddonTooltipBuildDepsString(addonIndex)
 	local deps = { SAM.compat.GetAddOnDependencies(addonIndex) }
@@ -343,100 +346,88 @@ local function AddLineIfNotEmpty(ttp, title, info)
 end
 
 local function IsProfilerEnabled()
-	return C_AddOnProfiler and C_AddOnProfiler.IsEnabled()
+	return C_AddOnProfiler and C_AddOnProfiler.IsEnabled() and SAM:GetDb().config.profiling.cpuUpdate > 0
 end
 
 local function UpdateTooltip(self)
 	local addonIndex = self.addon.index
 	local name, title, notes, _, reason, security = SAM.compat.GetAddOnInfo(addonIndex)
 
-	GameTooltip:ClearLines();
-	GameTooltip:SetOwner(self, "ANCHOR_NONE")
-	GameTooltip:SetPoint("LEFT", self, "RIGHT")
+	AddonTooltip:ClearLines();
+	AddonTooltip:SetOwner(self, "ANCHOR_NONE")
+	AddonTooltip:SetPoint("LEFT", self, "RIGHT")
 	if (security == BANNED_ADDON) then
-		GameTooltip:SetText(ADDON_BANNED_TOOLTIP);
+		AddonTooltip:SetText(ADDON_BANNED_TOOLTIP);
 	else
 		if (title) then
-			GameTooltip:AddLine(title);
-			GameTooltip:AddLine(name, 0.7, 0.7, 0.7);
-			--GameTooltip:AddLine("debug: '" .. self.addon.name .. "'|r");
-			--GameTooltip:AddLine("dept: '" .. self.addon.dept .. "'|r");
-			--GameTooltip:AddLine("reason: '" .. (reason or "null") .. "'|r");
+			AddonTooltip:AddLine(title);
+			AddonTooltip:AddLine(name, 0.7, 0.7, 0.7);
+			--AddonTooltip:AddLine("debug: '" .. self.addon.name .. "'|r");
+			--AddonTooltip:AddLine("dept: '" .. self.addon.dept .. "'|r");
+			--AddonTooltip:AddLine("reason: '" .. (reason or "null") .. "'|r");
 		else
-			GameTooltip:AddLine(name);
+			AddonTooltip:AddLine(name);
 		end
 		if (reason == "MISSING") then
-			GameTooltip:AddLine(C.red:WrapText(L["This addons is not installed!"]), nil, nil, nil, true);
+			AddonTooltip:AddLine(C.red:WrapText(L["This addons is not installed!"]), nil, nil, nil, true);
 			return
 		end
 		local version = SAM:GetAddOnMetadata(addonIndex, "Version")
 		if (version) then
-			GameTooltip:AddLine(L["Version: "] .. C.white:WrapText(version));
+			AddonTooltip:AddLine(L["Version: "] .. C.white:WrapText(version));
 		end
 		local author = SAM:GetAddOnMetadata(addonIndex, "Author")
 		if (author) then
-			GameTooltip:AddLine(L["Author: "] .. C.white:WrapText(strtrim(author)));
+			AddonTooltip:AddLine(L["Author: "] .. C.white:WrapText(strtrim(author)));
 		end
 		local loaded = SAM.compat.IsAddOnLoaded(addonIndex);
 		if (loaded and IsProfilerEnabled()) then
-			local profiler = SAM:GetModule("AddonProfiler")
-			AddLineIfNotEmpty(GameTooltip, L["CPU: "], profiler:GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.RecentAverageTime));
-			AddLineIfNotEmpty(GameTooltip, L["Average CPU: "], profiler:GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.SessionAverageTime));
-			AddLineIfNotEmpty(GameTooltip, L["Peak CPU: "], profiler:GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.PeakTime));
-			AddLineIfNotEmpty(GameTooltip, L["Encounter CPU: "], profiler:GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.EncounterAverageTime));
+			local profiler = SAM.AddonProfiler
+			AddLineIfNotEmpty(AddonTooltip, L["CPU: "], profiler:GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.RecentAverageTime));
+			AddLineIfNotEmpty(AddonTooltip, L["Average CPU: "], profiler:GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.SessionAverageTime));
+			AddLineIfNotEmpty(AddonTooltip, L["Peak CPU: "], profiler:GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.PeakTime));
+			AddLineIfNotEmpty(AddonTooltip, L["Encounter CPU: "], profiler:GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.EncounterAverageTime));
 		end
 		if (loaded and security ~= SECURE_PROTECTED_ADDON and security ~= SECURE_ADDON) then
 			local mem = GetAddOnMemoryUsage(addonIndex)
-			GameTooltip:AddLine(L["Memory: "] .. C.white:WrapText(SAM:FormatMemory(mem)));
+			AddonTooltip:AddLine(L["Memory: "] .. C.white:WrapText(SAM:FormatMemory(mem)));
 		end
-		GameTooltip:AddLine(AddonTooltipBuildDepsString(addonIndex), nil, nil, nil, true);
+		AddonTooltip:AddLine(AddonTooltipBuildDepsString(addonIndex), nil, nil, nil, true);
 		if (self.addon.warning) then
-			GameTooltip:AddLine(self.addon.warning, nil, nil, nil, true);
+			AddonTooltip:AddLine(self.addon.warning, nil, nil, nil, true);
 		end
 		local profilesForAddon = ProfilesInAddon(name)
 		if profilesForAddon ~= "" then
-			GameTooltip:AddLine(L["Profiles: "] .. C.white:WrapText(profilesForAddon), nil, nil, nil, true);
+			AddonTooltip:AddLine(L["Profiles: "] .. C.white:WrapText(profilesForAddon), nil, nil, nil, true);
 		end
 		local categoriesForAddon = CategoriesForAddon(name)
 		if categoriesForAddon ~= "" then
-			GameTooltip:AddLine(L["Categories: "] .. C.white:WrapText(categoriesForAddon), nil, nil, nil, true);
+			AddonTooltip:AddLine(L["Categories: "] .. C.white:WrapText(categoriesForAddon), nil, nil, nil, true);
 		end
 
-		GameTooltip:AddLine(" ");
-		GameTooltip:AddLine(notes, 1.0, 1.0, 1.0, true);
-		GameTooltip:AddLine(" ");
-		GameTooltip:AddLine("|A:newplayertutorial-icon-mouse-rightbutton:0:0|a " .. L["Right-click to edit"]);
+		AddonTooltip:AddLine(" ");
+		AddonTooltip:AddLine(notes, 1.0, 1.0, 1.0, true);
+		AddonTooltip:AddLine(" ");
+		AddonTooltip:AddLine("|A:newplayertutorial-icon-mouse-rightbutton:0:0|a " .. L["Right-click to edit"]);
 	end
-	GameTooltip:Show()
+	AddonTooltip:Show()
 end
 
-local time = 0
-local function UpdateTooltipThrottled(self)
-	local mem = SAM:GetDb().config.memoryUpdate
-	local cpu = SAM:GetDb().config.profiling.cpuUpdate
-	if (mem + cpu <= 0) then return end
-
-	local ctime = GetTime()
-	local elapsed = ctime - time
-	if ((mem > 0 and elapsed > mem) or (cpu > 0 and elapsed > cpu)) then
-		time = ctime
-		UpdateTooltip(self)
+function module:UpdateTooltip()
+	if (module.CurrentButtonTooltip and AddonTooltip:IsShown()) then
+		UpdateTooltip(module.CurrentButtonTooltip)
 	end
 end
 
 local function AddonButtonOnEnter(self)
-	local mem = SAM:GetDb().config.memoryUpdate
-	local cpu = SAM:GetDb().config.profiling.cpuUpdate
-	if (mem > 0 or (cpu > 0 and IsProfilerEnabled())) then
-		self.UpdateTooltip = UpdateTooltipThrottled
-	end
 	UpdateTooltip(self)
-	GameTooltip:Show()
+	module.CurrentButtonTooltip = self
+	AddonTooltip:Show()
 end
 
-local function AddonButtonOnLeave(self)
-	self.UpdateTooltip = nil
-	GameTooltip:Hide()
+local function AddonButtonOnLeave(_)
+	module.CurrentButtonTooltip = nil
+	AddonTooltip:Hide()
 end
 
 local function ShouldColorStatus(enabled, loaded, reason)
@@ -534,7 +525,7 @@ local function UpdateButtonProfiling(self)
 			enc = DataWithIcon(
 					profiler.IconEncounter,
 					profiler:GetAddonMetricPercent(addon.index, Enum.AddOnProfilerMetric.EncounterAverageTime, true)
-					--C.white:WrapText("1.23%")
+			--C.white:WrapText("1.23%")
 			)
 		end
 		if (db.cpuShowPeak) then
@@ -556,7 +547,7 @@ local function UpdateList()
 	local addons = SAM:GetAddonsList()
 	local count = #addons
 	local isInTreeMode = SAM:GetDb().config.addonListStyle == "tree"
-	local showProfiling = IsProfilerEnabled() and SAM:GetDb().config.profiling.cpuUpdate > 0
+	local showProfiling = IsProfilerEnabled()
 
 	for buttonIndex = 1, #buttons do
 		local button = buttons[buttonIndex]
@@ -645,6 +636,7 @@ end
 
 local function UpdateMemory()
 	UpdateAddOnMemoryUsage()
+	module:UpdateTooltip()
 end
 
 local function OnShow()
