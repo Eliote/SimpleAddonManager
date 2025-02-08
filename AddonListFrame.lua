@@ -387,6 +387,11 @@ local function UpdateTooltip(self)
 			AddLineIfNotEmpty(AddonTooltip, L["Average CPU: "], profiler:GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.SessionAverageTime));
 			AddLineIfNotEmpty(AddonTooltip, L["Peak CPU: "], profiler:GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.PeakTime));
 			AddLineIfNotEmpty(AddonTooltip, L["Encounter CPU: "], profiler:GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.EncounterAverageTime));
+			AddLineIfNotEmpty(AddonTooltip, L["Ticks over 5ms: "], profiler:GetAddonMetricCount(name, Enum.AddOnProfilerMetric.CountTimeOver5Ms));
+			AddLineIfNotEmpty(AddonTooltip, L["Ticks over 10ms: "], profiler:GetAddonMetricCount(name, Enum.AddOnProfilerMetric.CountTimeOver10Ms));
+			AddLineIfNotEmpty(AddonTooltip, L["Ticks over 50ms: "], profiler:GetAddonMetricCount(name, Enum.AddOnProfilerMetric.CountTimeOver50Ms));
+			AddLineIfNotEmpty(AddonTooltip, L["Ticks over 100ms: "], profiler:GetAddonMetricCount(name, Enum.AddOnProfilerMetric.CountTimeOver100Ms));
+			AddLineIfNotEmpty(AddonTooltip, L["Ticks over 500ms: "], profiler:GetAddonMetricCount(name, Enum.AddOnProfilerMetric.CountTimeOver500Ms));
 		end
 		if (loaded and security ~= SECURE_PROTECTED_ADDON and security ~= SECURE_ADDON) then
 			local mem = GetAddOnMemoryUsage(addonIndex)

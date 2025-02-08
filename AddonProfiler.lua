@@ -20,6 +20,11 @@ local function FormatProfilerPercent(pct)
 	return color:WrapText(string.format("%.2f", pct)) .. C.white:WrapText("%")
 end
 
+local function FormatProfilerCount(count)
+	local color = C.white
+	return color:WrapText(count)
+end
+
 local function GetCVarNumber(name)
 	-- if the CVar doesn't exist, the GetCVar returns "nothing" (not even nil) and the tonumber fails
 	local number = tonumber(GetCVar(name) or nil)
@@ -66,6 +71,14 @@ function module:GetAddonMetricPercent(addonName, metric, warningInLeftSide, def)
 		return GetWarningFor(percent) .. FormatProfilerPercent(percent * 100.0)
 	end
 	return FormatProfilerPercent(percent * 100.0) .. GetWarningFor(percent)
+end
+
+function module:GetAddonMetricCount(addonName, metric)
+	if (not C_AddOnProfiler or not C_AddOnProfiler.IsEnabled()) then
+		return ""
+	end
+	local count = C_AddOnProfiler.GetAddOnMetric(addonName, metric) or 0
+	return FormatProfilerCount(count)
 end
 
 function module:UpdateCPU()
