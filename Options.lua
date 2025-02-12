@@ -10,10 +10,14 @@ local module = SAM:RegisterModule("Options")
 local function MemoryUpdateMenuList()
 	local db = SAM:GetDb()
 	local menu = {}
-	local periods = { 0, 5, 10, 15, 30 }
+	local periods = { -1, 0, 5, 10, 15, 30 }
+	local periodDesc = {
+		[-1] = DISABLE,
+		[0] = L["Update only when opening the main window"],
+	}
 	for _, v in ipairs(periods) do
 		table.insert(menu, {
-			text = (v == 0) and L["Update only when opening the main window"] or L("${n} seconds", { n = v }),
+			text = periodDesc[v] or L("${n} seconds", { n = v }),
 			checked = function()
 				return db.config.memoryUpdate == v
 			end,

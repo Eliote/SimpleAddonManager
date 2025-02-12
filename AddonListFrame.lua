@@ -349,6 +349,12 @@ local function IsProfilerEnabled()
 	return C_AddOnProfiler and C_AddOnProfiler.IsEnabled() and SAM:GetDb().config.profiling.cpuUpdate > 0
 end
 
+local function IsMemoryUsageEnabled()
+	-- "-1" = Disabled, "0" = Update on show.
+	-- That's why we check if greater OR equals to zero here.
+	return SAM:GetDb().config.memoryUpdate >= 0
+end
+
 local function UpdateTooltip(self)
 	local addonIndex = self.addon.index
 	local name, title, notes, _, reason, security = SAM.compat.GetAddOnInfo(addonIndex)
@@ -393,7 +399,7 @@ local function UpdateTooltip(self)
 			AddLineIfNotEmpty(AddonTooltip, L["Ticks over 100ms: "], profiler:GetAddonMetricCount(name, Enum.AddOnProfilerMetric.CountTimeOver100Ms));
 			AddLineIfNotEmpty(AddonTooltip, L["Ticks over 500ms: "], profiler:GetAddonMetricCount(name, Enum.AddOnProfilerMetric.CountTimeOver500Ms));
 		end
-		if (loaded and security ~= SECURE_PROTECTED_ADDON and security ~= SECURE_ADDON) then
+		if (loaded and security ~= SECURE_PROTECTED_ADDON and security ~= SECURE_ADDON and IsMemoryUsageEnabled()) then
 			local mem = GetAddOnMemoryUsage(addonIndex)
 			AddonTooltip:AddLine(L["Memory: "] .. C.white:WrapText(SAM:FormatMemory(mem)));
 		end
@@ -645,8 +651,11 @@ local function UpdateMemory()
 end
 
 local function OnShow()
-	SAM:UpdateMemoryTickerPeriod(SAM:GetDb().config.memoryUpdate)
-	UpdateMemory()
+	local update = SAM:GetDb().config.memoryUpdate
+	SAM:UpdateMemoryTickerPeriod(update)
+	if (IsMemoryUsageEnabled()) then
+		UpdateMemory()
+	end
 end
 
 local function OnHide()
@@ -695,7 +704,7 @@ end
 function module:OnLoad()
 	local db = SAM:GetDb()
 	SAM:CreateDefaultOptions(db.config, {
-		memoryUpdate = 0,
+		memoryUpdate = -1,
 		hideIcons = false,
 	})
 end
