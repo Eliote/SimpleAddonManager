@@ -7,6 +7,14 @@ local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFr
 local SAM = T.AddonFrame
 local module = SAM:RegisterModule("Profile")
 
+local function countTable(t)
+	if not t then return 0 end
+
+	local count = 0
+	for _ in pairs(t) do count = count + 1 end
+	return count
+end
+
 local function MigrateProfileAddonsTable()
 	local db = SAM:GetDb()
 	if (not db.setsVersion) then
@@ -16,7 +24,6 @@ local function MigrateProfileAddonsTable()
 				for _, addon in ipairs(profile.addons) do
 					newTable[addon] = true
 				end
-				profile.addonsCount = #profile.addons
 				profile.addons = newTable
 			end
 		end
@@ -26,7 +33,6 @@ local function MigrateProfileAddonsTable()
 				for _, addon in ipairs(profile.addons) do
 					newTable[addon] = true
 				end
-				profile.addonsCount = #profile.addons
 				profile.addons = newTable
 			end
 		end
@@ -79,17 +85,14 @@ local function SaveCurrentAddonsToProfile(profileName, depAware)
 	local count = SAM.compat.GetNumAddOns()
 	db.sets[profileName] = db.sets[profileName] or {}
 	local subSets = db.sets[profileName].subSets or {}
-	local addonsCount = 0
 	local subSetsAddons = depAware and AddonsInProfilesRec(subSets) or {}
 	for i = 1, count do
 		local name = SAM.compat.GetAddOnInfo(i)
 		if not subSetsAddons[name] and SAM:IsAddonSelected(i) then
 			enabledAddons[name] = true
-			addonsCount = addonsCount + 1
 		end
 	end
 	db.sets[profileName].addons = enabledAddons
-	db.sets[profileName].addonsCount = addonsCount
 	db.sets[profileName].subSets = subSets
 end
 
@@ -159,7 +162,7 @@ local function ProfilesDropDownCreate()
 			hasArrow = true,
 			menuList = {
 				{ text = title, isTitle = true, notCheckable = true },
-				{ text = info.addonsCount .. " AddOns", notCheckable = true },
+				function() return { text = countTable(info.addons) .. " AddOns", notCheckable = true } end,
 				T.separatorInfo,
 				{
 					text = L["Load"],
@@ -268,7 +271,7 @@ local function ProfilesDropDownCreate()
 				{ text = profileName, isTitle = true, notCheckable = true },
 				function()
 					return {
-						text = set.addonsCount .. " AddOns",
+						text = countTable(set.addons) .. " AddOns",
 						notCheckable = true,
 						hasArrow = true,
 						menuList = addonsIn(set),
@@ -469,18 +472,15 @@ function module:UpdatePlayerProfileAddons()
 	db.autoProfile = db.autoProfile or {}
 
 	local addons = {}
-	local addonsCount = 1
 	for addonIndex = 1, SAM.compat.GetNumAddOns() do
 		local addonName = SAM.compat.GetAddOnInfo(addonIndex)
 		if (SAM.compat.GetAddOnEnableState(addonIndex, playerInfo.name) > 0) then
 			addons[addonName] = true
-			addonsCount = addonsCount + 1
 		end
 	end
 
 	db.autoProfile[playerInfo.id] = {
 		addons = addons,
-		addonsCount = addonsCount,
 		playerId = playerInfo.id,
 		playerColor = playerInfo.color.colorStr
 	}
@@ -533,14 +533,6 @@ function module:ExportProfile(profileName)
 	return json.encode(t)
 end
 
-local function countTable(t)
-	if not t then return 0 end
-
-	local count = 0
-	for _ in pairs(t) do count = count + 1 end
-	return count
-end
-
 function module:ImportProfile(str)
 	local json = LibStub("JsonLua-0.1")
 	local t = json.decode(str).profiles
@@ -548,7 +540,6 @@ function module:ImportProfile(str)
 		local db = SAM:GetDb()
 		local profile = {
 			addons = data.addons or {},
-			addonsCount = countTable(data.addons) or 0,
 			subSets = data.profileDep or {},
 		}
 		db.sets[profileName] = profile
