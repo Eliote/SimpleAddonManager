@@ -1,6 +1,6 @@
 ## Interface: 110100
-## Interface-Classic: 11505
-## Interface-Cata: 40401
+## Interface-Classic: 11506
+## Interface-Cata: 40402
 ## Title: Simple Addon Manager
 ## Notes: A simple to use Addon Manager with profile, search, category filter, and more.
 ## Author: Eliote
