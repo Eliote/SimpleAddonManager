@@ -340,6 +340,33 @@ local function CategoriesForAddon(name)
 	return resultText
 end
 
+local function CharactersWithAddon(name)
+	local charTbl = {}
+	local charList = CopyTable(SAM:GetCharList())
+	table.remove(charList, 1) -- remove "ALL"
+
+	for i, info in ipairs(charList) do
+		if SAM.compat.GetAddOnEnableState(name, info.name) == 2 then
+			local _, _, _, hex = GetClassColor(info.class)
+			tinsert(charTbl, WrapTextInColorCode(info.name, hex))
+		end
+	end
+
+	if #charList == #charTbl then
+		return L['Enabled for all characters']
+	end
+
+	local limitList = #charTbl > 5 and not IsShiftKeyDown()
+
+	if limitList then
+		charTbl[6] = C.grey:WrapText(L['Hold shift to show all'])
+	end
+
+	-- Make the list of character.
+	local max = limitList and 6 or #charTbl
+	return string.join(", ", unpack(charTbl, 1, max))
+end
+
 local function AddLineIfNotEmpty(ttp, title, info)
 	if (not info or info == "") then return end
 	ttp:AddLine(title .. info);
@@ -414,6 +441,11 @@ local function UpdateTooltip(self)
 		local categoriesForAddon = CategoriesForAddon(name)
 		if categoriesForAddon ~= "" then
 			AddonTooltip:AddLine(L["Categories: "] .. C.white:WrapText(categoriesForAddon), nil, nil, nil, true);
+		end
+
+		local charactersWithAddon = CharactersWithAddon(name)
+		if charactersWithAddon ~= "" then
+			AddonTooltip:AddLine(L["Characters: "].. C.white:WrapText(charactersWithAddon), nil, nil, nil, true);
 		end
 
 		AddonTooltip:AddLine(" ");
@@ -656,10 +688,18 @@ local function OnShow()
 	if (IsMemoryUsageEnabled()) then
 		UpdateMemory()
 	end
+	SAM:RegisterEvent("MODIFIER_STATE_CHANGED")
 end
 
 local function OnHide()
 	SAM:UpdateMemoryTickerPeriod(0)
+	SAM:UnregisterEvent("MODIFIER_STATE_CHANGED")
+end
+
+function SAM:MODIFIER_STATE_CHANGED(key, down)
+	if (key == "LSHIFT" or key == "RSHIFT") then
+		module:UpdateTooltip()
+	end
 end
 
 function SAM:UpdateMemoryTickerPeriod(period)
