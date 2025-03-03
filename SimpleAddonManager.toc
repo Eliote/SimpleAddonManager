@@ -8,6 +8,17 @@
 ## SavedVariables: SimpleAddonManagerDB
 ## X-Category: Addon Manager
 ## X-Category-ptBR: Gerenciador de Addon
+## Category-enUS: Addon Manager
+## Category-deDE: Addon-Manager
+## Category-esES: Administrador de complementos
+## Category-esMX: Administrador de complementos
+## Category-frFR: Gestionnaire de modules complémentaires
+## Category-itIT: Gestore componenti aggiuntivi
+## Category-koKR: 애드온 관리자
+## Category-ptBR: Gerenciador de Addon
+## Category-ruRU: Менеджер дополнений
+## Category-zhCN: 插件管理器
+## Category-zhTW: 外掛程式管理器
 ## IconTexture: 133742
 
 ## X-Curse-Project-ID: 689213
