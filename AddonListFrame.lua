@@ -9,6 +9,7 @@ local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFr
 local SAM = T.AddonFrame
 local module = SAM:RegisterModule("AddonList")
 SAM.AddonList = module
+module.events = {}
 
 local BANNED_ADDON = "BANNED"
 local SECURE_PROTECTED_ADDON = "SECURE_PROTECTED"
@@ -344,8 +345,10 @@ local function CharactersWithAddon(name)
 	local charTbl = {}
 	local charList = CopyTable(SAM:GetCharList())
 	table.remove(charList, 1) -- remove "ALL"
+	-- resort the table, the original keeps the current char at the start
+	table.sort(charList, function(a, b) return a.name < b.name end)
 
-	for i, info in ipairs(charList) do
+	for _, info in ipairs(charList) do
 		if SAM.compat.GetAddOnEnableState(name, info.name) == 2 then
 			local _, _, _, hex = GetClassColor(info.class)
 			tinsert(charTbl, WrapTextInColorCode(info.name, hex))
@@ -353,17 +356,17 @@ local function CharactersWithAddon(name)
 	end
 
 	if #charList == #charTbl then
-		return L['Enabled for all characters']
+		return L["Enabled for all characters"]
 	end
 
-	local limitList = #charTbl > 5 and not IsShiftKeyDown()
-
-	if limitList then
-		charTbl[6] = C.grey:WrapText(L['Hold shift to show all'])
+	local limit = 5
+	local max = #charTbl
+	if (#charTbl > limit and not IsShiftKeyDown()) then
+		charTbl[limit + 1] = C.grey:WrapText(L["Hold shift to show all"])
+		max = limit + 1
 	end
 
 	-- Make the list of character.
-	local max = limitList and 6 or #charTbl
 	return string.join(", ", unpack(charTbl, 1, max))
 end
 
@@ -445,7 +448,7 @@ local function UpdateTooltip(self)
 
 		local charactersWithAddon = CharactersWithAddon(name)
 		if charactersWithAddon ~= "" then
-			AddonTooltip:AddLine(L["Characters: "].. C.white:WrapText(charactersWithAddon), nil, nil, nil, true);
+			AddonTooltip:AddLine(L["Characters: "] .. C.white:WrapText(charactersWithAddon), nil, nil, nil, true);
 		end
 
 		AddonTooltip:AddLine(" ");
@@ -688,15 +691,15 @@ local function OnShow()
 	if (IsMemoryUsageEnabled()) then
 		UpdateMemory()
 	end
-	SAM:RegisterEvent("MODIFIER_STATE_CHANGED")
+	SAM.AddonListFrame:RegisterEvent("MODIFIER_STATE_CHANGED")
 end
 
 local function OnHide()
 	SAM:UpdateMemoryTickerPeriod(0)
-	SAM:UnregisterEvent("MODIFIER_STATE_CHANGED")
+	SAM.AddonListFrame:UnregisterEvent("MODIFIER_STATE_CHANGED")
 end
 
-function SAM:MODIFIER_STATE_CHANGED(key, down)
+function module.events:MODIFIER_STATE_CHANGED(key, down)
 	if (key == "LSHIFT" or key == "RSHIFT") then
 		module:UpdateTooltip()
 	end
@@ -726,6 +729,9 @@ function module:Initialize()
 	SAM.AddonListFrame:SetPoint("BOTTOMRIGHT", SAM.AddonListFrame.rightPadding, 30)
 	SAM.AddonListFrame:SetScript("OnShow", OnShow)
 	SAM.AddonListFrame:SetScript("OnHide", OnHide)
+	SAM.AddonListFrame:SetScript("OnEvent", function(self, event, ...)
+		module.events[event](self, ...)
+	end)
 	SAM.AddonListFrame:Show()
 
 	SAM.AddonListFrame.ScrollFrame:SetPoint("TOPLEFT")
