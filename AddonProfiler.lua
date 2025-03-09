@@ -114,9 +114,17 @@ function module:UpdateProfilingTickerPeriod(period)
 		module.CpuUpdateTicker = C_Timer.NewTicker(period, function()
 			module:UpdateCPU()
 			SAM.AddonList:UpdateTooltip()
-			SAM.AddonListFrame.ScrollFrame.update()
+			if (SAM:GetDb().config.sortingCpu) then
+				SAM:UpdateListFilters()
+			else
+				SAM.AddonListFrame.ScrollFrame.update()
+			end
 		end)
 	end
+end
+
+function module:IsProfilerEnabled()
+	return C_AddOnProfiler and C_AddOnProfiler.IsEnabled() and SAM:GetDb().config.profiling.cpuUpdate > 0
 end
 
 function module:CanShow()
@@ -131,15 +139,46 @@ function module:PreInitialize()
 	SAM.ProfilerFrame.Left = CreateFrame("Frame", nil, SAM.ProfilerFrame)
 	SAM.ProfilerFrame.Right = CreateFrame("Frame", nil, SAM.ProfilerFrame)
 
-	SAM.ProfilerFrame.CurrentCPULabel = SAM.ProfilerFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalTiny")
-	SAM.ProfilerFrame.AverageCPULabel = SAM.ProfilerFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalTiny")
-	SAM.ProfilerFrame.EncounterCPULabel = SAM.ProfilerFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalTiny")
-	SAM.ProfilerFrame.PeakCPULabel = SAM.ProfilerFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalTiny")
+	SAM.ProfilerFrame.Left.CurrentCPUButton = CreateFrame("Button", nil, SAM.ProfilerFrame.Left)
+	SAM.ProfilerFrame.Left.AverageCPUButton = CreateFrame("Button", nil, SAM.ProfilerFrame.Left)
+	SAM.ProfilerFrame.Right.EncounterCPUButton = CreateFrame("Button", nil, SAM.ProfilerFrame.Right)
+	SAM.ProfilerFrame.Right.PeakCPUButton = CreateFrame("Button", nil, SAM.ProfilerFrame.Right)
+
+	SAM.ProfilerFrame.Left.CurrentCPUButton.Label = SAM.ProfilerFrame.Left.CurrentCPUButton:CreateFontString(nil, "ARTWORK", "GameFontNormalTiny")
+	SAM.ProfilerFrame.Left.AverageCPUButton.Label = SAM.ProfilerFrame.Left.AverageCPUButton:CreateFontString(nil, "ARTWORK", "GameFontNormalTiny")
+	SAM.ProfilerFrame.Right.EncounterCPUButton.Label = SAM.ProfilerFrame.Right.EncounterCPUButton:CreateFontString(nil, "ARTWORK", "GameFontNormalTiny")
+	SAM.ProfilerFrame.Right.PeakCPUButton.Label = SAM.ProfilerFrame.Right.PeakCPUButton:CreateFontString(nil, "ARTWORK", "GameFontNormalTiny")
 
 	SAM.ProfilerFrame.CurrentCPU = SAM.ProfilerFrame:CreateFontString(nil, "ARTWORK", "GameFontWhite")
 	SAM.ProfilerFrame.AverageCPU = SAM.ProfilerFrame:CreateFontString(nil, "ARTWORK", "GameFontWhite")
 	SAM.ProfilerFrame.EncounterCPU = SAM.ProfilerFrame:CreateFontString(nil, "ARTWORK", "GameFontWhite")
 	SAM.ProfilerFrame.PeakCPU = SAM.ProfilerFrame:CreateFontString(nil, "ARTWORK", "GameFontWhite")
+end
+
+local function OrderIconFor(field)
+	if (SAM:GetDb().config.sortingCpu == field) then
+		return " " .. CreateAtlasMarkup("dropdown-hover-arrow", 10, 10)
+	end
+	return ""
+end
+
+local function UpdateLabels()
+	SAM.ProfilerFrame.Left.CurrentCPUButton.Label:SetText(module.IconCurrent .. " " .. L["Current CPU"] .. OrderIconFor("current"))
+	SAM.ProfilerFrame.Left.AverageCPUButton.Label:SetText(module.IconAverage .. " " .. L["Average CPU"] .. OrderIconFor("average"))
+	SAM.ProfilerFrame.Right.EncounterCPUButton.Label:SetText(module.IconEncounter .. " " .. L["Encounter CPU"] .. OrderIconFor("encounter"))
+	SAM.ProfilerFrame.Right.PeakCPUButton.Label:SetText(module.IconPeak .. " " .. L["Peak CPU"] .. OrderIconFor("peak"))
+end
+
+local function OnClickCpuLabel(self)
+	local field = self.sort
+	local current = SAM:GetDb().config.sortingCpu
+	if (field == current) then
+		SAM:GetDb().config.sortingCpu = false
+	else
+		SAM:GetDb().config.sortingCpu = field
+	end
+	UpdateLabels()
+	SAM:Update()
 end
 
 local profilerSizeFrame = 36
@@ -157,25 +196,46 @@ function module:Initialize()
 	SAM.ProfilerFrame.Divider:SetPoint("BOTTOMRIGHT", SAM.ProfilerFrame, "BOTTOMRIGHT", -10, 4)
 
 	SAM.ProfilerFrame.Left:SetPoint("TOPLEFT", 8, -1)
-	SAM.ProfilerFrame.Left:SetPoint("BOTTOMRIGHT", SAM.ProfilerFrame, "BOTTOM")
+	SAM.ProfilerFrame.Left:SetPoint("BOTTOMRIGHT", SAM.ProfilerFrame, "BOTTOM", 0, 8)
 	SAM.ProfilerFrame.Right:SetPoint("TOPLEFT", SAM.ProfilerFrame, "TOP", 0, -1)
-	SAM.ProfilerFrame.Right:SetPoint("BOTTOMRIGHT", -8, 0)
+	SAM.ProfilerFrame.Right:SetPoint("BOTTOMRIGHT", -8, 8)
 
-	SAM.ProfilerFrame.CurrentCPULabel:SetPoint("TOPLEFT", SAM.ProfilerFrame.Left)
-	SAM.ProfilerFrame.AverageCPULabel:SetPoint("TOPLEFT", SAM.ProfilerFrame.Left, "TOP")
-	SAM.ProfilerFrame.EncounterCPULabel:SetPoint("TOPRIGHT", SAM.ProfilerFrame.Right, "TOP")
-	SAM.ProfilerFrame.PeakCPULabel:SetPoint("TOPRIGHT", SAM.ProfilerFrame.Right)
+	local titleHeight = 13
+	SAM.ProfilerFrame.Left.CurrentCPUButton:SetPoint("TOPLEFT", SAM.ProfilerFrame.Left)
+	SAM.ProfilerFrame.Left.CurrentCPUButton:SetPoint("BOTTOMRIGHT", SAM.ProfilerFrame.Left, "BOTTOM")
+	SAM.ProfilerFrame.Left.CurrentCPUButton:SetHighlightAtlas("voicechat-channellist-row-highlight", "ADD")
+	SAM.ProfilerFrame.Left.CurrentCPUButton:SetScript("OnClick", OnClickCpuLabel)
+	SAM.ProfilerFrame.Left.CurrentCPUButton.sort = "current"
 
-	SAM.ProfilerFrame.CurrentCPULabel:SetText(module.IconCurrent .. " " .. L["Current CPU"])
-	SAM.ProfilerFrame.AverageCPULabel:SetText(module.IconAverage .. " " .. L["Average CPU"])
-	SAM.ProfilerFrame.EncounterCPULabel:SetText(module.IconEncounter .. " " .. L["Encounter CPU"])
-	SAM.ProfilerFrame.PeakCPULabel:SetText(module.IconPeak .. " " .. L["Peak CPU"])
+	SAM.ProfilerFrame.Left.AverageCPUButton:SetPoint("TOPLEFT", SAM.ProfilerFrame.Left, "TOP")
+	SAM.ProfilerFrame.Left.AverageCPUButton:SetPoint("BOTTOMRIGHT", SAM.ProfilerFrame.Left)
+	SAM.ProfilerFrame.Left.AverageCPUButton:SetHighlightAtlas("voicechat-channellist-row-highlight", "ADD")
+	SAM.ProfilerFrame.Left.AverageCPUButton:SetScript("OnClick", OnClickCpuLabel)
+	SAM.ProfilerFrame.Left.AverageCPUButton.sort = "average"
 
-	local marginLabel = -1
-	SAM.ProfilerFrame.CurrentCPU:SetPoint("TOPLEFT", SAM.ProfilerFrame.CurrentCPULabel, "BOTTOMLEFT", 0, marginLabel)
-	SAM.ProfilerFrame.AverageCPU:SetPoint("TOP", SAM.ProfilerFrame.AverageCPULabel, "BOTTOM", 0, marginLabel)
-	SAM.ProfilerFrame.EncounterCPU:SetPoint("TOP", SAM.ProfilerFrame.EncounterCPULabel, "BOTTOM", 0, marginLabel)
-	SAM.ProfilerFrame.PeakCPU:SetPoint("TOPRIGHT", SAM.ProfilerFrame.PeakCPULabel, "BOTTOMRIGHT", 0, marginLabel)
+	SAM.ProfilerFrame.Right.EncounterCPUButton:SetPoint("TOPLEFT", SAM.ProfilerFrame.Right)
+	SAM.ProfilerFrame.Right.EncounterCPUButton:SetPoint("BOTTOMRIGHT", SAM.ProfilerFrame.Right, "BOTTOM")
+	SAM.ProfilerFrame.Right.EncounterCPUButton:SetHighlightAtlas("voicechat-channellist-row-highlight", "ADD")
+	SAM.ProfilerFrame.Right.EncounterCPUButton:SetScript("OnClick", OnClickCpuLabel)
+	SAM.ProfilerFrame.Right.EncounterCPUButton.sort = "encounter"
+
+	SAM.ProfilerFrame.Right.PeakCPUButton:SetPoint("TOPLEFT", SAM.ProfilerFrame.Right, "TOP")
+	SAM.ProfilerFrame.Right.PeakCPUButton:SetPoint("BOTTOMRIGHT", SAM.ProfilerFrame.Right)
+	SAM.ProfilerFrame.Right.PeakCPUButton:SetHighlightAtlas("voicechat-channellist-row-highlight", "ADD")
+	SAM.ProfilerFrame.Right.PeakCPUButton:SetScript("OnClick", OnClickCpuLabel)
+	SAM.ProfilerFrame.Right.PeakCPUButton.sort = "peak"
+
+	SAM.ProfilerFrame.Left.CurrentCPUButton.Label:SetPoint("TOP")
+	SAM.ProfilerFrame.Left.AverageCPUButton.Label:SetPoint("TOP")
+	SAM.ProfilerFrame.Right.EncounterCPUButton.Label:SetPoint("TOP")
+	SAM.ProfilerFrame.Right.PeakCPUButton.Label:SetPoint("TOP")
+
+	UpdateLabels()
+
+	SAM.ProfilerFrame.CurrentCPU:SetPoint("TOP", SAM.ProfilerFrame.Left.CurrentCPUButton, "TOP", 0, -titleHeight)
+	SAM.ProfilerFrame.AverageCPU:SetPoint("TOP", SAM.ProfilerFrame.Left.AverageCPUButton, "TOP", 0, -titleHeight)
+	SAM.ProfilerFrame.EncounterCPU:SetPoint("TOP", SAM.ProfilerFrame.Right.EncounterCPUButton, "TOP", 0, -titleHeight)
+	SAM.ProfilerFrame.PeakCPU:SetPoint("TOP", SAM.ProfilerFrame.Right.PeakCPUButton, "TOP", 0, -titleHeight)
 
 	SAM.AddonListFrame.ScrollFrame:SetPoint("TOPLEFT", SAM.ProfilerFrame, "BOTTOMLEFT")
 

@@ -58,11 +58,49 @@ local sortingFunctionMap = {
 	end
 }
 
+local cpuSortingFuncMap = {
+	["current"] = function(a, b, nameSortFunc)
+		if (nameSortFunc) then
+			if (a.cpuCur == b.cpuCur) then
+				return nameSortFunc(a, b)
+			end
+		end
+		return a.cpuCur > b.cpuCur
+	end,
+	["average"] = function(a, b, nameSortFunc)
+		if (nameSortFunc) then
+			if (a.cpuAvg == b.cpuAvg) then
+				return nameSortFunc(a, b)
+			end
+		end
+		return a.cpuAvg > b.cpuAvg
+	end,
+	["encounter"] = function(a, b, nameSortFunc)
+		if (nameSortFunc) then
+			if (a.cpuEncounter == b.cpuEncounter) then
+				return nameSortFunc(a, b)
+			end
+		end
+		return a.cpuEncounter > b.cpuEncounter
+	end,
+	["peak"] = function(a, b, nameSortFunc)
+		if (nameSortFunc) then
+			if (a.cpuPeak == b.cpuPeak) then
+				return nameSortFunc(a, b)
+			end
+		end
+		return a.cpuPeak > b.cpuPeak
+	end,
+}
+
 local function SortAddons(list)
 	local db = SAM:GetDb()
-	local sortFunc = sortingFunctionMap[db.config.sorting]
-	if (sortFunc) then
-		table.sort(list, sortFunc)
+	local sortFuncName = sortingFunctionMap[db.config.sorting]
+	local sortFuncCpu = cpuSortingFuncMap[db.config.sortingCpu]
+	if (sortFuncCpu) then
+		table.sort(list, function(a, b) return sortFuncCpu(a, b, sortFuncName) end)
+	elseif (sortFuncName) then
+		table.sort(list, sortFuncName)
 	end
 end
 
@@ -124,7 +162,18 @@ local function GetOrCreateAddonTableWithFilter(
 				smartName = key:gsub(".-([%w].*)", "%1"):gsub("[_-]", " "):lower(),
 				title = (title or key):lower(),
 				isSecure = isSecure,
+				cpuCur = -1,
+				cpuAvg = -1,
+				cpuEncounter = -1,
+				cpuPeak = -1,
 			}
+			local loaded = SAM.compat.IsAddOnLoaded(key);
+			if (loaded and SAM.AddonProfiler:IsProfilerEnabled()) then
+				node.cpuCur = C_AddOnProfiler.GetAddOnMetric(key, Enum.AddOnProfilerMetric.RecentAverageTime)
+				node.cpuAvg = C_AddOnProfiler.GetAddOnMetric(key, Enum.AddOnProfilerMetric.SessionAverageTime)
+				node.cpuEncounter = C_AddOnProfiler.GetAddOnMetric(key, Enum.AddOnProfilerMetric.EncounterAverageTime)
+				node.cpuPeak = C_AddOnProfiler.GetAddOnMetric(key, Enum.AddOnProfilerMetric.PeakTime)
+			end
 			pool[key] = node
 			if (createChildren and node.exists) then
 				local deps = { SAM.compat.GetAddOnDependencies(key) }
@@ -289,8 +338,9 @@ local function CreateList(filter, categories)
 	local inCategoriesFunc = AddonsInCategoriesFunc(categories)
 	local filterLower = filter:lower()
 	local listStyle = SAM:GetDb().config.addonListStyle
+	local sortingCpu = SAM:GetDb().config.sortingCpu
 
-	if (listStyle == "tree") then
+	if (listStyle == "tree" and not sortingCpu) then
 		addons = CreateAddonListAsTable(filterLower, inCategoriesFunc)
 	else
 		addons = CreateAddonListAsList(filterLower, inCategoriesFunc)
@@ -314,6 +364,7 @@ function module:OnLoad()
 		collapsedAddons = {},
 		config = {
 			sorting = "smart",
+			sortingCpu = false,
 			addonListStyle = "list", -- tree, list
 			showSecureAddons = false,
 			searchBy = { name = true, title = true, author = false }

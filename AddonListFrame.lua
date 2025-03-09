@@ -375,10 +375,6 @@ local function AddLineIfNotEmpty(ttp, title, info)
 	ttp:AddLine(title .. info);
 end
 
-local function IsProfilerEnabled()
-	return C_AddOnProfiler and C_AddOnProfiler.IsEnabled() and SAM:GetDb().config.profiling.cpuUpdate > 0
-end
-
 local function IsMemoryUsageEnabled()
 	-- "-1" = Disabled, "0" = Update on show.
 	-- That's why we check if greater OR equals to zero here.
@@ -417,7 +413,7 @@ local function UpdateTooltip(self)
 			AddonTooltip:AddLine(L["Author: "] .. C.white:WrapText(strtrim(author)));
 		end
 		local loaded = SAM.compat.IsAddOnLoaded(addonIndex);
-		if (loaded and IsProfilerEnabled()) then
+		if (loaded and SAM.AddonProfiler:IsProfilerEnabled()) then
 			local profiler = SAM.AddonProfiler
 			AddLineIfNotEmpty(AddonTooltip, L["CPU: "], profiler:GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.RecentAverageTime));
 			AddLineIfNotEmpty(AddonTooltip, L["Average CPU: "], profiler:GetAddonMetricPercent(name, Enum.AddOnProfilerMetric.SessionAverageTime));
@@ -593,7 +589,7 @@ local function UpdateList()
 	local addons = SAM:GetAddonsList()
 	local count = #addons
 	local isInTreeMode = SAM:GetDb().config.addonListStyle == "tree"
-	local showProfiling = IsProfilerEnabled()
+	local showProfiling = SAM.AddonProfiler:IsProfilerEnabled()
 
 	for buttonIndex = 1, #buttons do
 		local button = buttons[buttonIndex]

@@ -249,6 +249,7 @@ local function ConfigDropDownCreate()
 			notCheckable = true,
 			hasArrow = true,
 			menuList = {
+				{ text = L["A-Z"], isTitle = true, notCheckable = true },
 				{
 					text = L["Name (improved)"],
 					checked = function()
@@ -282,10 +283,62 @@ local function ConfigDropDownCreate()
 				{
 					text = L["None"],
 					checked = function()
-						return db.config.sorting == nil
+						return not db.config.sorting
 					end,
 					func = function()
 						db.config.sorting = false
+						SAM:Update()
+					end,
+				},
+				T.separatorInfo,
+				{ text = L["CPU Usage"], isTitle = true, notCheckable = true },
+				{
+					text = L["Current"],
+					checked = function()
+						return db.config.sortingCpu == "current"
+					end,
+					func = function()
+						db.config.sortingCpu = "current"
+						SAM:Update()
+					end,
+				},
+				{
+					text = L["Average"],
+					checked = function()
+						return db.config.sortingCpu == "average"
+					end,
+					func = function()
+						db.config.sortingCpu = "average"
+						SAM:Update()
+					end,
+				},
+				{
+					text = L["Encounter"],
+					checked = function()
+						return db.config.sortingCpu == "encounter"
+					end,
+					func = function()
+						db.config.sortingCpu = "encounter"
+						SAM:Update()
+					end,
+				},
+				{
+					text = L["Peak"],
+					checked = function()
+						return db.config.sortingCpu == "peak"
+					end,
+					func = function()
+						db.config.sortingCpu = "peak"
+						SAM:Update()
+					end,
+				},
+				{
+					text = L["None"],
+					checked = function()
+						return not db.config.sortingCpu
+					end,
+					func = function()
+						db.config.sortingCpu = false
 						SAM:Update()
 					end,
 				},
