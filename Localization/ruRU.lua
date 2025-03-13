@@ -1,10 +1,10 @@
 -- Default locale
 local ADDON_NAME, PRIVATE_TABLE = ...
 
-if GetLocale() ~= "esMX" then
+if GetLocale() ~= "ruRU" then
 	return
 end
 
 local L = PRIVATE_TABLE.L
 
---@localization(locale="esMX", format="lua_additive_table")@
+--@localization(locale="ruRU", format="lua_additive_table")@
