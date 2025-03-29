@@ -77,7 +77,7 @@ end
 
 function module:OnPlayerEnteringWorld()
 	local locks = module:GetLockedAddons()
-	local me = UnitName("player")
+	local me = UnitNameUnmodified("player")
 	local showWarning = false
 	for addon, state in pairs(locks) do
 		if (SAM:IsAddonInstalled(addon) and not SAM:IsAddonSelected(addon, nil, me) and state.enabled) then

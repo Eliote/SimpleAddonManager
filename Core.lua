@@ -530,7 +530,7 @@ function SAM:ClearInitialState()
 end
 
 function SAM:PLAYER_ENTERING_WORLD(...)
-	playerName = UnitName("player")
+	playerName = UnitNameUnmodified("player")
 
 	local isInitialLogin, isReloadingUi = ...
 	if (isInitialLogin or isReloadingUi) then
