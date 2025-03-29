@@ -218,7 +218,7 @@ local function AddonRightClickMenu(addon)
 	return menu
 end
 
-local function Checkbox_SetAddonState(self, enabled, addonIndex)
+local function Checkbox_SetAddonState(self, _, addonIndex)
 	local checkedTexture = self.CheckedTexture
 	checkedTexture:SetVertexColor(1, 1, 1)
 	checkedTexture:SetDesaturated(false)
@@ -229,14 +229,19 @@ local function Checkbox_SetAddonState(self, enabled, addonIndex)
 		self.LockIcon:Show()
 	end
 
-	if (enabled) then
-		self:SetChecked(true)
+	local togglingAll = SAM:GetSelectedCharIndex() == 0
+	if (not togglingAll) then
+		local enabled = SAM:IsAddonSelected(addonIndex)
+		self:SetChecked(enabled)
 	else
-		local togglingMe = SAM:GetSelectedCharIndex() >= 1
-		local enabledSome = (not togglingMe) and SAM:IsAddonSelected(addonIndex, true)
-		if (enabledSome) then
+		local enabledState = SAM.compat.GetAddOnEnableState(addonIndex)
+		local isEnabledByAll = enabledState == 2
+		local isEnabledBySome = enabledState == 1
+		if (isEnabledByAll) then
 			self:SetChecked(true)
-			local character = SAM:GetSelectedCharName()
+		elseif (isEnabledBySome) then
+			self:SetChecked(true)
+			local character = SAM:GetLoggedChar()
 			local isEnabledByMe = SAM.compat.GetAddOnEnableState(addonIndex, character) == 2
 			if (isEnabledByMe) then
 				checkedTexture:SetVertexColor(0.4, 1.0, 0.4)
@@ -267,7 +272,6 @@ local function ToggleAddon(self)
 		end
 	else
 		local isEnabling = not SAM:IsAddonSelected(addonIndex)
-		Checkbox_SetAddonState(self, isEnabling, addonIndex)
 		if (isEnabling) then
 			PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
 			SAM:EnableAddOn(addonIndex)
@@ -275,6 +279,7 @@ local function ToggleAddon(self)
 			PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
 			SAM:DisableAddOn(addonIndex)
 		end
+		Checkbox_SetAddonState(self, isEnabling, addonIndex)
 	end
 
 	SAM:Update()

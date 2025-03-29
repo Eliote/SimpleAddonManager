@@ -236,6 +236,10 @@ function SAM:GetCharList()
 	return orderedCharList
 end
 
+function SAM:GetLoggedChar()
+	return playerName
+end
+
 function SAM:Update()
 	if (SAM.initialized) then
 		SAM:UpdateCategoryFrame()
