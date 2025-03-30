@@ -28,7 +28,7 @@ local function CharacterDropDown_Initialize()
 			value = zeroIndex,
 			func = function(self)
 				local value = self.value
-				SAM:InitAddonStateFor(v.guid)
+				SAM:InitAddonStateFor(name == ALL and true or v.guid)
 				SAM:SetSelectedCharIndex(value)
 				EDDM.UIDropDownMenu_SetSelectedValue(SAM.CharacterDropDown, value)
 				SAM.AddonListFrame.ScrollFrame.update()
