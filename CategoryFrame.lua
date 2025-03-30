@@ -205,8 +205,26 @@ local function ToggleCategory(self)
 	SAM.CategoryFrame.ScrollFrame.update()
 end
 
+local function SetAllCategories(value)
+	local user, toc, fix = SAM:GetCategoryTables()
+	for name, _ in pairs(user) do
+		SAM.CategoryFrame.ScrollFrame.selectedItems[name] = value
+	end
+	for name, _ in pairs(toc) do
+		SAM.CategoryFrame.ScrollFrame.selectedItems[name] = value
+	end
+	if (not value) then
+		for name, _ in pairs(fix) do
+			SAM.CategoryFrame.ScrollFrame.selectedItems[name] = value
+		end
+	end
+end
+
 local function CategoryButtonOnClick(self, mouseButton)
 	if (mouseButton == "LeftButton") then
+		if (not IsShiftKeyDown()) then
+			SetAllCategories(nil)
+		end
 		ToggleCategory(self.EnabledButton)
 	elseif (self.category.type ~= "fixed") then
 		EDDM.EasyMenu(CategoryMenu(self.categoryKey, self.categoryName), dropdownFrame, "cursor", 0, 0, "MENU")
@@ -372,15 +390,9 @@ local function OnSizeChangedScrollFrame(self)
 	self:GetParent().update()
 end
 
-local function SetAll(self)
+local function SetAllAndUpdate(self)
 	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
-	local user, toc = SAM:GetCategoryTables()
-	for name, _ in pairs(user) do
-		SAM.CategoryFrame.ScrollFrame.selectedItems[name] = self.value
-	end
-	for name, _ in pairs(toc) do
-		SAM.CategoryFrame.ScrollFrame.selectedItems[name] = self.value
-	end
+	SetAllCategories(self.value)
 	SAM:Update()
 end
 
@@ -471,13 +483,13 @@ function module:Initialize()
 	SAM.CategoryFrame.SelectAllButton:SetPoint("TOPLEFT", 8, 23)
 	SAM.CategoryFrame.SelectAllButton:SetSize((SAM.CATEGORY_SIZE_W / 2) - 4, 20)
 	SAM.CategoryFrame.SelectAllButton:SetText(L["Select All"])
-	SAM.CategoryFrame.SelectAllButton:SetScript("OnClick", SetAll)
+	SAM.CategoryFrame.SelectAllButton:SetScript("OnClick", SetAllAndUpdate)
 	SAM.CategoryFrame.SelectAllButton.value = true
 
 	SAM.CategoryFrame.ClearSelectionButton:SetPoint("TOPRIGHT", -8, 23)
 	SAM.CategoryFrame.ClearSelectionButton:SetSize((SAM.CATEGORY_SIZE_W / 2) - 4, 20)
 	SAM.CategoryFrame.ClearSelectionButton:SetText(L["Select None"])
-	SAM.CategoryFrame.ClearSelectionButton:SetScript("OnClick", SetAll)
+	SAM.CategoryFrame.ClearSelectionButton:SetScript("OnClick", SetAllAndUpdate)
 	SAM.CategoryFrame.ClearSelectionButton.value = nil
 
 	SAM.CategoryFrame.ScrollFrame:SetPoint("TOPLEFT", 0, 0)
