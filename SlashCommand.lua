@@ -13,34 +13,82 @@ local Commands = {
 		end,
 	},
 	profile = {
-		usage = 'profile "Name" [Reload option]',
+		usage = 'profile "Name" [OPTION]...',
 		args = {
 			{ desc = 'Name: Profile name', required = true },
 			{
 				desc = [==[Reload option (optional):
 - ask: Show confirmation popup (default)
-- reload: Loads the profile and reloads the UI
-- ignore: Only loads the profile]==],
+- reload: Reload the UI
+- ignore: Apply changes without reload]==],
 				required = false
-			}
+			},
+			{
+				desc = [==[Load option (optional):
+- load: Load the profile (default)
+- enable: Enable all addons from the profile
+- disable: Disable all addons from the profile]==],
+				required = false
+			},
 		},
-		func = function(profile, reloadType)
+		func = function(profile, ...)
 			local db = SAM:GetDb()
 			if (not db.sets[profile]) then
 				CommandsModule:Print(L("Profile '${profile}' not found!", { profile = profile }))
+				return
 			else
-				reloadType = reloadType or "ask"
-				if (reloadType == "ask") then
-					SAM:GetModule("Profile"):ShowLoadProfileAndReloadUIDialog(profile)
-				else
-					SAM:GetModule("Profile"):LoadAddonsFromProfile(profile)
-					if (reloadType == "reload") then
-						ReloadUI()
+				local args = { ... }
+				local reloadOptions = { "ask", "reload", "ignore" }
+				local error, reloadType = CommandsModule:FindUniqueOptionInArgs(args, reloadOptions, "ask")
+				if (error) then return CommandsModule:Print(reloadType) end
+
+				local loadOptions = { "load", "enable", "disable" }
+				local error, loadType = CommandsModule:FindUniqueOptionInArgs(args, loadOptions, "load")
+				if (error) then return CommandsModule:Print(loadType) end
+
+				if (loadType == "load") then
+					if (reloadType == "ask") then
+						SAM:GetModule("Profile"):ShowLoadProfileAndReloadUIDialog(profile)
+					else
+						SAM:GetModule("Profile"):LoadAddonsFromProfile(profile)
+						if (reloadType == "reload") then
+							ReloadUI()
+						end
+					end
+				elseif (loadType == "enable") then
+					if (reloadType == "ask") then
+						SAM:ShowConfirmDialog(
+								L("Enable addons from the profile '${profile}' and reload UI?", { profile = profile }),
+								function()
+									SAM:GetModule("Profile"):LoadAddonsFromProfile(profile, true)
+									ReloadUI()
+								end
+						)
+					else
+						SAM:GetModule("Profile"):LoadAddonsFromProfile(profile, true)
+						if (reloadType == "reload") then
+							ReloadUI()
+						end
+					end
+				elseif (loadType == "disable") then
+					if (reloadType == "ask") then
+						SAM:ShowConfirmDialog(
+								L("Disable addons from the profile '${profile}' and reload UI?", { profile = profile }),
+								function()
+									SAM:GetModule("Profile"):UnloadAddonsFromProfile(profile)
+									ReloadUI()
+								end
+						)
+					else
+						SAM:GetModule("Profile"):UnloadAddonsFromProfile(profile)
+						if (reloadType == "reload") then
+							ReloadUI()
+						end
 					end
 				end
 			end
 		end,
-	}
+	},
 }
 
 LibStub("AceConsole-3.0"):Embed(CommandsModule)
@@ -60,6 +108,23 @@ local function HasMissingParam(list, max, reg)
 			return true
 		end
 	end
+end
+
+function CommandsModule:FindUniqueOptionInArgs(args, options, default)
+	local found
+	local optionsMap = {}
+	for _, option in ipairs(options) do
+		optionsMap[option] = true
+	end
+	for _, arg in ipairs(args) do
+		if (optionsMap[arg]) then
+			if (found) then
+				return true, L("(Duplicated option) You should only use one: ${a} ${b}", {a = found, b = arg})
+			end
+			found = arg
+		end
+	end
+	return false, found or default
 end
 
 function CommandsModule:UsageMessage(cmd)
