@@ -20,12 +20,15 @@ local function CharacterDropDown_Initialize()
 			local _, _, _, hex = GetClassColor(v.class)
 			coloredName = "|c" .. hex .. coloredName .. "|r"
 		end
+		if v.name == v.guid then
+			coloredName = coloredName .. "*"
+		end
 		EDDM.UIDropDownMenu_AddButton({
 			text = coloredName,
 			value = zeroIndex,
 			func = function(self)
 				local value = self.value
-				SAM:InitAddonStateFor(name)
+				SAM:InitAddonStateFor(v.guid)
 				SAM:SetSelectedCharIndex(value)
 				EDDM.UIDropDownMenu_SetSelectedValue(SAM.CharacterDropDown, value)
 				SAM.AddonListFrame.ScrollFrame.update()
@@ -54,7 +57,7 @@ function SAM:DidAnyAddonStateChanged(character)
 end
 
 function SAM:UpdateOkButton()
-	if (SAM:DidAnyAddonStateChanged(SAM:GetCurrentPlayerInfo().name)) then
+	if (SAM:DidAnyAddonStateChanged(SAM:GetCurrentPlayerInfo().guid)) then
 		SAM.edited = true
 		SAM.OkButton:SetText(L["Reload UI"])
 	else

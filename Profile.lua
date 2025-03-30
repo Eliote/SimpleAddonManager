@@ -474,7 +474,7 @@ function module:UpdatePlayerProfileAddons()
 	local addons = {}
 	for addonIndex = 1, SAM.compat.GetNumAddOns() do
 		local addonName = SAM.compat.GetAddOnInfo(addonIndex)
-		if (SAM.compat.GetAddOnEnableState(addonIndex, playerInfo.name) > 0) then
+		if (SAM.compat.GetAddOnEnableState(addonIndex, playerInfo.guid) > 0) then
 			addons[addonName] = true
 		end
 	end
@@ -482,7 +482,8 @@ function module:UpdatePlayerProfileAddons()
 	db.autoProfile[playerInfo.id] = {
 		addons = addons,
 		playerId = playerInfo.id,
-		playerColor = playerInfo.color.colorStr
+		playerColor = playerInfo.color.colorStr,
+		playerGuid = playerInfo.guid,
 	}
 end
 

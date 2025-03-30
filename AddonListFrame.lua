@@ -236,7 +236,7 @@ local function Checkbox_SetAddonState(self, enabled, addonIndex)
 		local enabledSome = (not togglingMe) and SAM:IsAddonSelected(addonIndex, true)
 		if (enabledSome) then
 			self:SetChecked(true)
-			local character = SAM:GetSelectedCharName()
+			local character = SAM:GetSelectedCharGUID()
 			local isEnabledByMe = SAM.compat.GetAddOnEnableState(addonIndex, character) == 2
 			if (isEnabledByMe) then
 				checkedTexture:SetVertexColor(0.4, 1.0, 0.4)
@@ -349,7 +349,7 @@ local function CharactersWithAddon(name)
 	table.sort(charList, function(a, b) return a.name < b.name end)
 
 	for _, info in ipairs(charList) do
-		if SAM.compat.GetAddOnEnableState(name, info.name) == 2 then
+		if SAM.compat.GetAddOnEnableState(name, info.guid) == 2 then
 			local _, _, _, hex = GetClassColor(info.class)
 			tinsert(charTbl, WrapTextInColorCode(info.name, hex))
 		end

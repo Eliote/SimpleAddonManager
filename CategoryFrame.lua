@@ -161,10 +161,10 @@ local fixedCategories = {
 		name = C.red:WrapText(L["Addons being modified"]),
 		description = L["Addons being modified in this session"],
 		addons = function(_, key)
-			return SAM:DidAddonStateChanged(key, SAM:GetSelectedCharName())
+			return SAM:DidAddonStateChanged(key, SAM:GetSelectedCharGUID())
 		end,
 		show = function()
-			return SAM:DidAnyAddonStateChanged(SAM:GetSelectedCharName())
+			return SAM:DidAnyAddonStateChanged(SAM:GetSelectedCharGUID())
 		end,
 		count = CommonCountFunction
 	},

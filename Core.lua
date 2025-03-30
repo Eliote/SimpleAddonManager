@@ -4,7 +4,7 @@ local C = T.Color
 
 local orderedCharList
 local selectedCharIndex -- [0] for all characters, [1] for player name
-local playerName
+local playerName, playerGuid
 
 --- @class SimpleAddonManager
 local SAM = CreateFrame("Frame", ADDON_NAME, UIParent, "ButtonFrameTemplate")
@@ -210,7 +210,7 @@ function SAM:IsAddonSelected(nameOrIndex, forSome, character)
 		local state = SAM.compat.GetAddOnEnableState(nameOrIndex, nil)
 		return state == 1
 	end
-	local char = character or SAM:GetSelectedCharName()
+	local char = character or SAM:GetSelectedCharGUID()
 	if (character == true) then
 		char = nil
 	end
@@ -222,8 +222,8 @@ function SAM:GetSelectedCharIndex()
 	return selectedCharIndex or 0
 end
 
-function SAM:GetSelectedCharName()
-	if (selectedCharIndex >= 1) then return orderedCharList[selectedCharIndex + 1].name end
+function SAM:GetSelectedCharGUID()
+	if (selectedCharIndex >= 1) then return orderedCharList[selectedCharIndex + 1].guid end
 	return nil
 end
 
@@ -421,23 +421,23 @@ function SAM:IsAddonInstalled(indexOrName)
 end
 
 function SAM:EnableAddOn(indexOrName)
-	local c = SAM:GetSelectedCharName()
+	local c = SAM:GetSelectedCharGUID()
 	SAM.compat.EnableAddOn(indexOrName, c)
 end
 
 function SAM:DisableAddOn(indexOrName)
 	if (SAM:GetModule("Lock"):IsAddonLocked(indexOrName)) then return end
-	local c = SAM:GetSelectedCharName()
+	local c = SAM:GetSelectedCharGUID()
 	SAM.compat.DisableAddOn(indexOrName, c)
 end
 
 function SAM:EnableAllAddOns()
-	local c = SAM:GetSelectedCharName()
+	local c = SAM:GetSelectedCharGUID()
 	SAM.compat.EnableAllAddOns(c)
 end
 
 function SAM:DisableAllAddOns()
-	local c = SAM:GetSelectedCharName()
+	local c = SAM:GetSelectedCharGUID()
 	SAM.compat.DisableAllAddOns(c)
 end
 
@@ -447,7 +447,7 @@ function SAM:GetAddOnMetadata(addon, field)
 end
 
 -- When entering/leaving lfg, realm returns nil. Cache to avoid errors.
-local nameCache, realmCache, classColor
+local nameCache, realmCache, classColor, guidCache
 function SAM:GetCurrentPlayerInfo()
 	if (nameCache == nil) then
 		nameCache, realmCache = UnitNameUnmodified("player")
@@ -455,8 +455,10 @@ function SAM:GetCurrentPlayerInfo()
 			realmCache = select(2, UnitFullName("player"))
 		end
 		classColor = RAID_CLASS_COLORS[select(2, UnitClass("player"))] or C.white
+		guidCache = UnitGUID("player")
 	end
 	return {
+		guid = guidCache,
 		id = nameCache .. "-" .. realmCache,
 		name = nameCache,
 		realm = realmCache,
@@ -518,8 +520,8 @@ end
 function SAM:ClearInitialState()
 	addonsInitialState = {}
 	SAM:InitAddonStateFor(true)
-	SAM:InitAddonStateFor(playerName)
-	local selectedChar = SAM:GetSelectedCharName()
+	SAM:InitAddonStateFor(playerGuid)
+	local selectedChar = SAM:GetSelectedCharGUID()
 	if (selectedChar) then
 		SAM:InitAddonStateFor(selectedChar)
 	end
@@ -527,6 +529,7 @@ end
 
 function SAM:PLAYER_ENTERING_WORLD(...)
 	playerName = UnitName("player")
+	playerGuid = UnitGUID("player")
 
 	local isInitialLogin, isReloadingUi = ...
 	if (isInitialLogin or isReloadingUi) then
@@ -536,21 +539,21 @@ function SAM:PLAYER_ENTERING_WORLD(...)
 		charList[realm] = charList[realm] or {}
 
 		local _, classFile = UnitClass("player")
-		charList[realm][playerName] = { class = classFile }
+		charList[realm][playerName] = { class = classFile, guid = playerGuid }
 
 		orderedCharList = {}
 		for name, v in pairs(charList[realm]) do
-			if (v and name ~= playerName) then
-				table.insert(orderedCharList, { name = name, class = v.class })
+			if (v and name ~= playerName ) then
+				table.insert(orderedCharList, { name = name, class = v.class, guid = v.guid or name })
 			end
 		end
 		table.sort(orderedCharList, function(a, b) return a.name < b.name end)
 		table.insert(orderedCharList, 1, { name = ALL })
-		table.insert(orderedCharList, 2, { name = playerName, class = classFile })
+		table.insert(orderedCharList, 2, { name = playerName, class = classFile, guid = playerGuid})
 
 		-- load initial state
 		SAM:InitAddonStateFor(true)
-		SAM:InitAddonStateFor(playerName)
+		SAM:InitAddonStateFor(playerGuid)
 	end
 
 	for _, v in SAM:ModulesIterator() do
