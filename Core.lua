@@ -453,7 +453,7 @@ end
 
 -- When entering/leaving lfg, realm returns nil. Cache to avoid errors.
 local nameCache, realmCache, classColor
-function SAM:GetCurrentPlayerInfo()
+function SAM:GetLoggedPlayerInfo()
 	if (nameCache == nil) then
 		nameCache, realmCache = UnitNameUnmodified("player")
 		if (realmCache == nil or realmCache == "") then

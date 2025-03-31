@@ -141,7 +141,7 @@ local function ProfilesDropDownCreate()
 	}
 	local db = SAM:GetDb()
 
-	local me = SAM:GetCurrentPlayerInfo().id
+	local me = SAM:GetLoggedPlayerInfo().id
 	local charsTable = SAM:TableAsSortedPairList(db.autoProfile, function(k)
 		return k ~= me
 	end)
@@ -467,7 +467,7 @@ function module:Initialize()
 end
 
 function module:UpdatePlayerProfileAddons()
-	local playerInfo = SAM:GetCurrentPlayerInfo()
+	local playerInfo = SAM:GetLoggedPlayerInfo()
 	local db = SAM:GetDb()
 	db.autoProfile = db.autoProfile or {}
 
