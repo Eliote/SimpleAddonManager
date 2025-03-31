@@ -54,7 +54,7 @@ function SAM:DidAnyAddonStateChanged(charGuid)
 end
 
 function SAM:UpdateOkButton()
-	if (SAM:DidAnyAddonStateChanged(SAM:GetCurrentPlayerInfo().guid)) then
+	if (SAM:DidAnyAddonStateChanged(SAM:GetLoggedCharGuid())) then
 		SAM.edited = true
 		SAM.OkButton:SetText(L["Reload UI"])
 	else
