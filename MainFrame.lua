@@ -25,7 +25,7 @@ local function CharacterDropDown_Initialize()
 			value = zeroIndex,
 			func = function(self)
 				local value = self.value
-				SAM:InitAddonStateFor(name)
+				SAM:InitAddonStateFor(v.guid)
 				SAM:SetSelectedCharIndex(value)
 				EDDM.UIDropDownMenu_SetSelectedValue(SAM.CharacterDropDown, value)
 				SAM.AddonListFrame.ScrollFrame.update()
@@ -35,9 +35,9 @@ local function CharacterDropDown_Initialize()
 	end
 end
 
-function SAM:DidAddonStateChanged(addonNameOrIndex, character)
-	local initiallyEnabledAddons = SAM:GetAddonsInitialState(character)
-	local state = SAM:IsAddonSelected(addonNameOrIndex, nil, character)
+function SAM:DidAddonStateChanged(addonNameOrIndex, charGuid)
+	local initiallyEnabledAddons = SAM:GetAddonsInitialState(charGuid)
+	local state = SAM:IsAddonSelected(addonNameOrIndex, nil, charGuid)
 	local name = SAM.compat.GetAddOnInfo(addonNameOrIndex)
 	local initialState = initiallyEnabledAddons[name]
 	if (state ~= initialState) then
@@ -45,16 +45,16 @@ function SAM:DidAddonStateChanged(addonNameOrIndex, character)
 	end
 end
 
-function SAM:DidAnyAddonStateChanged(character)
+function SAM:DidAnyAddonStateChanged(charGuid)
 	for addonIndex = 1, SAM.compat.GetNumAddOns() do
-		if (SAM:DidAddonStateChanged(addonIndex, character)) then
+		if (SAM:DidAddonStateChanged(addonIndex, charGuid)) then
 			return true
 		end
 	end
 end
 
 function SAM:UpdateOkButton()
-	if (SAM:DidAnyAddonStateChanged(SAM:GetCurrentPlayerInfo().name)) then
+	if (SAM:DidAnyAddonStateChanged(SAM:GetCurrentPlayerInfo().guid)) then
 		SAM.edited = true
 		SAM.OkButton:SetText(L["Reload UI"])
 	else

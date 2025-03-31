@@ -5,6 +5,7 @@ local C = T.Color
 local orderedCharList
 local selectedCharIndex -- [0] for all characters, [1] for player name
 local playerName
+local playerGuid
 
 --- @class SimpleAddonManager
 local SAM = CreateFrame("Frame", ADDON_NAME, UIParent, "ButtonFrameTemplate")
@@ -205,16 +206,16 @@ function SAM:ShowYesNoCancelDialog(text, funcYes, funcNo, funcCancel)
 	})
 end
 
-function SAM:IsAddonSelected(nameOrIndex, forSome, character)
+function SAM:IsAddonSelected(nameOrIndex, forSome, charGuid)
 	if (forSome) then
 		local state = SAM.compat.GetAddOnEnableState(nameOrIndex, nil)
 		return state == 1
 	end
-	local char = character or SAM:GetSelectedCharName()
-	if (character == true) then
-		char = nil
+	local guid = charGuid or SAM:GetSelectedCharGuid()
+	if (charGuid == true) then
+		guid = nil
 	end
-	local state = SAM.compat.GetAddOnEnableState(nameOrIndex, char)
+	local state = SAM.compat.GetAddOnEnableState(nameOrIndex, guid)
 	return state == 2
 end
 
@@ -222,8 +223,8 @@ function SAM:GetSelectedCharIndex()
 	return selectedCharIndex or 0
 end
 
-function SAM:GetSelectedCharName()
-	if (selectedCharIndex >= 1) then return orderedCharList[selectedCharIndex + 1].name end
+function SAM:GetSelectedCharGuid()
+	if (selectedCharIndex >= 1) then return orderedCharList[selectedCharIndex + 1].guid end
 	return nil
 end
 
@@ -236,8 +237,8 @@ function SAM:GetCharList()
 	return orderedCharList
 end
 
-function SAM:GetLoggedChar()
-	return playerName
+function SAM:GetLoggedCharGuid()
+	return playerGuid
 end
 
 function SAM:Update()
@@ -415,8 +416,8 @@ function SAM:ModulesIterator()
 end
 
 local addonsInitialState = {}
-function SAM:GetAddonsInitialState(character)
-	return addonsInitialState[character or true] -- true represents "all"/nil
+function SAM:GetAddonsInitialState(charGuid)
+	return addonsInitialState[charGuid or true] -- true represents "all"/nil
 end
 
 function SAM:IsAddonInstalled(indexOrName)
@@ -425,23 +426,23 @@ function SAM:IsAddonInstalled(indexOrName)
 end
 
 function SAM:EnableAddOn(indexOrName)
-	local c = SAM:GetSelectedCharName()
+	local c = SAM:GetSelectedCharGuid()
 	SAM.compat.EnableAddOn(indexOrName, c)
 end
 
 function SAM:DisableAddOn(indexOrName)
 	if (SAM:GetModule("Lock"):IsAddonLocked(indexOrName)) then return end
-	local c = SAM:GetSelectedCharName()
+	local c = SAM:GetSelectedCharGuid()
 	SAM.compat.DisableAddOn(indexOrName, c)
 end
 
 function SAM:EnableAllAddOns()
-	local c = SAM:GetSelectedCharName()
+	local c = SAM:GetSelectedCharGuid()
 	SAM.compat.EnableAllAddOns(c)
 end
 
 function SAM:DisableAllAddOns()
-	local c = SAM:GetSelectedCharName()
+	local c = SAM:GetSelectedCharGuid()
 	SAM.compat.DisableAllAddOns(c)
 end
 
@@ -490,7 +491,7 @@ function SAM:ADDON_LOADED(name)
 	SAM:CreateDefaultOptions(SimpleAddonManagerDB.config, {
 		showVersions = false,
 		hookMenuButton = true,
-		characterList = {},
+		characterList2 = {},
 	})
 
 	selectedCharIndex = SimpleAddonManagerDB.config.selectedCharacter or 0
@@ -508,53 +509,55 @@ function SAM:ADDON_LOADED(name)
 	end
 end
 
-function SAM:InitAddonStateFor(character)
-	if (addonsInitialState[character]) then return end
+function SAM:InitAddonStateFor(charGuid)
+	if (addonsInitialState[charGuid]) then return end
 
 	-- load initial state
-	addonsInitialState[character] = {}
+	addonsInitialState[charGuid] = {}
 	for addonIndex = 1, SAM.compat.GetNumAddOns() do
 		local addonName = SAM.compat.GetAddOnInfo(addonIndex)
-		addonsInitialState[character][addonName] = SAM:IsAddonSelected(addonIndex, nil, character)
+		addonsInitialState[charGuid][addonName] = SAM:IsAddonSelected(addonIndex, nil, charGuid)
 	end
 end
 
 function SAM:ClearInitialState()
 	addonsInitialState = {}
 	SAM:InitAddonStateFor(true)
-	SAM:InitAddonStateFor(playerName)
-	local selectedChar = SAM:GetSelectedCharName()
-	if (selectedChar) then
-		SAM:InitAddonStateFor(selectedChar)
+	SAM:InitAddonStateFor(playerGuid)
+	local selectedCharGuid = SAM:GetSelectedCharGuid()
+	if (selectedCharGuid) then
+		SAM:InitAddonStateFor(selectedCharGuid)
 	end
 end
 
 function SAM:PLAYER_ENTERING_WORLD(...)
 	playerName = UnitNameUnmodified("player")
+	playerGuid = UnitGUID("player")
 
 	local isInitialLogin, isReloadingUi = ...
 	if (isInitialLogin or isReloadingUi) then
 		-- init player list
 		local realm = GetRealmName()
-		local charList = SAM:GetDb().config.characterList
+		local charList = SAM:GetDb().config.characterList2
 		charList[realm] = charList[realm] or {}
 
 		local _, classFile = UnitClass("player")
-		charList[realm][playerName] = { class = classFile }
+		local playerData = { class = classFile, name = playerName, guid = playerGuid }
+		charList[realm][playerGuid] = playerData
 
 		orderedCharList = {}
-		for name, v in pairs(charList[realm]) do
-			if (v and name ~= playerName) then
-				table.insert(orderedCharList, { name = name, class = v.class })
+		for guid, v in pairs(charList[realm]) do
+			if (v and guid ~= playerGuid) then
+				table.insert(orderedCharList, v)
 			end
 		end
 		table.sort(orderedCharList, function(a, b) return a.name < b.name end)
-		table.insert(orderedCharList, 1, { name = ALL })
-		table.insert(orderedCharList, 2, { name = playerName, class = classFile })
+		table.insert(orderedCharList, 1, { name = ALL, guid = true })
+		table.insert(orderedCharList, 2, playerData)
 
 		-- load initial state
 		SAM:InitAddonStateFor(true)
-		SAM:InitAddonStateFor(playerName)
+		SAM:InitAddonStateFor(playerGuid)
 	end
 
 	for _, v in SAM:ModulesIterator() do
