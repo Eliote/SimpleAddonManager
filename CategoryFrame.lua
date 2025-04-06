@@ -206,16 +206,28 @@ local function ToggleCategory(self)
 end
 
 local function SetAllCategories(value)
-	local user, toc, fix = SAM:GetCategoryTables()
-	for name, _ in pairs(user) do
-		SAM.CategoryFrame.ScrollFrame.selectedItems[name] = value
-	end
-	for name, _ in pairs(toc) do
-		SAM.CategoryFrame.ScrollFrame.selectedItems[name] = value
-	end
+	-- when disabling the categories, we only need to clear the selection table
 	if (not value) then
-		for name, _ in pairs(fix) do
+		for name, _ in pairs(SAM.CategoryFrame.ScrollFrame.selectedItems) do
 			SAM.CategoryFrame.ScrollFrame.selectedItems[name] = value
+		end
+	else
+		-- we purposely ignore the "fix" table when enabling all categories
+		local user, toc, _ = SAM:GetCategoryTables()
+		for name, _ in pairs(user) do
+			SAM.CategoryFrame.ScrollFrame.selectedItems[name] = value
+		end
+		for name, _ in pairs(toc) do
+			SAM.CategoryFrame.ScrollFrame.selectedItems[name] = value
+		end
+	end
+end
+
+local function IsAnythingElseSelected(target)
+	local items = SAM.CategoryFrame.ScrollFrame.selectedItems
+	for name, _ in pairs(items) do
+		if (target ~= name and SAM.CategoryFrame.ScrollFrame.selectedItems[name]) then
+			return true
 		end
 	end
 end
@@ -223,7 +235,14 @@ end
 local function CategoryButtonOnClick(self, mouseButton)
 	if (mouseButton == "LeftButton") then
 		if (not IsShiftKeyDown()) then
-			SetAllCategories(nil)
+			local isSelected = IsCategorySelected(self.categoryKey)
+			local isTheOnlySelected = isSelected and not IsAnythingElseSelected(self.categoryKey)
+			SetAllCategories(nil) -- clear everything
+			if (isTheOnlySelected) then
+				-- If this is the only category selected, we reselect it after the clear.
+				-- This way the [ToggleCategory] will deselect it and update everything properly.
+				SAM.CategoryFrame.ScrollFrame.selectedItems[self.categoryKey] = true
+			end
 		end
 		ToggleCategory(self.EnabledButton)
 	elseif (self.category.type ~= "fixed") then
