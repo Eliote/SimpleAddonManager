@@ -452,21 +452,22 @@ function SAM:GetAddOnMetadata(addon, field)
 end
 
 -- When entering/leaving lfg, realm returns nil. Cache to avoid errors.
-local nameCache, realmCache, classColor
+local playerInfoCache
 function SAM:GetLoggedPlayerInfo()
-	if (nameCache == nil) then
-		nameCache, realmCache = UnitNameUnmodified("player")
-		if (realmCache == nil or realmCache == "") then
-			realmCache = select(2, UnitFullName("player"))
+	if (playerInfoCache == nil) then
+		local name, realm = UnitNameUnmodified("player")
+		if (realm == nil or realm == "") then
+			realm = select(2, UnitFullName("player"))
 		end
-		classColor = RAID_CLASS_COLORS[select(2, UnitClass("player"))] or C.white
+		playerInfoCache = {
+			id = name .. "-" .. realm,
+			name = name,
+			realm = realm,
+			color = RAID_CLASS_COLORS[select(2, UnitClass("player"))] or C.white,
+			guid = playerGuid,
+		}
 	end
-	return {
-		id = nameCache .. "-" .. realmCache,
-		name = nameCache,
-		realm = realmCache,
-		color = classColor
-	}
+	return playerInfoCache
 end
 
 SAM:SetScript("OnEvent", function(self, event, ...)
