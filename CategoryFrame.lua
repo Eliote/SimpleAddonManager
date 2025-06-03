@@ -61,10 +61,7 @@ local function CategoryMenu(categoryKey, categoryName)
 			notCheckable = true,
 			disabled = db.categories[categoryKey] == nil,
 			func = function()
-				for name, _ in pairs(db.categories[categoryKey].addons) do
-					SAM:EnableAddOn(name)
-				end
-				SAM:Update()
+				module:EnableCategory(categoryKey)
 			end
 		},
 		{
@@ -72,10 +69,7 @@ local function CategoryMenu(categoryKey, categoryName)
 			notCheckable = true,
 			disabled = db.categories[categoryKey] == nil,
 			func = function()
-				for name, _ in pairs(db.categories[categoryKey].addons) do
-					SAM:DisableAddOn(name)
-				end
-				SAM:Update()
+				module:DisableCategory(categoryKey)
 			end
 		},
 		T.separatorInfo,
@@ -477,6 +471,22 @@ local function RenameInvalidDb(table, name, index)
 	end
 	db.categories[newName] = table
 	table.name = newName
+end
+
+function module:EnableCategory(categoryKey)
+	local db = SAM:GetDb()
+	for name, _ in pairs(db.categories[categoryKey].addons) do
+		SAM:EnableAddOn(name)
+	end
+	SAM:Update()
+end
+
+function module:DisableCategory(categoryKey)
+	local db = SAM:GetDb()
+	for name, _ in pairs(db.categories[categoryKey].addons) do
+		SAM:DisableAddOn(name)
+	end
+	SAM:Update()
 end
 
 function module:PreInitialize()
