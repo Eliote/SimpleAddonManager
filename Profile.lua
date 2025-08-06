@@ -366,9 +366,9 @@ local function ProfilesDropDownCreate()
 								L["Export text"],
 								function() end,
 								function(self)
-									self.editBox:SetText(data)
-									self.editBox:HighlightText()
-									self.editBox:SetFocus()
+									self:GetEditBox():SetText(data)
+									self:GetEditBox():HighlightText()
+									self:GetEditBox():SetFocus()
 								end,
 								false
 						)
@@ -386,8 +386,8 @@ local function ProfilesDropDownCreate()
 									db.sets[profileName] = nil
 								end,
 								function(self)
-									self.editBox:SetText(profileName)
-									self.editBox:HighlightText()
+									self:GetEditBox():SetText(profileName)
+									self:GetEditBox():HighlightText()
 								end
 						)
 					end
@@ -422,8 +422,8 @@ local function ProfilesDropDownCreate()
 						module:ImportProfile(text)
 					end,
 					function(self)
-						self.editBox:SetText("")
-						self.editBox:SetFocus()
+						self:GetEditBox():SetText("")
+						self:GetEditBox():SetFocus()
 					end
 			)
 		end

@@ -113,6 +113,10 @@ function SAM:CreateDefaultOptions(db, defaults)
 	end
 end
 
+local function GetEditBoxCompat(self)
+    return self.editBox
+end
+
 function SAM:ShowDialog(dialogInfo)
 	local dialog = StaticPopupDialogs["SimpleAddonManager_Dialog"]
 	dialog.text = dialogInfo.text
@@ -126,8 +130,11 @@ function SAM:ShowDialog(dialogInfo)
 			self:SetPoint("TOP", SAM, "TOP", 0, -120)
 		end
 		self.OldStrata = self:GetFrameStrata()
-		if (self.editBox) then
-			self.editBox:SetText("")
+		if (not self.GetEditBox) then
+		    self.GetEditBox = GetEditBoxCompat
+		end
+		if (self:GetEditBox()) then
+			self:GetEditBox():SetText("")
 		end
 		if (dialogInfo.funcOnShow) then
 			dialogInfo.funcOnShow(self, ...)
@@ -157,7 +164,7 @@ function SAM:ShowInputDialog(text, func, funcOnShow, button2)
 		text = text,
 		hasEditBox = true,
 		funcAccept = function(self)
-			func(self.editBox:GetText())
+			func(self:GetEditBox():GetText())
 		end,
 		funcOnShow = funcOnShow,
 		hideOnEscape = true,

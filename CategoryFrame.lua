@@ -34,8 +34,8 @@ local function CategoryMenu(categoryKey, categoryName)
 							SAM:Update()
 						end,
 						function(self)
-							self.editBox:SetText(categoryName)
-							self.editBox:HighlightText()
+							self:GetEditBox():SetText(categoryName)
+							self:GetEditBox():HighlightText()
 						end
 				)
 			end
