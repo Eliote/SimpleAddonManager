@@ -49,8 +49,9 @@ StaticPopupDialogs["SimpleAddonManager_Dialog"] = {
 	whileDead = true,
 	EditBoxOnEnterPressed = function(self)
 		local parent = self:GetParent()
-		if (parent.button1:IsEnabled() and parent.enterClicksFirstButton) then
-			parent.button1:Click()
+		local button = parent.GetButton1 and parent:GetButton1() or parent.button1
+		if (button:IsEnabled() and parent.enterClicksFirstButton) then
+			button:Click()
 		end
 	end,
 	EditBoxOnEscapePressed = function(self)
