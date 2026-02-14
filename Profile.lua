@@ -7,6 +7,15 @@ local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFr
 local SAM = T.AddonFrame
 local module = SAM:RegisterModule("Profile")
 
+local zones = {
+	["none"] = L["Outside"],
+	["party"] = L["Party"],
+	["raid"] = L["Raid"],
+	["arena"] = L["Arena"],
+	["pvp"] = L["PvP"],
+	["scenario"] = L["Scenario"],
+}
+
 local function countTable(t)
 	if not t then return 0 end
 
@@ -126,6 +135,8 @@ function module:UnloadAddonsFromProfile(profileName)
 end
 
 function module:ShowLoadProfileAndReloadUIDialog(profile)
+	local db = SAM:GetDb()
+	if (not db.sets[profile]) then return end
 	SAM:ShowConfirmDialog(
 			L("Load profile '${profile}' and reload UI?", { profile = profile }),
 			function()
@@ -133,6 +144,25 @@ function module:ShowLoadProfileAndReloadUIDialog(profile)
 				ReloadUI()
 			end
 	)
+end
+
+function module:IsProfileLoaded(profile)
+	local db = SAM:GetDb()
+	if (not db.sets[profile]) then return false end
+	local addons = AddonsInProfilesRec({ [profile] = true })
+	local count = SAM.compat.GetNumAddOns()
+	for i = 1, count do
+		local name = SAM.compat.GetAddOnInfo(i)
+		local isSelectedInProfile = addons[name]
+		local isSelectedInList = SAM:IsAddonSelected(i)
+		if not isSelectedInProfile and isSelectedInList then
+			return false
+		end
+		if isSelectedInProfile and not isSelectedInList then
+			return false
+		end
+	end
+	return true
 end
 
 local function ProfilesDropDownCreate()
@@ -257,6 +287,32 @@ local function ProfilesDropDownCreate()
 		return next(1)
 	end
 
+	local function createZoneOptionsMenu(profileName)
+		local menu = {}
+
+		for k, v in pairs(zones) do
+			table.insert(menu, function()
+				return {
+					text = v,
+					hasArrow = false,
+					checked = function()
+						return db.zoneProfile[k] == profileName
+					end,
+					func = function()
+						if (db.zoneProfile[k] == profileName) then
+							db.zoneProfile[k] = nil
+						else
+							db.zoneProfile[k] = profileName
+						end
+						SAM:Update()
+					end,
+				}
+			end)
+		end
+
+		return menu
+	end
+
 	for _, pair in ipairs(setsList) do
 		local profileName, set = pair.key, pair.value
 		set.subSets = set.subSets or {}
@@ -348,6 +404,12 @@ local function ProfilesDropDownCreate()
 					end
 				},
 				{
+					text = L["Zone Profile"],
+					notCheckable = true,
+					hasArrow = true,
+					menuList = createZoneOptionsMenu(profileName)
+				},
+				{
 					text = L["Profile dependencies"],
 					notCheckable = true,
 					hasArrow = true,
@@ -381,9 +443,14 @@ local function ProfilesDropDownCreate()
 						EDDM.CloseDropDownMenus();
 						SAM:ShowInputDialog(
 								L("Enter the new name for the profile '${profile}'", { profile = profileName }),
-								function(text)
-									db.sets[text] = db.sets[profileName]
+								function(newName)
+									db.sets[newName] = db.sets[profileName]
 									db.sets[profileName] = nil
+									for k, _ in pairs(zones) do
+										if (db.zoneProfile[k] == profileName) then
+											db.zoneProfile[k] = newName
+										end
+									end
 								end,
 								function(self)
 									self:GetEditBox():SetText(profileName)
@@ -448,6 +515,9 @@ end
 
 function module:OnLoad()
 	MigrateProfileAddonsTable()
+	SAM:CreateDefaultOptions(SimpleAddonManagerDB, {
+		zoneProfile = {}
+	})
 end
 
 function module:PreInitialize()
@@ -490,6 +560,16 @@ function module:OnPlayerEnteringWorld(isInitialLogin, isReloadingUi)
 	if (isInitialLogin or isReloadingUi) then
 		module:UpdatePlayerProfileAddons()
 	end
+	C_Timer.After(1, function()
+		local db = SAM:GetDb()
+		local _, instanceType = GetInstanceInfo()
+		if (instanceType and db.zoneProfile[instanceType]) then
+			local profile = db.zoneProfile[instanceType]
+			if (not module:IsProfileLoaded(profile)) then
+				module:ShowLoadProfileAndReloadUIDialog(db.zoneProfile[instanceType])
+			end
+		end
+	end)
 end
 
 function module:OnPlayerLeavingWorld()
