@@ -1,18 +1,16 @@
 local ADDON_NAME, T = ...
 local L = T.L
-local EDDM = LibStub("ElioteDropDownMenu-1.0")
 
 --- @type SimpleAddonManager
 local SAM = T.AddonFrame
 local module = SAM:RegisterModule("Main")
 
-local function CharacterDropDown_Initialize()
-	local selectedCharIndex = SAM:GetSelectedCharIndex()
+local function CharacterDropDownGenerator(owner, root)
 	local charList = SAM:GetCharList()
 	for i, v in ipairs(charList) do
 		local zeroIndex = i - 1
 		if (zeroIndex == 2) then
-			EDDM.UIDropDownMenu_AddSeparator()
+			root:CreateDivider()
 		end
 		local name = v.name
 		local coloredName = name
@@ -20,18 +18,19 @@ local function CharacterDropDown_Initialize()
 			local _, _, _, hex = GetClassColor(v.class)
 			coloredName = "|c" .. hex .. coloredName .. "|r"
 		end
-		EDDM.UIDropDownMenu_AddButton({
-			text = coloredName,
-			value = zeroIndex,
-			func = function(self)
-				local value = self.value
+
+		root:CreateRadio(
+			coloredName,
+			function(index)
+				return SAM:GetSelectedCharIndex() == index
+			end,
+			function(index)
 				SAM:InitAddonStateFor(v.guid)
-				SAM:SetSelectedCharIndex(value)
-				EDDM.UIDropDownMenu_SetSelectedValue(SAM.CharacterDropDown, value)
+				SAM:SetSelectedCharIndex(index)
 				SAM.AddonListFrame.ScrollFrame.update()
 			end,
-			checked = selectedCharIndex == zeroIndex,
-		})
+			zeroIndex
+		)
 	end
 end
 
@@ -65,7 +64,7 @@ end
 
 function module:PreInitialize()
 	SAM.Sizer = CreateFrame("Button", nil, SAM, "PanelResizeButtonTemplate")
-	SAM.CharacterDropDown = EDDM.UIDropDownMenu_Create("SAM_CharacterDropDown", SAM)
+	SAM.CharacterDropDown = CreateFrame("DropdownButton", nil, SAM, "WowStyle1DropdownTemplate")
 	SAM.CancelButton = CreateFrame("Button", nil, SAM, "UIPanelButtonTemplate")
 	SAM.OkButton = CreateFrame("Button", nil, SAM, "UIPanelButtonTemplate")
 	SAM.EnableAllButton = CreateFrame("Button", nil, SAM, "UIPanelButtonTemplate")
@@ -88,9 +87,9 @@ function module:Initialize()
 	end)
 	SAM.Sizer:SetPoint("BOTTOMRIGHT", -4, 4)
 
-	SAM.CharacterDropDown:SetPoint("TOPLEFT", 0, -30)
-	EDDM.UIDropDownMenu_Initialize(SAM.CharacterDropDown, CharacterDropDown_Initialize)
-	EDDM.UIDropDownMenu_SetSelectedValue(SAM.CharacterDropDown, SAM:GetSelectedCharIndex())
+	SAM.CharacterDropDown:SetPoint("TOPLEFT", 10, -30)
+	SAM.CharacterDropDown:SetWidth(120)
+	SAM.CharacterDropDown:SetupMenu(CharacterDropDownGenerator)
 
 	SAM.CancelButton:SetPoint("BOTTOMRIGHT", -22, 4)
 	SAM.CancelButton:SetSize(100, 22)

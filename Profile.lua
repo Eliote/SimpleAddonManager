@@ -458,7 +458,7 @@ function module:PreInitialize()
 end
 
 function module:Initialize()
-	SAM.SetsButton:SetPoint("LEFT", SAM.CharacterDropDown.Button, "RIGHT", 4, 0)
+	SAM.SetsButton:SetPoint("LEFT", SAM.CharacterDropDown, "RIGHT", 4, 0)
 	SAM.SetsButton:SetSize(80, 22)
 	SAM.SetsButton:SetText(L["Profiles"])
 	SAM.SetsButton:SetScript("OnClick", function()
