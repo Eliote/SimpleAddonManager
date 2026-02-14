@@ -404,7 +404,7 @@ local function ProfilesDropDownCreate()
 					end
 				},
 				{
-					text = L["Zone Profile"],
+					text = L["Instance Profile"],
 					notCheckable = true,
 					hasArrow = true,
 					menuList = createZoneOptionsMenu(profileName)
