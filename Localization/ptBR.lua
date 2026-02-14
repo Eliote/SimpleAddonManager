@@ -154,4 +154,5 @@ L["Ticks over 10ms: "] = "Ticks acima de 10ms: "
 L["Ticks over 50ms: "] = "Ticks acima de 50ms: "
 L["Ticks over 100ms: "] = "Ticks acima de 100ms: "
 L["Ticks over 500ms: "] = "Ticks acima de 500ms: "
+L["Show in Addon compartment"] = "Exibir no compartimento de Addons"
 --@end-do-not-package@

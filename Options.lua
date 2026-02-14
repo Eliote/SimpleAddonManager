@@ -86,6 +86,15 @@ local function ConfigDropDownCreate()
 			end,
 		},
 		{
+			text = L["Show in Addon compartment"],
+			checked = function()
+				return db.config.minimap.showInCompartment
+			end,
+			func = function()
+				SAM:GetModule("Minimap"):ToggleCompartment()
+			end,
+		},
+		{
 			text = L["Show memory usage in broker/minimap tooltip"],
 			checked = function()
 				return db.config.showMemoryInBrokerTtp

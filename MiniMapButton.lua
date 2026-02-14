@@ -71,7 +71,7 @@ local ldbIcon = LibStub("LibDBIcon-1.0")
 function module:OnLoad()
 	local db = SAM:GetDb()
 	SAM:CreateDefaultOptions(SimpleAddonManagerDB.config, {
-		minimap = { hide = false }
+		minimap = { hide = false, showInCompartment = true }
 	})
 	ldbIcon:Register(ADDON_NAME, broker, db.config.minimap)
 end
@@ -83,6 +83,16 @@ function module:ToggleMinimapButton()
 		ldbIcon:Hide(ADDON_NAME)
 	else
 		ldbIcon:Show(ADDON_NAME)
+	end
+end
+
+function module:ToggleCompartment()
+	local db = SAM:GetDb()
+	db.config.minimap.showInCompartment = not db.config.minimap.showInCompartment
+	if (db.config.minimap.showInCompartment) then
+		ldbIcon:AddButtonToCompartment(ADDON_NAME)
+	else
+		ldbIcon:RemoveButtonFromCompartment(ADDON_NAME)
 	end
 end
 
