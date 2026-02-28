@@ -26,13 +26,20 @@ local broker = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject(ADDON_NAME,
 			return
 		end
 
+		local loadedAddons = {}
+		for addonIndex = 1, SAM.compat.GetNumAddOns() do
+			if (SAM.compat.IsAddOnLoaded(addonIndex)) then
+				table.insert(loadedAddons, addonIndex)
+			end
+		end
+
 		local topAddOns = {}
-		local maxAddons = 10
+		local maxAddons = math.min(10, #loadedAddons)
 
 		UpdateAddOnMemoryUsage()
 
 		local totalMem = 0
-		for addonIndex = 1, SAM.compat.GetNumAddOns() do
+		for _, addonIndex in pairs(loadedAddons) do
 			local mem = GetAddOnMemoryUsage(addonIndex)
 			totalMem = totalMem + mem
 			for i = 1, maxAddons do
@@ -51,7 +58,7 @@ local broker = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject(ADDON_NAME,
 			ttp:AddDoubleLine(L["AddOns Total Memory"], SAM:FormatMemory(totalMem), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
 
 			for i = 1, maxAddons do
-				if (topAddOns[i].value == 0) then
+				if (topAddOns[i] == nil or topAddOns[i].value == 0) then
 					break
 				end
 				ttp:AddDoubleLine(topAddOns[i].name, SAM:FormatMemory(topAddOns[i].value), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
