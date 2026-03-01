@@ -329,13 +329,16 @@ end
 local function BuildCategoryTableFromToc(targetTable, metaField)
 	local count = SAM.compat.GetNumAddOns()
 	for addonIndex = 1, count do
-		local value = SAM:GetAddOnMetadata(addonIndex, metaField) -- or SAM:GetAddOnMetadata(addonIndex, "X-Category")
-		if value then
-			value = strtrim(value)
-			targetTable[value] = targetTable[value] or { addons = {} }
+		local rawValue = SAM:GetAddOnMetadata(addonIndex, metaField) -- or SAM:GetAddOnMetadata(addonIndex, "X-Category")
+		if rawValue then
+			rawValue = strtrim(rawValue)
 			local name = SAM.compat.GetAddOnInfo(addonIndex)
-			targetTable[value].addons[name] = true
-			targetTable[value].name = value
+			for value in rawValue:gmatch("([^,]+)") do
+				value = strtrim(value)
+				targetTable[value] = targetTable[value] or { addons = {} }
+				targetTable[value].addons[name] = true
+				targetTable[value].name = value
+			end
 		end
 	end
 	return targetTable
