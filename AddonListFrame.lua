@@ -194,7 +194,7 @@ local function AddonRightClickMenu(addon)
 		local tocCategory = tocCategories[categoryName]
 		local isInToc = tocCategory and tocCategory.addons and tocCategory.addons[name]
 		table.insert(menu, {
-			text = SAM:LocalizeCategoryName(categoryName, not isInToc) .. (isInToc and (" " .. C.yellow:WrapText(L["(Automatically in category)"])) or ""),
+			text = categoryName .. (isInToc and (" " .. C.yellow:WrapText(L["(Automatically in category)"])) or ""),
 			tooltipOnButton = true,
 			tooltipTitle = categoryName,
 			tooltipText = L["Hold shift to add/remove AddOns that depends on it as well"],
@@ -323,14 +323,14 @@ local function CategoriesForAddon(name)
 	local sep = ""
 	for _, categoryTable in pairs(userTable) do
 		if (categoryTable.addons[name]) then
-			resultText = resultText .. sep .. SAM:LocalizeCategoryName(categoryTable.name, userTable)
+			resultText = resultText .. sep .. categoryTable.name
 			sep = ", "
 		end
 	end
 
 	for _, categoryTable in pairs(tocTable) do
 		if (categoryTable.addons[name]) then
-			resultText = resultText .. sep .. SAM:LocalizeCategoryName(categoryTable.name, tocTable)
+			resultText = resultText .. sep .. categoryTable.name
 			sep = ", "
 		end
 	end

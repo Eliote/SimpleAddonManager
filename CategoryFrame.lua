@@ -251,13 +251,13 @@ local function CategoryButtonOnEnter(self)
 	GameTooltip:ClearLines();
 	GameTooltip:SetOwner(self, "ANCHOR_NONE")
 	GameTooltip:SetPoint("LEFT", self, "RIGHT")
-	GameTooltip:AddLine(SAM:LocalizeCategoryName(name, userTable), 1, 1, 1);
-	if (tocTable) then
-		GameTooltip:AddLine(L["Category created from addons metadata"], nil, nil, nil, true);
+	GameTooltip:AddLine(name, 1, 1, 1);
+	if (userTable) then
+		GameTooltip:AddLine(L["User created category"], nil, nil, nil, true);
 	elseif (fixedTable) then
 		GameTooltip:AddLine(self.category.description, nil, nil, nil, true);
 	else
-		GameTooltip:AddLine(L["User created category"], nil, nil, nil, true);
+		GameTooltip:AddLine(L["Category created from addons metadata"], nil, nil, nil, true);
 	end
 	GameTooltip:AddLine("\n");
 	if (fixedTable) then
@@ -301,7 +301,7 @@ local function UpdateCategoryList()
 			elseif (fixed) then
 				button.Name:SetText(category.name)
 			else
-				button.Name:SetText(C.yellow:WrapText(SAM:LocalizeCategoryName(category.name)))
+				button.Name:SetText(C.yellow:WrapText(category.name))
 			end
 			local enabled = IsCategorySelected(categoryKey)
 
@@ -335,6 +335,7 @@ local function BuildCategoryTableFromToc(targetTable, metaField)
 			local name = SAM.compat.GetAddOnInfo(addonIndex)
 			for value in rawValue:gmatch("([^,]+)") do
 				value = strtrim(value)
+				value = SAM:LocalizeCategoryName(value, false)
 				targetTable[value] = targetTable[value] or { addons = {} }
 				targetTable[value].addons[name] = true
 				targetTable[value].name = value
