@@ -16,12 +16,20 @@ local zones = {
 	["scenario"] = L["Scenario"],
 }
 
-local function countTable(t)
+local function countTable(t, where)
 	if not t then return 0 end
 
 	local count = 0
-	for _ in pairs(t) do count = count + 1 end
+	for k, v in pairs(t) do 
+		if (where == nil or where(k, v)) then
+			count = count + 1
+		end
+	end
 	return count
+end
+
+local function KeyIsTrueFilter(k, v)
+	return v == true
 end
 
 local function MigrateProfileAddonsTable()
@@ -114,8 +122,10 @@ function module:LoadAddonsFromProfile(profileName, keepEnabledAddons)
 end
 
 function module:LoadAddons(addons)
-	for name, _ in pairs(addons) do
-		SAM:EnableAddOn(name)
+	for name, enabled in pairs(addons) do
+		if (enabled) then
+			SAM:EnableAddOn(name)
+		end
 	end
 	local locks = SAM:GetModule("Lock"):GetLockedAddons()
 	for name, state in pairs(locks) do
@@ -192,7 +202,7 @@ local function ProfilesDropDownCreate()
 			hasArrow = true,
 			menuList = {
 				{ text = title, isTitle = true, notCheckable = true },
-				function() return { text = countTable(info.addons) .. " AddOns", notCheckable = true } end,
+				function() return { text = countTable(info.addons, KeyIsTrueFilter) .. " AddOns", notCheckable = true } end,
 				T.separatorInfo,
 				{
 					text = L["Load"],
@@ -258,7 +268,7 @@ local function ProfilesDropDownCreate()
 	end
 
 	local function addonsIn(set)
-		local list = SAM:TableAsSortedPairList(set.addons)
+		local list = SAM:TableAsSortedPairList(set.addons, function(k, v) return v == true end)
 		local maxPerMenu = 30
 
 		local function next(from)
@@ -327,7 +337,7 @@ local function ProfilesDropDownCreate()
 				{ text = profileName, isTitle = true, notCheckable = true },
 				function()
 					return {
-						text = countTable(set.addons) .. " AddOns",
+						text = countTable(set.addons, KeyIsTrueFilter) .. " AddOns",
 						notCheckable = true,
 						hasArrow = true,
 						menuList = addonsIn(set),
