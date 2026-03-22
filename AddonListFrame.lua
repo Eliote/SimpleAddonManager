@@ -2,9 +2,6 @@ local _, T = ...
 local L = T.L
 local C = T.Color
 
-local EDDM = LibStub("ElioteDropDownMenu-1.0")
-local dropdownFrame = EDDM.UIDropDownMenu_GetOrCreate("SimpleAddonManager_MenuFrame")
-
 --- @type SimpleAddonManager
 local SAM = T.AddonFrame
 local module = SAM:RegisterModule("AddonList")
@@ -105,117 +102,115 @@ local function SetCategoryForAllChildren(children, state, categoryTable, categor
 	end
 end
 
-local function AddonRightClickMenu(addon)
+local function AddonRightClickMenu(owner, root)
+	local addon = owner.addon
 	if (not SAM:IsAddonInstalled(addon.index)) then
 		return
 	end
 	local addonIndex = addon.index
 	local name, title, _, _, reason = SAM.compat.GetAddOnInfo(addonIndex)
-	local menu = {
-		{ text = title, isTitle = true, notCheckable = true },
-	}
+
+	root:CreateTitle(title)
 
 	if (SAM:IsAddonInstalled(addonIndex)) then
-		table.insert(menu, {
-			text = L["Lock Addon"],
-			tooltipOnButton = true,
-			tooltipTitle = "",
-			tooltipText = L["Tip: You can also alt-click the addon in the list to lock/unlock it"],
-			func = function(_, _, _, checked)
-				SAM:GetModule("Lock"):SetLockState(addonIndex, not checked)
-				SAM:Update()
-			end,
-			checked = function()
+		root:CreateCheckbox(
+			L["Lock Addon"],
+			function()
 				return SAM:GetModule("Lock"):IsAddonLocked(addonIndex)
 			end,
-		})
+			function()
+				local checked = SAM:GetModule("Lock"):IsAddonLocked(addonIndex)
+				SAM:GetModule("Lock"):SetLockState(addonIndex, not checked)
+				SAM:Update()
+			end
+		):SetTooltip(function(tooltip, elementDescription)
+			GameTooltip_SetTitle(tooltip, MenuUtil.GetElementText(elementDescription))
+			GameTooltip_AddInstructionLine(tooltip, L["Tip: You can also alt-click the addon in the list to lock/unlock it"])
+		end)
 	end
 
 	if (not SAM.compat.IsAddOnLoaded(addonIndex) and SAM.compat.IsAddOnLoadOnDemand(addonIndex) and reason == "DEMAND_LOADED") then
-		table.insert(menu, {
-			text = L["Load AddOn"],
-			func = function()
+		root:CreateButton(
+			L["Load AddOn"],
+			function()
+				SAM.compat.LoadAddOn(addonIndex)
 				SAM:Update()
-			end,
-			notCheckable = true,
-		})
+			end
+		)
 	end
 
 	if (SAM.compat.GetAddOnDependencies(addonIndex)) then
-		table.insert(menu, {
-			text = L["Enable this Addon and its dependencies"],
-			func = function()
+		root:CreateButton(
+			L["Enable this Addon and its dependencies"],
+			function()
 				SAM:EnableAddOn(addonIndex)
 				EnableAllDeps(addonIndex)
 				SAM:Update()
-			end,
-			notCheckable = true,
-			tooltipOnButton = true,
-			tooltipTitle = title,
-			tooltipText = AddonTooltipBuildDepsString(addonIndex)
-		})
+			end
+		):SetTooltip(function(tooltip, elementDescription)
+			GameTooltip_SetTitle(tooltip, MenuUtil.GetElementText(elementDescription))
+			GameTooltip_AddInstructionLine(tooltip, AddonTooltipBuildDepsString(addonIndex))
+		end)
 	end
 
 	local children = CreateAddonChildrenList(name)
 	if (next(children)) then
-		table.insert(menu, {
-			text = L["Enable this and every AddOn that depends on it"],
-			func = function()
+		root:CreateButton(
+			L["Enable this and every AddOn that depends on it"],
+			function()
 				SAM:EnableAddOn(addonIndex)
 				SetAllChildren(children, true)
 				SAM:Update()
-			end,
-			notCheckable = true,
-			tooltipOnButton = true,
-			tooltipTitle = title,
-			tooltipText = AddonTooltipBuildChildrenString(children)
-		})
-		table.insert(menu, {
-			text = L["Disable this and every AddOn that depends on it"],
-			func = function()
-				SAM:DisableAddOn(addonIndex)
+			end
+		):SetTooltip(function(tooltip, elementDescription)
+			GameTooltip_SetTitle(tooltip, MenuUtil.GetElementText(elementDescription))
+			GameTooltip_AddInstructionLine(tooltip, AddonTooltipBuildChildrenString(children))
+		end)
+
+		root:CreateButton(
+			L["Disable this and every AddOn that depends on it"],
+			function()
+				SAM:EnableAddOn(addonIndex)
 				SetAllChildren(children, false)
 				SAM:Update()
-			end,
-			notCheckable = true,
-			tooltipOnButton = true,
-			tooltipTitle = title,
-			tooltipText = AddonTooltipBuildChildrenString(children)
-		})
+			end
+		):SetTooltip(function(tooltip, elementDescription)
+			GameTooltip_SetTitle(tooltip, MenuUtil.GetElementText(elementDescription))
+			GameTooltip_AddInstructionLine(tooltip, AddonTooltipBuildChildrenString(children))
+		end)
 	end
 
-	table.insert(menu, T.separatorInfo)
-	table.insert(menu, { text = L["Categories"], isTitle = true, notCheckable = true })
+	root:CreateDivider()
 
 	local userCategories, tocCategories = SAM:GetCategoryTables()
 	local sortedCategories = SAM:TableKeysToSortedList(userCategories, tocCategories)
+	local categoryButton = root:CreateButton(L["Categories"])
 	for _, categoryName in ipairs(sortedCategories) do
-		local categoryDb = userCategories[categoryName]
 		local tocCategory = tocCategories[categoryName]
 		local isInToc = tocCategory and tocCategory.addons and tocCategory.addons[name]
-		table.insert(menu, {
-			text = categoryName .. (isInToc and (" " .. C.yellow:WrapText(L["(Automatically in category)"])) or ""),
-			tooltipOnButton = true,
-			tooltipTitle = categoryName,
-			tooltipText = L["Hold shift to add/remove AddOns that depends on it as well"],
-			checked = function()
-				return categoryDb and categoryDb.addons and categoryDb.addons[name]
-			end,
-			keepShownOnClick = true,
-			func = function(_, _, _, checked)
+		local function IsCategorySelected()
+			local categoryDb = userCategories[categoryName]
+			return categoryDb and categoryDb.addons and categoryDb.addons[name]
+		end
+		categoryButton:CreateCheckbox(
+			categoryName .. (isInToc and (" " .. C.yellow:WrapText(L["(Automatically in category)"])) or ""),
+			IsCategorySelected,
+			function()
+				local checked = not IsCategorySelected()
 				SetCategory(name, checked, userCategories, categoryName)
-
 				if (IsShiftKeyDown()) then
 					SetCategoryForAllChildren(children, checked, userCategories, categoryName)
 				end
-
 				SAM:Update()
-			end,
-		})
+			end
+		):SetTooltip(function(tooltip, elementDescription)
+			GameTooltip_SetTitle(tooltip, categoryName)
+			GameTooltip_AddInstructionLine(tooltip, L["Hold shift to add/remove AddOns that depends on it as well"])
+		end)
 	end
-	table.insert(menu, T.separatorInfo)
-	table.insert(menu, T.closeMenuInfo)
-	return menu
+
+	root:CreateDivider()
+	root:CreateButton(CANCEL, nop)
 end
 
 local function Checkbox_SetAddonState(self, _, addonIndex)
@@ -289,7 +284,7 @@ local function AddonButtonOnClick(self, mouseButton)
 	if (mouseButton == "LeftButton") then
 		ToggleAddon(self.EnabledButton)
 	else
-		EDDM.EasyMenu(AddonRightClickMenu(self.addon), dropdownFrame, "cursor", 0, 0, "MENU")
+		MenuUtil.CreateContextMenu(self, AddonRightClickMenu)
 	end
 end
 

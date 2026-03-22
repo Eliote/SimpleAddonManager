@@ -21,6 +21,7 @@ SAM.compat = {
 	IsAddonVersionCheckEnabled = getFunction("IsAddonVersionCheckEnabled"),
 	SetAddonVersionCheck = getFunction("SetAddonVersionCheck"),
 	IsAddOnLoadOnDemand = getFunction("IsAddOnLoadOnDemand"),
+	LoadAddOn = getFunction("LoadAddOn"),
 	GetAddOnEnableState = (C_AddOns and C_AddOns.GetAddOnEnableState) or function(nameOrIndex, character)
 		return GetAddOnEnableState(character, nameOrIndex) -- the old API has inverted parameters
 	end
