@@ -209,6 +209,23 @@ local function AddonRightClickMenu(owner, root)
 		end)
 	end
 
+	local db = SAM:GetDb()
+	local setsList = SAM:TableAsSortedPairList(db.sets)
+	local profilesButton = root:CreateButton(L["Profiles"])
+	for _, pair in ipairs(setsList) do
+		local profileName, set = pair.key, pair.value
+		profilesButton:CreateCheckbox(
+			profileName,
+			function()
+				return set.addons[name]
+			end,
+			function()
+				print(set.addons[name])
+				set.addons[name] = not set.addons[name] or nil
+			end
+		)
+	end
+
 	root:CreateDivider()
 	root:CreateButton(CANCEL, nop)
 end
