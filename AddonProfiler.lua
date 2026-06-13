@@ -131,6 +131,12 @@ function module:CanShow()
 	return C_AddOnProfiler and C_AddOnProfiler.IsEnabled() and C_AddOnProfiler.GetApplicationMetric and SAM:GetDb().config.profiling.cpuUpdate > 0
 end
 
+function module:GetCpuSorting()
+	if not module:CanShow() then return false end
+	local db = SAM:GetDb()
+	return db.config.sortingCpu
+end
+
 function module:PreInitialize()
 	SAM.ProfilerFrame = CreateFrame("Frame", nil, SAM)
 

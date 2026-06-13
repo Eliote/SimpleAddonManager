@@ -96,7 +96,7 @@ local cpuSortingFuncMap = {
 local function SortAddons(list)
 	local db = SAM:GetDb()
 	local sortFuncName = sortingFunctionMap[db.config.sorting]
-	local sortFuncCpu = cpuSortingFuncMap[db.config.sortingCpu]
+	local sortFuncCpu = cpuSortingFuncMap[SAM:GetModule("AddonProfiler"):GetCpuSorting()]
 	if (sortFuncCpu) then
 		table.sort(list, function(a, b) return sortFuncCpu(a, b, sortFuncName) end)
 	elseif (sortFuncName) then
@@ -338,7 +338,7 @@ local function CreateList(filter, categories)
 	local inCategoriesFunc = AddonsInCategoriesFunc(categories)
 	local filterLower = filter:lower()
 	local listStyle = SAM:GetDb().config.addonListStyle
-	local sortingCpu = SAM:GetDb().config.sortingCpu
+	local sortingCpu = SAM:GetModule("AddonProfiler"):GetCpuSorting()
 
 	if (listStyle == "tree" and not sortingCpu) then
 		addons = CreateAddonListAsTable(filterLower, inCategoriesFunc)
