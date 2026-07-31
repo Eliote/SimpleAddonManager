@@ -193,16 +193,42 @@ local function ProfilesDropDownCreate()
 		menuList = charsMenuList
 	})
 
-	for _, pair in ipairs(charsTable) do
-		local info = pair.value
-		local title = "|c" .. info.playerColor .. info.playerId .. "|r"
+	local maxButtonPerMenu = 25
+	local function createSplitMenu(list, maxButtons, builder)
+		local function next(from)
+			local menu = {}
+			local to = from + maxButtons
+			for i = from, to do
+				if (i == to and list[i]) then
+					table.insert(menu, function()
+						return {
+							text = L["..."],
+							notCheckable = true,
+							hasArrow = true,
+							menuList = next(i)
+						}
+					end)
+					break
+				end
+				if (not list[i]) then
+					break
+				end
+				table.insert(menu, builder(list[i]))
+			end
+			return menu
+		end
+		return next(1)
+	end
+
+	local function createCharMenu(charInfo)
+		local title = "|c" .. charInfo.playerColor .. charInfo.playerId .. "|r"
 		local charMenu = {
 			text = title,
 			notCheckable = true,
 			hasArrow = true,
 			menuList = {
 				{ text = title, isTitle = true, notCheckable = true },
-				function() return { text = countTable(info.addons, KeyIsTrueFilter) .. " AddOns", notCheckable = true } end,
+				function() return { text = countTable(charInfo.addons, KeyIsTrueFilter) .. " AddOns", notCheckable = true } end,
 				T.separatorInfo,
 				{
 					text = L["Load"],
@@ -212,7 +238,7 @@ local function ProfilesDropDownCreate()
 						SAM:ShowConfirmDialog(
 								L("Load the AddOns from '${char}'?", { char = title }),
 								function()
-									local enabledAddons = info.addons
+									local enabledAddons = charInfo.addons
 									SAM:DisableAllAddOns()
 									module:LoadAddons(enabledAddons)
 								end
@@ -221,9 +247,44 @@ local function ProfilesDropDownCreate()
 				},
 			}
 		}
-		table.insert(charsMenuList, charMenu)
+		return charMenu
 	end
 
+	if (#charsTable > maxButtonPerMenu) then
+		local realms = {}
+		local function getRealm(info)
+			if (info.realm) then return info.realm end
+			return info.playerId:match("%-(.*)") or ""
+		end
+		for _, pair in ipairs(charsTable) do
+			if (pair.value.playerId) then
+				local realm = getRealm(pair.value)
+				local realmChars = realms[realm] or {}
+				realms[realm] = realmChars
+				table.insert(realmChars, pair.value)
+			end
+		end
+		for realm, realmChars in pairs(realms) do
+			local realmMenu = {
+				text = realm .. " (" .. #realmChars .. ")",
+				notCheckable = true,
+				hasArrow = true,
+				menuList = createSplitMenu(realmChars, maxButtonPerMenu, function(charInfo)
+					return createCharMenu(charInfo)
+				end)
+			}
+			table.insert(charsMenuList, realmMenu)
+		end
+	else
+		local charsSplit = createSplitMenu(charsTable, maxButtonPerMenu, function(pair)
+			return createCharMenu(pair.value)
+		end)
+		for _, v in ipairs(charsSplit) do
+			table.insert(charsMenuList, v)
+		end
+	end
+
+	table.insert(charsMenuList, T.separatorInfo)
 	table.insert(charsMenuList, {
 		text = L["Clear list"],
 		notCheckable = true,
@@ -269,32 +330,10 @@ local function ProfilesDropDownCreate()
 
 	local function addonsIn(set)
 		local list = SAM:TableAsSortedPairList(set.addons, function(k, v) return v == true end)
-		local maxPerMenu = 30
 
-		local function next(from)
-			local menu = {}
-			for i = from, from + maxPerMenu do
-				if (i == from + maxPerMenu and list[i]) then
-					table.insert(menu, function()
-						return {
-							text = L["..."],
-							notCheckable = true,
-							hasArrow = true,
-							menuList = next(i)
-						}
-					end)
-					break
-				end
-				if (not list[i]) then
-					break
-				end
-				table.insert(menu, { text = list[i].key, notCheckable = true })
-			end
-
-			return menu
-		end
-
-		return next(1)
+		return createSplitMenu(list, maxButtonPerMenu, function(v)
+			return { text = v.key, notCheckable = true }
+		end)
 	end
 
 	local function createZoneOptionsMenu(profileName)
