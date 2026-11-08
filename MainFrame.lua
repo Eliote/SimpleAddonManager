@@ -13,6 +13,10 @@ local function CharacterDropDownGenerator(owner, root)
 			root:CreateDivider()
 		end
 		local name = v.name
+		local surname = v.surname
+		if (surname) then
+			name = name .. " " .. surname
+		end
 		local coloredName = name
 		if (v.class) then
 			local _, _, _, hex = GetClassColor(v.class)

@@ -4,7 +4,6 @@ local C = T.Color
 
 local orderedCharList
 local selectedCharIndex -- [0] for all characters, [1] for player name
-local playerName
 local playerGuid
 
 --- @class SimpleAddonManager
@@ -463,9 +462,10 @@ end
 local playerInfoCache
 function SAM:GetLoggedPlayerInfo()
 	if (playerInfoCache == nil) then
-		local name, realm = UnitNameUnmodified("player")
-		if (realm == nil or realm == "") then
-			realm = select(2, UnitFullName("player"))
+		local name, realmOrSurname = UnitNameUnmodified("player")
+		local realm = SAM:GetRealm()
+		if (SAM:HasSurname()) then
+			name = name .. " " .. realmOrSurname
 		end
 		playerInfoCache = {
 			id = name .. "-" .. realm,
@@ -539,19 +539,52 @@ function SAM:ClearInitialState()
 	end
 end
 
+function SAM:IsWoWForever()
+	return WOW_PROJECT_ID == WOW_PROJECT_CAMELOT
+end
+
+function SAM:HasSurname()
+	return SAM:IsWoWForever()
+end
+
+function SAM:GetRealm()
+	if (SAM:IsWoWForever()) then
+		if C_GameRules.IsGameRuleActive(Enum.GameRule.PvPRuleset) then
+			return "PvP"
+		elseif C_GameRules.IsGameRuleActive(Enum.GameRule.RPRuleset) then
+			return "RP"
+		elseif C_GameRules.IsGameRuleActive(Enum.GameRule.HardcoreRuleset) then
+			return "HC"
+		else
+			return "PvE"
+		end
+	end
+	return GetRealmName()
+end
+
 function SAM:PLAYER_ENTERING_WORLD(...)
-	playerName = UnitNameUnmodified("player")
+	local playerName, realmOrSurname = UnitNameUnmodified("player")
 	playerGuid = UnitGUID("player")
 
 	local isInitialLogin, isReloadingUi = ...
 	if (isInitialLogin or isReloadingUi) then
 		-- init player list
-		local realm = GetRealmName()
+		local realm = SAM:GetRealm()
 		local charList = SAM:GetDb().config.characterList2
 		charList[realm] = charList[realm] or {}
 
 		local _, classFile = UnitClass("player")
-		local playerData = { class = classFile, name = playerName, guid = playerGuid }
+		local surname
+		if (SAM:HasSurname()) then
+			surname = realmOrSurname
+		end
+		local playerData = {
+			class = classFile,
+			name = playerName,
+			surname = surname,
+			guid = playerGuid,
+			realm = realm
+		}
 		charList[realm][playerGuid] = playerData
 
 		orderedCharList = {}
