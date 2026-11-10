@@ -124,6 +124,17 @@ function module:ShowMenuDropDown()
 	end
 
 	table.insert(menu, T.separatorInfo)
+	table.insert(menu, {
+		text = L["Reset Main Window"],
+		notCheckable = true,
+		func = function()
+			SAM:ClearAllPoints()
+			SAM:SetPoint("CENTER", 0, 24)
+			SAM:SetSize(SAM.MIN_SIZE_W, SAM.MIN_SIZE_H)
+			SAM:RecalculateFrameSizeMinMax()
+		end
+	})
+	table.insert(menu, T.separatorInfo)
 	table.insert(menu, T.closeMenuInfo)
 
 	EDDM.ToggleEasyMenu(menu, dropdownFrame, "cursor", 0, 0, "MENU")

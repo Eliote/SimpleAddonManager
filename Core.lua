@@ -23,7 +23,7 @@ SAM:EnableMouse(true)
 SAM:SetClampedToScreen(true)
 if (SAM.SetResizeBounds) then
 	SAM.SetMinResize = function(self, w, h)
-		self:SetResizeBounds(w, h)
+		self:SetResizeBounds(w, h, GetScreenWidth() * 0.98, GetScreenHeight() * 0.98)
 		local cw, ch = self:GetSize()
 		self:SetSize(cw < w and w or cw, ch < h and h or ch)
 	end
@@ -256,6 +256,21 @@ function SAM:Update()
 	end
 end
 
+function SAM:RepositionIfNeeded()
+	local screenWidth = GetScreenWidth()
+	if (SAM:GetLeft() < 0 or SAM:GetRight() > screenWidth) then
+		SAM:ClearAllPoints()
+		SAM:SetPoint("CENTER", 0, 24)
+		SAM:SetWidth(screenWidth * 0.9)
+	end
+	local screenHeight = GetScreenHeight()
+	if (SAM:GetBottom() < 0 or SAM:GetTop() > screenHeight) then
+		SAM:ClearAllPoints()
+		SAM:SetPoint("CENTER", 0, 24)
+		SAM:SetHeight(screenHeight * 0.9)
+	end
+end
+
 SAM:SetScript("OnShow", function()
 	SAM:Initialize()
 
@@ -265,8 +280,9 @@ SAM:SetScript("OnShow", function()
 		end
 	end
 
+	SAM:RepositionIfNeeded()
 	SAM:Update()
-	SAM:SetCategoryVisibility(SAM:GetDb().isCategoryFrameVisible, false)
+	SAM:RecalculateFrameSizeMinMax()
 
 	local db = SAM:GetDb()
 	if (db.config.autofocusSearch) then
@@ -484,6 +500,8 @@ end)
 SAM:RegisterEvent("ADDON_LOADED")
 SAM:RegisterEvent("PLAYER_ENTERING_WORLD")
 SAM:RegisterEvent("PLAYER_LEAVING_WORLD")
+SAM:RegisterEvent("DISPLAY_SIZE_CHANGED")
+SAM:RegisterEvent("UI_SCALE_CHANGED")
 
 function SAM:ADDON_LOADED(name)
 	if name ~= ADDON_NAME then
@@ -659,4 +677,19 @@ function SAM.HybridScrollFrame_ShiftAwareOnScrollWheel(self, delta, step)
 		step = step * 10;
 	end
 	HybridScrollFrame_OnMouseWheel(self, delta, step)
+end
+
+function SAM:RecalculateFrameSizeMinMax()
+	if (SAM.initialized) then
+		-- this forces the min/max size to be recalculated
+		SAM:SetCategoryVisibility(SAM:GetDb().isCategoryFrameVisible, false)
+	end
+end
+
+function SAM:UI_SCALE_CHANGED()
+	SAM:RecalculateFrameSizeMinMax()
+end
+
+function SAM:DISPLAY_SIZE_CHANGED()
+	SAM:RecalculateFrameSizeMinMax()
 end
