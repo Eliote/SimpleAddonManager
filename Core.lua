@@ -567,15 +567,21 @@ end
 
 function SAM:GetRealm()
 	if (SAM:IsWoWForever()) then
-		if C_GameRules.IsGameRuleActive(Enum.GameRule.PvPRuleset) then
-			return "PvP"
-		elseif C_GameRules.IsGameRuleActive(Enum.GameRule.RPRuleset) then
-			return "RP"
-		elseif C_GameRules.IsGameRuleActive(Enum.GameRule.HardcoreRuleset) then
-			return "HC"
-		else
-			return "PvE"
+		local rules = {}
+
+		if C_GameRules.IsGameRuleActive(Enum.GameRule.RPRuleset) then
+			table.insert(rules, "RP")
 		end
+		if C_GameRules.IsGameRuleActive(Enum.GameRule.HardcoreRuleset) then
+			table.insert(rules, "HC")
+		end
+		if C_GameRules.IsGameRuleActive(Enum.GameRule.PvPRuleset) then
+			table.insert(rules, "PvP")
+		else
+			table.insert(rules, "PvE")
+		end
+
+		return table.concat(rules, ".")
 	end
 	return GetRealmName()
 end
