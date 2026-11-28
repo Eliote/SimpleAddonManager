@@ -597,7 +597,7 @@ local function UpdateButtonProfiling(self)
 	end
 end
 
-local wowExpMargin = LE_EXPANSION_LEVEL_CURRENT >= 9 and 4 or 0
+local wowExpMargin = (LE_EXPANSION_LEVEL_CURRENT >= 9 or WOW_PROJECT_ID == WOW_PROJECT_CAMELOT) and 4 or 0
 
 local function UpdateList()
 	local buttons = HybridScrollFrame_GetButtons(SAM.AddonListFrame.ScrollFrame);
